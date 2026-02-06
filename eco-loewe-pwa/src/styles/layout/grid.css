@@ -1,0 +1,5 @@
+/* ── Grid helpers ──────────────────────────────── */
+.page {
+  display: grid;
+  gap: 14px;
+}

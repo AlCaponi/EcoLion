@@ -1,0 +1,22 @@
+/* ── Shop page ─────────────────────────────────── */
+.shopPage h1 { margin: 6px 0 10px; }
+
+.coinBalance { font-size: 22px; font-weight: 800; }
+
+.shopGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.shopItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.shopItemIcon { font-size: 32px; }
+.shopItemName { font-weight: 800; }
+.shopItemPrice { color: var(--muted); font-weight: 700; font-size: 13px; }
