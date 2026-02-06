@@ -1,70 +1,80 @@
+/* ── Leaderboard page ──────────────────────────── */
 .leaderboardPage h1 { margin: 6px 0 10px; }
 .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
 
-.streakValue { font-size: 22px; font-weight: 800; }
-.streakHint { color: var(--muted); font-weight: 600; }
+/* ── Your rank summary card ── */
+.myRankCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.myRankPos {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--brand);
+  min-width: 56px;
+  text-align: center;
+}
+.myRankName { font-weight: 800; font-size: 16px; }
+.myRankStat { color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 2px; }
 
-.streakBar { display: flex; gap: 8px; margin-top: 12px; }
-.dot { width: 10px; height: 10px; border-radius: 999px; background: var(--border); }
-.dot.on { background: var(--brand); }
+/* ── Ranking list ── */
+.rankList { display: grid; gap: 8px; }
 
-.quartierMap { display: grid; gap: 14px; }
-.quartierMap svg { width: 100%; }
-.quartierMap svg rect { fill: var(--surface-2); stroke: var(--border); }
-.quartierMap svg circle { fill: var(--brand); opacity: .9; }
-.quartierMap svg text { font-size: 12px; fill: var(--text); font-weight: 700; }
-
-.quartierList { display: grid; gap: 8px; }
-.quartierRow {
+.rankRow {
   display: grid;
-  grid-template-columns: 24px 1fr auto;
+  grid-template-columns: 32px 32px 1fr auto auto;
   gap: 10px;
   align-items: center;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
+  transition: background .12s ease;
 }
-.quartierRank { font-weight: 900; color: var(--brand); }
-.quartierName { font-weight: 700; }
-.quartierMetric { color: var(--muted); font-weight: 700; }
 
-.friendsRow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-.friendChip {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 14px;
-  padding: 10px 12px;
-  display: grid;
-  grid-template-columns: 28px 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 4px 10px;
-  text-align: left;
-  box-shadow: var(--shadow-sm);
+.rankRow:nth-child(-n+3) .rankPos {
+  color: var(--brand);
 }
-.friendChip .avatar {
-  grid-row: 1 / span 2;
-  width: 28px; height: 28px;
+
+.rankRowMe {
+  background: color-mix(in srgb, var(--brand) 8%, white 92%);
+  border-color: color-mix(in srgb, var(--brand) 25%, var(--border) 75%);
+}
+
+.rankPos { font-weight: 900; text-align: center; color: var(--muted); }
+.rankAvatar {
+  width: 32px; height: 32px;
   border-radius: 999px;
   display: grid; place-items: center;
   background: var(--surface-2);
   font-weight: 900;
+  font-size: 14px;
 }
-.friendChip .name { font-weight: 800; }
-.friendChip .mini { color: var(--muted); font-weight: 700; font-size: 12px; }
-.friendChip .poke { grid-column: 3; grid-row: 1 / span 2; color: var(--brand); font-weight: 900; }
+.rankRowMe .rankAvatar {
+  background: var(--brand);
+  color: white;
+}
+.rankName { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.rankMetric { color: var(--muted); font-weight: 700; font-size: 13px; white-space: nowrap; }
 
-.friendsTable { display: grid; gap: 8px; margin-top: 12px; }
-.friendsTableRow{
-  display: grid;
-  grid-template-columns: 28px 1fr auto auto auto;
-  gap: 10px;
-  align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+.youBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  text-transform: uppercase;
 }
-.friendsTableRow .pos { font-weight: 900; color: var(--brand); }
-.friendsTableRow .who { font-weight: 800; }
-.friendsTableRow .stat { color: var(--muted); font-weight: 700; }
+
+.rankGap {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 4px;
+  padding: 4px 0;
+}

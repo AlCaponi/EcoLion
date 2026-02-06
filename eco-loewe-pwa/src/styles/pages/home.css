@@ -3,6 +3,11 @@
 
 .heroValue { font-size: 22px; font-weight: 800; }
 
+/* streak bar (shared visual) */
+.streakBar { display: flex; gap: 8px; margin-top: 12px; }
+.dot { width: 10px; height: 10px; border-radius: 999px; background: var(--border); }
+.dot.on { background: var(--brand); }
+
 .todayGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
