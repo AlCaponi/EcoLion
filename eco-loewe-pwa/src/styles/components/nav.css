@@ -1,0 +1,25 @@
+.bottomNav{
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 10px;
+  gap: 8px;
+}
+.navItem{
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.navItem.active{
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, white 90%);
+  border-color: color-mix(in srgb, var(--brand) 20%, var(--border) 80%);
+}

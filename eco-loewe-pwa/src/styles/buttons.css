@@ -1,0 +1,27 @@
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: .2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: transform .06s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.btn:active { transform: translateY(1px); box-shadow: none; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.btnPrimary {
+  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: white;
+  border-color: color-mix(in srgb, var(--brand-dark) 80%, black 20%);
+}
+
+.btnSmall { padding: 9px 12px; border-radius: 10px; font-weight: 600; }

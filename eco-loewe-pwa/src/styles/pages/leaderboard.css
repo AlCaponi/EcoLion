@@ -1,0 +1,70 @@
+.leaderboardPage h1 { margin: 6px 0 10px; }
+.hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+
+.streakValue { font-size: 22px; font-weight: 800; }
+.streakHint { color: var(--muted); font-weight: 600; }
+
+.streakBar { display: flex; gap: 8px; margin-top: 12px; }
+.dot { width: 10px; height: 10px; border-radius: 999px; background: var(--border); }
+.dot.on { background: var(--brand); }
+
+.quartierMap { display: grid; gap: 14px; }
+.quartierMap svg { width: 100%; }
+.quartierMap svg rect { fill: var(--surface-2); stroke: var(--border); }
+.quartierMap svg circle { fill: var(--brand); opacity: .9; }
+.quartierMap svg text { font-size: 12px; fill: var(--text); font-weight: 700; }
+
+.quartierList { display: grid; gap: 8px; }
+.quartierRow {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.quartierRank { font-weight: 900; color: var(--brand); }
+.quartierName { font-weight: 700; }
+.quartierMetric { color: var(--muted); font-weight: 700; }
+
+.friendsRow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+.friendChip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 10px;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+.friendChip .avatar {
+  grid-row: 1 / span 2;
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--surface-2);
+  font-weight: 900;
+}
+.friendChip .name { font-weight: 800; }
+.friendChip .mini { color: var(--muted); font-weight: 700; font-size: 12px; }
+.friendChip .poke { grid-column: 3; grid-row: 1 / span 2; color: var(--brand); font-weight: 900; }
+
+.friendsTable { display: grid; gap: 8px; margin-top: 12px; }
+.friendsTableRow{
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.friendsTableRow .pos { font-weight: 900; color: var(--brand); }
+.friendsTableRow .who { font-weight: 800; }
+.friendsTableRow .stat { color: var(--muted); font-weight: 700; }

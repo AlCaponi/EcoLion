@@ -1,0 +1,12 @@
+import { RouteObject } from "react-router-dom";
+import HomePage from "../pages/HomePage";
+import StatsPage from "../pages/StatsPage";
+import ShopPage from "../pages/ShopPage";
+import LeaderboardPage from "../pages/LeaderboardPage";
+
+export const routes: RouteObject[] = [
+  { path: "/", element: <HomePage /> },
+  { path: "/stats", element: <StatsPage /> },
+  { path: "/shop", element: <ShopPage /> },
+  { path: "/leaderboard", element: <LeaderboardPage /> }
+];

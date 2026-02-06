@@ -1,0 +1,18 @@
+:root{
+  --brand: #D61F2C;        /* Winterthur-rot-ish */
+  --brand-dark: #B71823;
+
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f6f6f7;
+
+  --text: #14161a;
+  --muted: #5d6470;
+
+  --border: #e6e8ee;
+
+  --shadow-sm: 0 1px 8px rgba(16, 24, 40, 0.08);
+
+  --radius: 16px;
+  --maxw: 920px;
+}

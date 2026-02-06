@@ -1,0 +1,11 @@
+.card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.sectionTitle { font-weight: 900; margin-bottom: 10px; }
+.label { color: var(--muted); font-weight: 800; font-size: 12px; text-transform: uppercase; }
+.row { display: flex; gap: 10px; }
+.between { justify-content: space-between; align-items: center; }

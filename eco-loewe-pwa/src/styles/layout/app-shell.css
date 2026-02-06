@@ -1,0 +1,34 @@
+.appShell{
+  min-height: 100dvh;
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: 56px 1fr 62px;
+}
+
+.topBar{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+
+.brand{ font-weight: 900; letter-spacing: .2px; }
+.pill{
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.content{
+  width: min(100%, var(--maxw));
+  margin: 0 auto;
+  padding: 14px;
+}
