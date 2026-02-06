@@ -7,10 +7,27 @@ export interface DashboardDTO {
   lion: { mood: "sad" | "neutral" | "happy"; level: number; coins: number; xp: number };
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  co2SavedKg: number;
+  rank: number;
+  isMe?: boolean;
+}
+
+export interface QuartierEntry {
+  id: string;
+  name: string;
+  co2SavedKg: number;
+  rank: number;
+  isMe?: boolean;           // the user's own quartier
+}
+
 export interface LeaderboardDTO {
   streakDays: number;
-  quartiers: Array<{ id: string; name: string; co2SavedKg: number; rank: number }>;
-  friends: Array<{ id: string; name: string; co2SavedKg: number; streakDays: number }>;
+  quartiers: QuartierEntry[];
+  friends: LeaderboardEntry[];
+  city: LeaderboardEntry[];  // city-wide ranking (all users)
 }
 
 export interface ShopItemDTO {
