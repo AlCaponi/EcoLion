@@ -128,9 +128,12 @@ export default function StatsPage() {
             zoom={12}
             scrollWheelZoom={false}
             style={{ height: "100%", width: "100%" }}
-            attributionControl={false}
+            attributionControl={true}
           >
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png" />
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            />
             <GeoJSON
               data={kreiseData as any}
               style={geoJsonStyle}
