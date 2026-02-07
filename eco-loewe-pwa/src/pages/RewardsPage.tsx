@@ -223,15 +223,13 @@ export default function RewardsPage() {
   const claimQuest = async (id: string) => {
     try {
       await Api.claimQuest(id);
-      setQuests((prev) =>
-        prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
-      );
     } catch {
-      // Fallback to local state update if API fails
-      setQuests((prev) =>
-        prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
-      );
+      // If API fails, continue with local state update (mock mode)
     }
+    // Update local state regardless of API success/failure
+    setQuests((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
+    );
   };
 
   /* Claim a milestone → unlock its reward */
@@ -241,29 +239,21 @@ export default function RewardsPage() {
     
     try {
       await Api.claimMilestone(id);
-      setMilestones((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
-      );
-      setRewards((prev) =>
-        prev.map((r) =>
-          r.id === ms.rewardId
-            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-            : r
-        )
-      );
     } catch {
-      // Fallback to local state update if API fails
-      setMilestones((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
-      );
-      setRewards((prev) =>
-        prev.map((r) =>
-          r.id === ms.rewardId
-            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-            : r
-        )
-      );
+      // If API fails, continue with local state update (mock mode)
     }
+    
+    // Update local state regardless of API success/failure
+    setMilestones((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
+    );
+    setRewards((prev) =>
+      prev.map((r) =>
+        r.id === ms.rewardId
+          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+          : r
+      )
+    );
   };
 
   /* Derived */
