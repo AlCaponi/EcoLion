@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { QuestDTO, MilestoneDTO, RewardDTO, RewardCategory } from "../shared/api/types";
 
 /* ── Mock rewards (linked via rewardId in milestones) ─────── */
@@ -194,6 +194,31 @@ const categoryInfo: Record<RewardCategory, { label: string; emoji: string }> = {
   shopping: { label: "Shopping", emoji: "🛍️" },
 };
 
+
+const QR_SIZE = 21;
+
+function generateFakeQrMatrix(size: number, density = 0.45) {
+  const matrix = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => Math.random() < density)
+  );
+
+  const drawFinder = (x: number, y: number) => {
+    for (let i = 0; i < 7; i += 1) {
+      for (let j = 0; j < 7; j += 1) {
+        const isBorder = i === 0 || i === 6 || j === 0 || j === 6;
+        const isCenter = i >= 2 && i <= 4 && j >= 2 && j <= 4;
+        matrix[y + j][x + i] = isBorder || isCenter;
+      }
+    }
+  };
+
+  drawFinder(0, 0);
+  drawFinder(size - 7, 0);
+  drawFinder(0, size - 7);
+
+  return matrix;
+}
+
 /* ── Component ─────────────────────────────────── */
 export default function RewardsPage() {
   const [quests, setQuests] = useState<QuestDTO[]>(mockQuests);
@@ -220,28 +245,22 @@ export default function RewardsPage() {
 
   /* Claim a milestone → unlock its reward */
   const claimMilestone = (id: string, rewardId: string) => {
-    // Use functional updates with rewardId passed in to avoid stale state
-    let shouldUpdateReward = false;
-    
-    setMilestones((prev) => {
-      const ms = prev.find((m) => m.id === id);
-      // Only allow claiming if the milestone exists, is completed, and not already claimed
-      if (!ms || ms.claimed || !ms.completed) {
-        return prev;
-      }
-      shouldUpdateReward = true;
-      return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
-    });
-    
-    if (shouldUpdateReward) {
-      setRewards((prev) =>
-        prev.map((r) =>
-          r.id === rewardId
-            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-            : r
-        )
-      );
+    const ms = milestones.find((m) => m.id === id);
+    // Only allow claiming if the milestone exists, is completed, and not already claimed
+    if (!ms || ms.claimed || !ms.completed) {
+      return;
     }
+
+    setMilestones((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
+    );
+    setRewards((prev) =>
+      prev.map((r) =>
+        r.id === rewardId
+          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+          : r
+      )
+    );
   };
 
   /* Derived */
@@ -249,7 +268,9 @@ export default function RewardsPage() {
   const weeklyQuests = quests.filter((q) => q.frequency === "weekly");
   const unclaimedMilestones = milestones.filter((m) => !m.claimed);
   const claimedMilestones = milestones.filter((m) => m.claimed);
-  const claimedRewards = rewards.filter((r) => r.claimed);
+  const rewardsForDisplay = [...rewards].sort(
+    (a, b) => Number(b.claimed) - Number(a.claimed)
+  );
 
   return (
     <div className="rewardsPage">
@@ -343,7 +364,7 @@ export default function RewardsPage() {
           aria-labelledby="rewards-tab"
         >
           <section className="rwSection">
-          {claimedRewards.length === 0 ? (
+          {rewardsForDisplay.length === 0 ? (
             <div className="rwEmpty">
               <span className="rwEmptyIcon">🎯</span>
               <p>Noch keine Rewards eingelöst.</p>
@@ -353,7 +374,7 @@ export default function RewardsPage() {
             </div>
           ) : (
             <div className="rwRewardList">
-              {claimedRewards.map((r) => (
+              {rewardsForDisplay.map((r) => (
                 <RewardCard key={r.id} reward={r} />
               ))}
             </div>
@@ -468,6 +489,7 @@ function MilestoneCard({
 /* ── Reward Card (in My Rewards) ─────────────── */
 function RewardCard({ reward }: { reward: RewardDTO }) {
   const cat = categoryInfo[reward.category];
+  const qrMatrix = useMemo(() => generateFakeQrMatrix(QR_SIZE), []);
 
   return (
     <div className="rwRewardCard">
@@ -484,6 +506,19 @@ function RewardCard({ reward }: { reward: RewardDTO }) {
           <span className="rwCodeValue">{reward.code}</span>
         </div>
       )}
+      <div className="rwQrBlock">
+        <div className="rwQrGrid" aria-hidden="true">
+          {qrMatrix.flatMap((row, y) =>
+            row.map((on, x) => (
+              <span
+                key={`${y}-${x}`}
+                className={`rwQrDot ${on ? "on" : ""}`}
+              />
+            ))
+          )}
+        </div>
+        <div className="rwQrLabel">QR-Code (Demo)</div>
+      </div>
       {reward.expiresAt && (
         <p className="rwRewardExpiry">
           Gültig bis {new Date(reward.expiresAt).toLocaleDateString("de-CH")}
