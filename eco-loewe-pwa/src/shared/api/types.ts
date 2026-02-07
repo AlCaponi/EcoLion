@@ -1,10 +1,3 @@
-// ---------------------------------------------------------------------------
-// Contract types shared between frontend and backend.
-//
-// This IS the contract. If other frontend or backend type definitions differ
-// from this file, that's a bug that needs resolution.
-// ---------------------------------------------------------------------------
-
 export type MobilityMode = "walk" | "pt" | "car";
 
 export interface UserDTO {
@@ -16,11 +9,6 @@ export interface UserDTO {
     activityMode: "sleeping" | "idle" | "walking" | "riding";
     accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
     coins: number;
-  };
-  currentActivity?: {
-    activityId: number;
-    activityType: ActivityType;
-    startTime: string;
   };
 }
 
@@ -43,14 +31,14 @@ export interface QuartierEntry {
   name: string;
   co2SavedKg: number;
   rank: number;
-  isMe?: boolean;           // the user's own quartier
+  isMe?: boolean; // the user's own quartier
 }
 
 export interface LeaderboardDTO {
   streakDays: number;
   quartiers: QuartierEntry[];
   friends: LeaderboardEntry[];
-  city: LeaderboardEntry[];  // city-wide ranking (all users)
+  city: LeaderboardEntry[]; // city-wide ranking (all users)
 }
 
 export interface ShopItemDTO {
@@ -97,14 +85,14 @@ export interface QuestDTO {
   title: string;
   description: string;
   frequency: QuestFrequency;
-  progress: number;       // current progress (e.g. 2)
-  goal: number;           // target (e.g. 5)
+  progress: number; // current progress (e.g. 2)
+  goal: number; // target (e.g. 5)
   rewardCoins: number;
   rewardXp: number;
-  completed: boolean;     // goal reached this period
-  claimed: boolean;       // reward already collected
-  icon: string;           // emoji
-  resetsAt: string;       // ISO timestamp when quest resets
+  completed: boolean; // goal reached this period
+  claimed: boolean; // reward already collected
+  icon: string; // emoji
+  resetsAt: string; // ISO timestamp when quest resets
 }
 
 export interface MilestoneDTO {
@@ -113,7 +101,7 @@ export interface MilestoneDTO {
   description: string;
   progress: number;
   goal: number;
-  rewardId: string;       // links to a RewardDTO
+  rewardId: string; // links to a RewardDTO
   completed: boolean;
   claimed: boolean;
   icon: string;
@@ -125,13 +113,13 @@ export interface RewardDTO {
   id: string;
   title: string;
   description: string;
-  partner: string;        // e.g. "Stadtbus Winterthur"
+  partner: string; // e.g. "Stadtbus Winterthur"
   category: RewardCategory;
   icon: string;
   claimed: boolean;
-  claimedAt?: string;     // ISO timestamp
-  expiresAt?: string;     // ISO timestamp
-  code?: string;          // discount code shown after claim
+  claimedAt?: string; // ISO timestamp
+  expiresAt?: string; // ISO timestamp
+  code?: string; // discount code shown after claim
 }
 
 export interface RewardsPageDTO {
@@ -139,16 +127,7 @@ export interface RewardsPageDTO {
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 
->>>>>>> 667bb2e (fix(api): syntax corrections in types and endpoints)
-=======
->>>>>>> 9f88386 (Syntax fixes)
-=======
->>>>>>> 0673ce5 (Syntax fixes)
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 

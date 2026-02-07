@@ -2,6 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./app/App";
+// register basic global error handlers to capture runtime errors during dev
+if (typeof window !== "undefined") {
+  window.addEventListener("error", (ev) => {
+    // eslint-disable-next-line no-console
+    console.error("Global error:", ev.error ?? ev.message, ev);
+  });
+  window.addEventListener("unhandledrejection", (ev) => {
+    // eslint-disable-next-line no-console
+    console.error("Unhandled promise rejection:", ev.reason ?? ev);
+  });
+}
 
 import "./styles/base/reset.css";
 import "./styles/base/tokens.css";

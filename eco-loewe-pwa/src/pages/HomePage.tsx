@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
 import Card from "../shared/components/Card";
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
@@ -26,22 +20,10 @@ const ACTIVITIES = [
   { id: "wfh", label: "Home Office", iconSrc: homeOfficeIcon, emoji: "🏠" },
   { id: "pool", label: "Pooling", iconSrc: carPoolingIcon, emoji: "🤝" },
 ];
-<<<<<<< HEAD
->>>>>>> 9f88386 (Syntax fixes)
-=======
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
-=======
->>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
 
 const STREAK_DAYS = 8;
 
 export default function HomePage() {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
@@ -53,17 +35,18 @@ export default function HomePage() {
 
   const fetchDashboard = async () => {
     try {
-        const data = await Api.dashboard();
-        setUser(data);
+      const data = await Api.dashboard();
+      setUser(data);
 
-        if (data.currentActivity) {
-            setActiveActivity(data.currentActivity.activityType);
-            setCurrentActivityId(data.currentActivity.activityId);
-            const elapsed = Math.floor((Date.now() - new Date(data.currentActivity.startTime).getTime()) / 1000);
-            setTimer(elapsed > 0 ? elapsed : 0);
-        }
+      if ((data as any).currentActivity) {
+        setActiveActivity((data as any).currentActivity.activityType);
+        setCurrentActivityId((data as any).currentActivity.activityId);
+        const elapsed = Math.floor((Date.now() - new Date((data as any).currentActivity.startTime).getTime()) / 1000);
+        setTimer(elapsed > 0 ? elapsed : 0);
+      }
     } catch (e) {
-        console.error("Failed to fetch dashboard", e);
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch dashboard", e);
     }
   };
 
@@ -87,22 +70,24 @@ export default function HomePage() {
     setActiveActivity(type);
     setTimer(0);
     try {
-        const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
-        setCurrentActivityId(data.activityId);
+      const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
+      setCurrentActivityId(data.activityId);
     } catch (e) {
-        console.error("Failed to start activity", e);
-        setActiveActivity(null); // Revert on failure
+      // eslint-disable-next-line no-console
+      console.error("Failed to start activity", e);
+      setActiveActivity(null); // Revert on failure
     }
   };
 
   const handleStop = async () => {
     if (currentActivityId) {
-        try {
-            await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
-            await fetchDashboard(); // Refresh stats
-        } catch (e) {
-            console.error("Failed to stop activity", e);
-        }
+      try {
+        await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
+        await fetchDashboard(); // Refresh stats
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to stop activity", e);
+      }
     }
     setActiveActivity(null);
     setCurrentActivityId(null);
@@ -114,37 +99,29 @@ export default function HomePage() {
     return (
       <div className="page homePage recording-mode">
         <div className="recording-header">
-            <h1>Aufzeichnung läuft...</h1>
-            <div className="recording-label">{activity?.label}</div>
+          <h1>Aufzeichnung läuft...</h1>
+          <div className="recording-label">{activity?.label}</div>
         </div>
-        
-        <MascotDisplay 
-            movement={activeActivity} 
-            level={user ? Math.floor(user.sustainabilityScore / 100) + 1 : 1}
-            xp={user?.sustainabilityScore ?? 0}
-            accessories={user?.lion.accessories}
-            style={{ marginBottom: "2rem" }}
+
+        <MascotDisplay
+          movement={activeActivity as any}
+          level={user ? Math.floor(user.sustainabilityScore / 100) + 1 : 1}
+          xp={user?.sustainabilityScore ?? 0}
+          accessories={user?.lion.accessories}
+          style={{ marginBottom: "2rem" }}
         />
 
-        <div className="recording-timer">
-            {formatTime(timer)}
-        </div>
+        <div className="recording-timer">{formatTime(timer)}</div>
 
         <div className="recording-actions">
-            <PrimaryButton onClick={handleStop} className="stop-btn">
-                Beenden & Speichern
-            </PrimaryButton>
+          <PrimaryButton onClick={handleStop} className="stop-btn">
+            Beenden & Speichern
+          </PrimaryButton>
         </div>
       </div>
     );
   }
 
-<<<<<<< HEAD
->>>>>>> 9f88386 (Syntax fixes)
-=======
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
-=======
->>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
   return (
     <div className="page homePage">
       <h1>Willkommen, Eco-Löwe! 🦁</h1>
@@ -159,14 +136,6 @@ export default function HomePage() {
             <div className="label">Streak</div>
             <div className="heroValue">{user?.streakDays ?? STREAK_DAYS} Tage 🔥</div>
           </div>
-<<<<<<< HEAD
-        </div>
-        <div className="streakBar" aria-hidden="true">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <span key={i} className={i < (user?.streakDays ?? STREAK_DAYS) ? "dot on" : "dot"} />
-          ))}
-        </div>
-=======
         </div>
         <div className="streakBar" aria-hidden="true">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -198,95 +167,38 @@ export default function HomePage() {
 
       <Card>
         <div className="sectionTitle">Dein Löwe</div>
-<<<<<<< HEAD
         {user ? (
-          <MascotDisplay 
+          <MascotDisplay
             level={Math.floor(user.sustainabilityScore / 100) + 1}
             xp={user.sustainabilityScore}
             accessories={user.lion.accessories}
             movement="idle"
           />
         ) : (
-           <div className="lionPreview">
-              <div className="lionEmoji">🦁</div>
-              <div>Lade Löwe...</div>
-           </div>
-        )}
->>>>>>> 9f88386 (Syntax fixes)
-      </Card>
-
-      <Card>
-        <div className="sectionTitle">Heute</div>
-        <div className="todayGrid">
-          <div className="todayStat">
-            <span className="todayIcon">🚶</span>
-            <span className="todayVal">2.3 km</span>
-            <span className="todayLabel">zu Fuß</span>
+          <div className="lionPreview">
+            <div className="lionEmoji">🦁</div>
+            <div>Lade Löwe...</div>
           </div>
-          <div className="todayStat">
-            <span className="todayIcon">🚌</span>
-            <span className="todayVal">1 Fahrt</span>
-            <span className="todayLabel">ÖV</span>
-          </div>
-          <div className="todayStat">
-            <span className="todayIcon">🚗</span>
-            <span className="todayVal">0 km</span>
-            <span className="todayLabel">Auto</span>
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div className="sectionTitle">Dein Löwe</div>
-        {user ? (
-          <MascotDisplay 
-            level={Math.floor(user.sustainabilityScore / 100) + 1}
-            xp={user.sustainabilityScore}
-            accessories={user.lion.accessories}
-            movement="idle"
-          />
-        ) : (
-           <div className="lionPreview">
-              <div className="lionEmoji">🦁</div>
-              <div>Lade Löwe...</div>
-           </div>
         )}
       </Card>
-<<<<<<< HEAD
-=======
-        <div className="lionPreview">
-          <div className="lionEmoji">🦁</div>
-          <div>
-            <div className="lionMood">Stimmung: 😊 Happy</div>
-            <div className="lionLevel">Level 5 · 120 XP · 85 Coins</div>
-          </div>
-        </div>
-      </Card>
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
-=======
 
       <section className="activity-section">
         <h2 className="sectionTitle">Aktivität starten</h2>
         <div className="activity-grid">
-            {ACTIVITIES.map((act) => (
-                <button 
-                    key={act.id} 
-                    className="activity-btn"
-                    onClick={() => handleStart(act.id)}
-                >
-                    <div className="act-icon">
-                      {act.iconSrc ? (
-                        <img src={act.iconSrc} alt={act.label} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                      ) : (
-                        act.emoji
-                      )}
-                    </div>
-                    <div className="act-label">{act.label}</div>
-                </button>
-            ))}
+          {ACTIVITIES.map((act) => (
+            <button key={act.id} className="activity-btn" onClick={() => handleStart(act.id)}>
+              <div className="act-icon">
+                {act.iconSrc ? (
+                  <img src={act.iconSrc} alt={act.label} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : (
+                  act.emoji
+                )}
+              </div>
+              <div className="act-label">{act.label}</div>
+            </button>
+          ))}
         </div>
       </section>
->>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
     </div>
   );
 }

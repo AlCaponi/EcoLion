@@ -37,17 +37,7 @@ const MOVEMENT_IMAGES: Record<Movement, string> = {
 const ACCESSORY_IMAGES: Record<string, string> = {
   "hat-birthday": birthdayHat,
   "hat-detective": detectiveHat,
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Add other mappings as needed, e.g. placeholders from old mock
-  // "hat-cap": ..., 
-=======
   // Add other mappings as needed
->>>>>>> 9f88386 (Syntax fixes)
-=======
-  // Add other mappings as needed, e.g. placeholders from old mock
-  // "hat-cap": ..., 
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
 };
 
 export default function MascotDisplay({
@@ -63,19 +53,15 @@ export default function MascotDisplay({
   return (
     <div className={`mascot-container ${className}`} style={{ ...styles.container, ...style }}>
       <div className="mascot-visual" style={styles.visualWrapper}>
-         {/* Base Layer (Z-Index 1) */}
-        <img 
-          src={baseImageSrc} 
-          alt={`Eco-Lion is ${movement}`} 
-          style={{ ...styles.layer, ...styles.baseLayer }} 
-        />
-        
+        {/* Base Layer (Z-Index 1) */}
+        <img src={baseImageSrc} alt={`Eco-Lion is ${movement}`} style={{ ...styles.layer, ...styles.baseLayer }} />
+
         {/* Accessory Layer (Z-Index 2+) */}
         {accessories.map((accId, index) => {
           const src = ACCESSORY_IMAGES[accId];
           if (!src) return null;
           return (
-            <img 
+            <img
               key={accId}
               src={src}
               alt={`Accessory ${accId}`}
@@ -83,19 +69,15 @@ export default function MascotDisplay({
             />
           );
         })}
-        
+
         {/* Optional Speech Bubble for Idle state */}
-        {movement === "idle" && (
-            <div style={styles.speechBubble}>
-              Let's go green today! 🌿
-            </div>
-        )}
+        {movement === "idle" && <div style={styles.speechBubble}>Let's go green today! 🌿</div>}
       </div>
 
       <div className="mascot-stats" style={styles.statsContainer}>
         <div style={styles.statRow}>
-            <span style={styles.statLabel}>Level {level}</span>
-            <span style={styles.statValue}>{xp} XP</span>
+          <span style={styles.statLabel}>Level {level}</span>
+          <span style={styles.statValue}>{xp} XP</span>
         </div>
       </div>
     </div>
@@ -112,7 +94,7 @@ const styles: Record<string, CSSProperties> = {
   },
   visualWrapper: {
     position: "relative",
-    width: "280px", 
+    width: "280px",
     height: "280px",
     display: "flex",
     justifyContent: "center",
@@ -158,4 +140,6 @@ const styles: Record<string, CSSProperties> = {
     color: "#fff",
     fontWeight: "500",
   },
+  statLabel: {},
+  statValue: {},
 };

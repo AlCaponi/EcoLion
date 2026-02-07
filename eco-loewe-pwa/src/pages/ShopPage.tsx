@@ -6,35 +6,12 @@ import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 
 // Mock shop data for demo
 const MOCK_ITEMS: ShopItemDTO[] = [
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
   { id: "hat-detective", name: "Detektiv-Hut", priceCoins: 120, category: "hats", owned: false, assetPath: "/assets/articles/hats/detective_hat/DetectiveHat.png" },
   { id: "hat-birthday", name: "Party-Hut", priceCoins: 80, category: "hats", owned: false, assetPath: "/assets/articles/hats/birthday_hat/birthday_hat.png" },
   { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "🧢" },
   { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "😎" },
   { id: "outfit-scarf", name: "Schal", priceCoins: 35, category: "outfits", owned: false, assetPath: "🧣" },
   { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "🌿" },
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 759c662 (Added initial implementation of Shop)
-  { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "/🧢" },
-  { id: "hat-beanie", name: "Beanie", priceCoins: 40, category: "hats", owned: false, assetPath: "/🎩" },
-  { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "/😎" },
-  { id: "outfit-scarf", name: "Schal", priceCoins: 35, category: "outfits", owned: false, assetPath: "/🧣" },
-  { id: "outfit-vest", name: "Weste", priceCoins: 75, category: "outfits", owned: false, assetPath: "/🦁" },
-  { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "/🌿" },
-  { id: "decor-crown", name: "Krone", priceCoins: 150, category: "decor", owned: false, assetPath: "/👑" },
-  { id: "decor-medal", name: "Medaille", priceCoins: 100, category: "decor", owned: false, assetPath: "/🏅" },
-<<<<<<< HEAD
->>>>>>> 26eb503 (Added initial implementation of Shop)
-=======
->>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
-=======
->>>>>>> 759c662 (Added initial implementation of Shop)
 ];
 
 // Coin packages for purchase
@@ -59,9 +36,9 @@ export default function ShopPage() {
       try {
         const userData = await Api.dashboard();
         setUser(userData);
-        
+
         // In production, would call Api.shopItems(), using mock for demo
-        const enrichedItems = items.map(item => ({
+        const enrichedItems = items.map((item) => ({
           ...item,
           owned: userData.lion.accessories.includes(item.id),
         }));
@@ -82,7 +59,7 @@ export default function ShopPage() {
     try {
       const updated = await Api.purchase({ itemId });
       setUser(updated);
-      const enrichedItems = items.map(item => ({
+      const enrichedItems = items.map((item) => ({
         ...item,
         owned: updated.lion.accessories.includes(item.id),
       }));
@@ -100,11 +77,9 @@ export default function ShopPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const updated = isEquipped
-        ? await Api.unequip(itemId)
-        : await Api.equip({ itemId });
+      const updated = isEquipped ? await Api.unequip(itemId) : await Api.equip({ itemId });
       setUser(updated);
-      const enrichedItems = items.map(item => ({
+      const enrichedItems = items.map((item) => ({
         ...item,
         owned: updated.lion.accessories.includes(item.id),
       }));
@@ -123,25 +98,25 @@ export default function ShopPage() {
     try {
       // In production: call Api.buyCoins({ amount, paymentMethod: "card" })
       // For demo: simulate successful payment
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       if (!user) {
         setMessage({ type: "error", text: "Benutzer nicht geladen" });
         return;
       }
-      
+
       // Mock: add coins to user
       const mockResponse = {
         transactionId: `TXN-${Date.now()}`,
         coinsAdded: amount,
         newBalance: user.lion.coins + amount,
       };
-      
+
       setUser({
         ...user,
         lion: { ...user.lion, coins: mockResponse.newBalance },
       });
-      
+
       setMessage({ type: "success", text: `${amount} Coins hinzugefügt! 🎉` });
       setShowPayment(false);
       setSelectedCoins(null);
@@ -251,9 +226,7 @@ export default function ShopPage() {
                           disabled={loading}
                           onClick={() => toggleEquip(item.id, user?.lion.accessories.includes(item.id) ?? false)}
                           style={{
-                            background: user?.lion.accessories.includes(item.id)
-                              ? "var(--brand)"
-                              : "var(--muted)",
+                            background: user?.lion.accessories.includes(item.id) ? "var(--brand)" : "var(--muted)",
                           }}
                         >
                           {user?.lion.accessories.includes(item.id) ? "Ausziehen" : "Anziehen"}
