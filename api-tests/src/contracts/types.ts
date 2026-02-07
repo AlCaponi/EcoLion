@@ -38,12 +38,19 @@ export interface LeaderboardDTO {
     co2SavedKg: number;
     rank: number;
   }>;
-  friends: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    streakDays: number;
-  }>;
+  users: UserScoreEntryDTO[];
+}
+
+export interface UserSummaryDTO {
+  id: string;
+  displayName: string;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
+  rank: number;
+  isMe?: boolean;
 }
 
 export interface ShopItemDTO {
@@ -59,9 +66,9 @@ export interface PurchaseDTO {
   itemId: string;
 }
 
-export interface FriendDTO {
+export interface UserListEntryDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }

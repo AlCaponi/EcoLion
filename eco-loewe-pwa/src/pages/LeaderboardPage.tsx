@@ -24,18 +24,18 @@ const MOCK: LeaderboardDTO = {
     { id: "p3", name: "Sarah", co2SavedKg: 70, rank: 4 },
     { id: "p4", name: "Lisa",  co2SavedKg: 62, rank: 5 },
   ],
-  city: [
-    { id: "c1",  name: "MaxGreen",    co2SavedKg: 210, rank: 1 },
-    { id: "c2",  name: "EcoQueen",    co2SavedKg: 195, rank: 2 },
-    { id: "c3",  name: "BikeHero",    co2SavedKg: 180, rank: 3 },
-    { id: "c4",  name: "TrainLover",  co2SavedKg: 160, rank: 4 },
-    { id: "c5",  name: "WalkFan",     co2SavedKg: 145, rank: 5 },
+  users: [
+    { user: { id: "c1", displayName: "MaxGreen" }, score: 210, rank: 1 },
+    { user: { id: "c2", displayName: "EcoQueen" }, score: 195, rank: 2 },
+    { user: { id: "c3", displayName: "BikeHero" }, score: 180, rank: 3 },
+    { user: { id: "c4", displayName: "TrainLover" }, score: 160, rank: 4 },
+    { user: { id: "c5", displayName: "WalkFan" }, score: 145, rank: 5 },
     // gap — neighbors around the user
-    { id: "c41", name: "SolarSam",    co2SavedKg: 78,  rank: 41 },
-    { id: "c42", name: "GreenStep",   co2SavedKg: 76,  rank: 42 },
-    { id: "me",  name: "Du",          co2SavedKg: 74,  rank: 43, isMe: true },
-    { id: "c44", name: "GreenRookie", co2SavedKg: 71,  rank: 44 },
-    { id: "c45", name: "Newbie123",   co2SavedKg: 68,  rank: 45 },
+    { user: { id: "c41", displayName: "SolarSam" }, score: 78, rank: 41 },
+    { user: { id: "c42", displayName: "GreenStep" }, score: 76, rank: 42 },
+    { user: { id: "me", displayName: "Du" }, score: 74, rank: 43, isMe: true },
+    { user: { id: "c44", displayName: "GreenRookie" }, score: 71, rank: 44 },
+    { user: { id: "c45", displayName: "Newbie123" }, score: 68, rank: 45 },
   ],
 };
 
@@ -78,23 +78,34 @@ export default function LeaderboardPage() {
     })();
   }, []);
 
+  const userEntries = useMemo<LeaderboardEntry[]>(() => {
+    if (!data) return [];
+    return data.users.map((entry) => ({
+      id: entry.user.id,
+      name: entry.user.displayName,
+      co2SavedKg: entry.score,
+      rank: entry.rank,
+      isMe: entry.isMe,
+    }));
+  }, [data]);
+
   const { podium, list } = useMemo(() => {
     if (!data) return { podium: [], list: [] };
     const entries =
       tab === "quartiere"
         ? (data.quartiers as LeaderboardEntry[])
         : tab === "stadt"
-          ? data.city
+          ? userEntries
           : data.friends;
     return splitPodiumAndList(entries);
-  }, [data, tab]);
+  }, [data, tab, userEntries]);
 
   const myEntry = useMemo(() => {
     if (!data) return null;
     const entries =
-      tab === "quartiere" ? data.quartiers : tab === "stadt" ? data.city : data.friends;
+      tab === "quartiere" ? data.quartiers : tab === "stadt" ? userEntries : data.friends;
     return (entries as LeaderboardEntry[]).find((e) => e.isMe) ?? null;
-  }, [data, tab]);
+  }, [data, tab, userEntries]);
 
   async function poke(friendId: string) {
     try {

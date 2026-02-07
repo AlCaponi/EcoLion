@@ -32,12 +32,15 @@ export const LeaderboardSchema = z.object({
       rank: z.number().int().positive(),
     }),
   ),
-  friends: z.array(
+  users: z.array(
     z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      co2SavedKg: z.number().nonnegative(),
-      streakDays: z.number().int().nonnegative(),
+      user: z.object({
+        id: z.string().min(1),
+        displayName: z.string().min(1),
+      }),
+      score: z.number().nonnegative(),
+      rank: z.number().int().positive(),
+      isMe: z.boolean().optional(),
     }),
   ),
 });
@@ -51,9 +54,9 @@ export const ShopItemSchema = z.object({
   assetPath: z.string().startsWith("/"),
 });
 
-export const FriendSchema = z.object({
+export const UserListEntrySchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
+  displayName: z.string().min(1),
   streakDays: z.number().int().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
 });

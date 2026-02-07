@@ -41,11 +41,22 @@ export interface LeaderboardEntry {
 
 export type QuartierEntry = LeaderboardEntry;
 
+export interface UserSummaryDTO {
+  id: string;
+  displayName: string;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
+  rank: number;
+  isMe?: boolean;
+}
+
 export interface LeaderboardDTO {
   streakDays: number;
   quartiers: QuartierEntry[];
-  friends: LeaderboardEntry[];
-  city: LeaderboardEntry[];
+  users: UserScoreEntryDTO[];
 }
 
 export interface ShopItemDTO {
@@ -61,9 +72,9 @@ export interface PurchaseDTO {
   itemId: string;
 }
 
-export interface FriendDTO {
+export interface UserListEntryDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }
