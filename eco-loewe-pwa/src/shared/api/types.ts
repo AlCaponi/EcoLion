@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+// Contract types shared between frontend and backend.
+//
+// This IS the contract. If other frontend or backend type definitions differ
+// from this file, that's a bug that needs resolution.
+// ---------------------------------------------------------------------------
+
 export type MobilityMode = "walk" | "pt" | "car";
 
 export interface UserDTO {
@@ -7,8 +14,13 @@ export interface UserDTO {
   lion: {
     mood: "sad" | "neutral" | "happy";
     activityMode: "sleeping" | "idle" | "walking" | "riding";
-    accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
+    accessories: string[];
     coins: number;
+  };
+  currentActivity?: {
+    activityId: number;
+    activityType: ActivityType;
+    startTime: string;
   };
 }
 
@@ -18,27 +30,20 @@ export interface AssetDTO {
   category: "glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor";
 }
 
-export interface LeaderboardEntry {
-  id: string;
-  name: string;
-  co2SavedKg: number;
-  rank: number;
-  isMe?: boolean;
-}
-
-export interface QuartierEntry {
-  id: string;
-  name: string;
-  co2SavedKg: number;
-  rank: number;
-  isMe?: boolean;           // the user's own quartier
-}
-
 export interface LeaderboardDTO {
   streakDays: number;
-  quartiers: QuartierEntry[];
-  friends: LeaderboardEntry[];
-  city: LeaderboardEntry[];  // city-wide ranking (all users)
+  quartiers: Array<{
+    id: string;
+    name: string;
+    co2SavedKg: number;
+    rank: number;
+  }>;
+  friends: Array<{
+    id: string;
+    name: string;
+    co2SavedKg: number;
+    streakDays: number;
+  }>;
 }
 
 export interface ShopItemDTO {
@@ -47,7 +52,7 @@ export interface ShopItemDTO {
   priceCoins: number;
   category: "hats" | "outfits" | "accessories" | "decor";
   owned: boolean;
-  assetPath: string; // e.g. "/assets/shop/hat-cap.png"
+  assetPath: string;
 }
 
 export interface PurchaseDTO {
@@ -111,6 +116,8 @@ export interface RewardsPageDTO {
   quests: QuestDTO[];
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
+}
+
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
