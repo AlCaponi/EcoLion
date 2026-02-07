@@ -17,9 +17,27 @@ import type {
   StopActivityRequestDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
+  PasskeyRegisterBeginRequestDTO,
+  PasskeyRegisterBeginResponseDTO,
+  PasskeyRegisterFinishRequestDTO,
+  PasskeyRegisterFinishResponseDTO,
+  PasskeyLoginBeginRequestDTO,
+  PasskeyLoginBeginResponseDTO,
+  PasskeyLoginFinishRequestDTO,
+  PasskeyLoginFinishResponseDTO,
+  WhoAmIDTO
 } from "./types";
 
 export const Api = {
+  registerBegin: (payload: PasskeyRegisterBeginRequestDTO) =>
+    apiRequest<PasskeyRegisterBeginResponseDTO>("/v1/auth/register/begin", "POST", payload),
+  registerFinish: (payload: PasskeyRegisterFinishRequestDTO) =>
+    apiRequest<PasskeyRegisterFinishResponseDTO>("/v1/auth/register/finish", "POST", payload),
+  loginBegin: (payload?: PasskeyLoginBeginRequestDTO) =>
+    apiRequest<PasskeyLoginBeginResponseDTO>("/v1/auth/login/begin", "POST", payload),
+  loginFinish: (payload: PasskeyLoginFinishRequestDTO) =>
+    apiRequest<PasskeyLoginFinishResponseDTO>("/v1/auth/login/finish", "POST", payload),
+  whoami: () => apiRequest<WhoAmIDTO>("/v1/whoami"),
   dashboard: () => apiRequest<UserDTO>("/v1/dashboard"),
   leaderboard: () => apiRequest<LeaderboardDTO>("/v1/leaderboard"),
   shopItems: () => apiRequest<ShopItemDTO[]>("/v1/shop/items"),

@@ -3,8 +3,11 @@ import { createApiClient } from "../client/api-client.ts";
 import {
   registerAnonymousUser,
   loginUser,
-  type RegisterBeginResponse,
 } from "../client/auth.ts";
+import {
+  PasskeyLoginBeginResponseSchema,
+  PasskeyRegisterBeginResponseSchema,
+} from "../contracts/schemas.ts";
 
 const API_BASE_URL = process.env["API_BASE_URL"] ?? "http://localhost:8080";
 
@@ -12,14 +15,25 @@ describe("Anonymous Passkey Authentication", () => {
   describe("POST /v1/auth/register/begin", () => {
     it("should return a session ID and challenge", async () => {
       const client = createApiClient({ baseUrl: API_BASE_URL });
-      const { status, data } = await client.post<RegisterBeginResponse>(
+      const { status, data } = await client.post(
         "/v1/auth/register/begin",
         { displayName: "TestLion" },
       );
 
       expect(status).toBe(200);
-      expect(data.sessionId).toBeTruthy();
-      expect(data.challenge).toBeTruthy();
+      const result = PasskeyRegisterBeginResponseSchema.safeParse(data);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("POST /v1/auth/login/begin", () => {
+    it("should return passkey request options without userId", async () => {
+      const client = createApiClient({ baseUrl: API_BASE_URL });
+      const { status, data } = await client.post("/v1/auth/login/begin", {});
+
+      expect(status).toBe(200);
+      const result = PasskeyLoginBeginResponseSchema.safeParse(data);
+      expect(result.success).toBe(true);
     });
   });
 
