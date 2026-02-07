@@ -24,9 +24,11 @@ export default defineConfig({
     })
   ],
   server: {
-    allowedHosts: ["ecolion.d00.ch"]
+    host: true,
+    allowedHosts: true
   },
   preview: {
-    allowedHosts: ["ecolion.d00.ch"]
+    host: true,
+    allowedHosts: true
   }
 });
