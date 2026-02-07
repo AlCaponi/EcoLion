@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import { Api } from "../api/endpoints";
 
@@ -8,6 +9,7 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children, onLogout }: AppShellProps) {
+  const navigate = useNavigate();
   const [coins, setCoins] = useState(0);
   const [streak, setStreak] = useState(0);
   const [displayName, setDisplayName] = useState<string>("");
@@ -43,6 +45,22 @@ export default function AppShell({ children, onLogout }: AppShellProps) {
           </div>
         </div>
         <div className="topBarRight">
+          <button 
+            className="iconButton" 
+            aria-label="Settings" 
+            onClick={() => navigate("/settings")}
+            style={{ 
+              marginRight: "8px", 
+              background: "none", 
+              border: "none", 
+              fontSize: "1.5rem", 
+              cursor: "pointer",
+              padding: "4px",
+              lineHeight: 1
+            }}
+          >
+            ⚙️
+          </button>
           <button className="logoutButton" aria-label="Logout" onClick={onLogout}>
             <span aria-hidden="true">↪</span>
             Logout

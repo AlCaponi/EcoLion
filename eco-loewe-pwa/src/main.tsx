@@ -31,12 +31,17 @@ import "./styles/pages/stats.css";
 import "./styles/pages/shop.css";
 import "./styles/pages/leaderboard.css";
 import "./styles/pages/rewards.css";
+import "./styles/pages/settings.css";
 import "./styles/pages/auth.css";
+
+import { SettingsProvider } from "./shared/context/SettingsContext"; // Ensure correct path
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <SettingsProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </SettingsProvider>
   </React.StrictMode>
 );

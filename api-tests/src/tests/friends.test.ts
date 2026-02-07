@@ -50,7 +50,7 @@ describe("Friends", () => {
   it("should list added friends", async () => {
     const { data } = await client.get<UserSummaryDTO[]>("/v1/friends");
     expect(Array.isArray(data)).toBe(true);
-
+    
     const parseResults = data.map((friend) => FriendSummarySchema.safeParse(friend));
     const invalid = parseResults.find((result) => !result.success);
     if (invalid && !invalid.success) {

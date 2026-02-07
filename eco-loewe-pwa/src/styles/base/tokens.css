@@ -16,3 +16,18 @@
   --radius: 16px;
   --maxw: 920px;
 }
+
+:root[data-theme="dark"] {
+  --brand: #e85d66;       /* Lighter red for dark mode */
+  --brand-dark: #ff8a91;
+
+  --bg: #14161a;
+  --surface: #1e2126;
+  --surface-2: #2a2e35;
+
+  --text: #ffffff;
+  --muted: #9aa1ad;
+
+  --border: #333842;
+  --shadow-sm: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
