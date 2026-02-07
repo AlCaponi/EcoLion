@@ -8,7 +8,7 @@
     "test:watch": "vitest",
     "test:seed": "vitest run src/tests/seed.test.ts",
     "test:auth": "vitest run src/tests/auth.test.ts",
-    "test:contracts": "vitest run src/tests/dashboard.test.ts src/tests/leaderboard.test.ts src/tests/shop.test.ts src/tests/users.test.ts"
+    "test:contracts": "vitest run src/tests/dashboard.test.ts src/tests/leaderboard.test.ts src/tests/shop.test.ts src/tests/users.test.ts src/tests/friends.test.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

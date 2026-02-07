@@ -184,6 +184,28 @@ app.get("/v1/users", async () => {
   return store.listUsers();
 });
 
+app.get("/v1/friends", async (request) => {
+  return store.listFriends(request.userId);
+});
+
+app.post("/v1/friends", async (request, reply) => {
+  const friendUserId = request.body?.userId;
+  const result = store.addFriendById(request.userId, friendUserId);
+  if (result.status === "invalid") {
+    return reply.code(400).send({ error: "userId is required" });
+  }
+  if (result.status === "self") {
+    return reply.code(400).send({ error: "Cannot add yourself as a friend" });
+  }
+  if (result.status === "duplicate") {
+    return reply.code(200).send({ ok: true, friend: result.friend });
+  }
+  if (result.status === "not_found") {
+    return reply.code(404).send({ error: "User not found" });
+  }
+  return { ok: true, friend: result.friend };
+});
+
 app.post("/v1/users/:userId/poke", async (request, reply) => {
   const userId = request.params?.userId;
   if (typeof userId !== "string" || !userId.trim()) {
