@@ -1,8 +1,24 @@
 # Agents Guide — Eco-Löwe
 
+## Project
+
+Gamified sustainable mobility PWA for Winterthur. Citizens track walking and public transit usage, level up a virtual lion companion, and compete on leaderboards.
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript, Vite (Rolldown), PWA
+- **API Tests**: Vitest, Zod, Node 22
+- **Infra**: Docker Compose, auto-deploy via cron (`deploy.sh`)
+
+## Key Directories
+
+- `eco-loewe-pwa/` — React frontend
+- `api-tests/` — API contract tests and seed data
+- `docker-compose.yml` — orchestrates all services
+
 ## Adding a New API Endpoint
 
-When adding a new endpoint to the project, update **both** the frontend API layer and the api-tests contract. Follow these steps in order:
+When adding a new endpoint to the project, update **both** the frontend API layer and the api-tests contract. This is the canonical procedure. Follow these steps in order:
 
 ### 1. Define the DTO type
 
@@ -106,20 +122,20 @@ No configuration changes are needed — vitest auto-discovers `*.test.ts` files.
 
 ---
 
-## Running Services
+## Commands
 
 ```bash
-# Frontend only
+# Run frontend
 docker compose up --build
 
-# Frontend + run tests once
-docker compose --profile test up --build
-
-# Run tests in isolation
+# Run API tests
 docker compose --profile test run --rm api-tests
 
 # Seed the backend with sample data
 docker compose --profile test run --rm api-tests npm run test:seed
+
+# Frontend + run tests once
+docker compose --profile test up --build
 ```
 
 ## Key DTOs
@@ -141,7 +157,7 @@ Categories: `"glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor"`
 ## Project Structure
 
 ```
-claude1-repo/
+chat1-repo/
 ├── docker-compose.yml          # Orchestrates all services
 ├── deploy.sh                   # Auto-deploy on new commits (cron)
 ├── eco-loewe-pwa/              # React frontend (Vite + TypeScript)
