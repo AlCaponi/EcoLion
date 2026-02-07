@@ -26,5 +26,6 @@ log "New commit detected: $LOCAL -> $REMOTE"
 git pull origin "$BRANCH" >> "$LOG_FILE" 2>&1
 log "Pulled latest changes"
 
-VITE_API_BASE_URL="$VITE_API_BASE_URL" docker compose up --build -d >> "$LOG_FILE" 2>&1
+VITE_API_BASE_URL=https://api.ecolion.d00.ch docker compose up --build -d >> "$LOG_FILE" 2>&1
+
 log "Rebuild complete"
