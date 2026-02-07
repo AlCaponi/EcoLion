@@ -10,8 +10,4 @@ export const dashboard: UserDTO = {
     accessories: ["hat-cap", "acc-sunglasses"],
     coins: 85,
   },
-  // TODO: Only add current activity if there is one
-  currentActivity: {
-    activityId: 1
-  },
 };
