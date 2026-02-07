@@ -61,7 +61,7 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   
   // GPS route tracking
-  const { points, startTracking, stopTracking, error: trackingError } = useLocationTracking();
+  const { points, startTracking, stopTracking } = useLocationTracking();
 
   useEffect(() => {
     fetchDashboard();
