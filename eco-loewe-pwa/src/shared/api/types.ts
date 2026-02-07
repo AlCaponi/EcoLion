@@ -184,3 +184,14 @@ export interface GetActivityResponseDTO {
   gpx?: unknown;
   proofs?: object[];
 }
+
+export interface BuyCoinDTO {
+  amount: number;
+  paymentMethod: "card" | "paypal";
+}
+
+export interface BuyCoinResponseDTO {
+  transactionId: string;
+  coinsAdded: number;
+  newBalance: number;
+}

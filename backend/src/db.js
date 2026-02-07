@@ -473,6 +473,11 @@ export function createStore(dbPath) {
       return dashboard;
     },
 
+    updateDashboard(userId, dashboard) {
+      upsertDashboardForUser(db, userId, dashboard);
+      return this.getDashboard(userId);
+    },
+
     getLeaderboard(userId) {
       const defaultDashboard = getDefaultDashboard(db);
       const quartiers = db

@@ -13,6 +13,8 @@ import type {
   StopActivityRequestDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
+  BuyCoinDTO,
+  BuyCoinResponseDTO
 } from "./types";
 
 export const Api = {
@@ -34,4 +36,6 @@ export const Api = {
     apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
   getActivity: (activityId: number) =>
     apiRequest<GetActivityResponseDTO>(`/v1/activity/${activityId}`),
+  buyCoins: (payload: BuyCoinDTO) => 
+    apiRequest<BuyCoinResponseDTO>("/v1/shop/buyCoins", "POST", payload),
 };
