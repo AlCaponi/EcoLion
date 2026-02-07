@@ -30,20 +30,22 @@ export interface AssetDTO {
   category: "glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor";
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  co2SavedKg: number;
+  rank: number;
+  streakDays?: number;
+  isMe?: boolean;
+}
+
+export type QuartierEntry = LeaderboardEntry;
+
 export interface LeaderboardDTO {
   streakDays: number;
-  quartiers: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    rank: number;
-  }>;
-  friends: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    streakDays: number;
-  }>;
+  quartiers: QuartierEntry[];
+  friends: LeaderboardEntry[];
+  city: LeaderboardEntry[];
 }
 
 export interface ShopItemDTO {
