@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export interface LocationPoint {
   lat: number;
@@ -178,7 +178,7 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   }, []);
 
   // Cleanup on unmount
-  useRef(() => {
+  useEffect(() => {
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -187,7 +187,7 @@ export function useLocationTracking(): UseLocationTrackingReturn {
         clearInterval(intervalIdRef.current);
       }
     };
-  });
+  }, []);
 
   return {
     points,
