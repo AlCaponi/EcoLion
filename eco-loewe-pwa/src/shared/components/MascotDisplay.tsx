@@ -25,6 +25,7 @@ interface MascotDisplayProps {
   xp?: number;
   className?: string;
   style?: CSSProperties;
+  compact?: boolean; // New prop for compact recording mode
 }
 
 const MOVEMENT_IMAGES: Record<Movement, string> = {
@@ -43,6 +44,7 @@ export default function MascotDisplay({
   xp = 0,
   className = "",
   style,
+  compact = false,
 }: MascotDisplayProps) {
   const imageSrc = MOVEMENT_IMAGES[movement] || idleParams;
   
@@ -50,6 +52,26 @@ export default function MascotDisplay({
   const motivationalMessage = useMemo(() => {
     return MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
   }, []);
+
+  // Compact mode: just show the lion image, no extras
+  if (compact) {
+    return (
+      <div style={{ 
+        width: "180px", 
+        height: "180px", 
+        position: "relative",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}>
+        <img 
+          src={imageSrc} 
+          alt={`Eco-Lion is ${movement}`} 
+          style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`mascot-container ${className}`} style={{ ...styles.container, ...style }}>
