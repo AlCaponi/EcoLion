@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinLion – Die spielerische Mobilitätswende für Winterthur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700;900&family=Merriweather:wght@700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .bg-winterthur-red { background-color: #D32F2F; }
+        .text-winterthur-red { color: #D32F2F; }
+        .border-winterthur-red { border-color: #D32F2F; }
+
+        .vision-text {
+            font-family: 'Merriweather', serif;
+            font-size: 35pt;
+            color: #D32F2F;
+            line-height: 1.15;
+            text-align: left;
+        }
+
+        .menu-overlay {
+            transition: transform 0.4s cubic-bezier(0.77,0.2,0.05,1.0);
+            transform: translateY(-100%);
+        }
+        .menu-overlay.open {
+            transform: translateY(0);
+        }
+
+        .barometer-svg { transform: rotate(-90deg); }
+        .barometer-progress {
+            stroke-dasharray: 283; 
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .connector-line {
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
+            transition: stroke-dashoffset 1s ease-out;
+        }
+        .draw-line { stroke-dashoffset: 0 !important; }
+
+        .roar-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out;
+        }
+        .roar-active .roar-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .lion-roar-anim { animation: roar-sequence 0.8s ease-in-out; }
+        @keyframes roar-sequence {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.2) rotate(5deg); }
+            50% { transform: scale(1.2) rotate(-5deg); }
+            70% { transform: scale(1.25) rotate(0deg); }
+            100% { transform: scale(1); }
+        }
+
+        .lion-float { animation: floating 4s ease-in-out infinite; }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .page-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .page-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback-card { transition: all 0.3s ease; }
+        .feedback-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(211, 47, 47, 0.1);
+        }
+
+        .bar-grow {
+            animation: grow-width 1.5s ease-out forwards;
+            transform-origin: left;
+        }
+        @keyframes grow-width {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        .partner-logo-box {
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+        .partner-logo-box:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        /* Karte Styling */
+        .district-path { fill: #f3f4f6; stroke: #ffffff; stroke-width: 2; transition: all 0.3s ease; }
+        .district-path:hover { fill: #fee2e2; cursor: pointer; }
+        .wappen-icon { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: transform 0.3s ease; cursor: pointer; }
+        .wappen-icon:hover { transform: scale(1.15) translateY(-5px); }
+    </style>
+</head>
+<body class="text-gray-900">
+
+    <header class="fixed top-0 left-0 w-full z-50 bg-winterthur-red shadow-lg px-6 py-3 flex justify-between items-center border-b-2 border-white/10">
+        <div class="flex flex-col cursor-pointer" onclick="showPage('home')">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-winterthur-red shadow-inner">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <span class="text-2xl font-black tracking-widest text-white uppercase">WINLION</span>
+            </div>
+            <span class="text-[9px] text-white/80 font-bold uppercase tracking-[0.15em] mt-1 pl-1">Klimaneutralität spielerisch erreichen</span>
+        </div>
+        <button id="menu-toggle" class="z-50 text-white focus:outline-none p-2 hover:bg-white/10 rounded-lg transition">
+            <i data-lucide="menu" id="menu-icon" class="w-8 h-8"></i>
+        </button>
+    </header>
+
+    <div id="nav-menu" class="menu-overlay fixed top-0 left-0 w-full h-screen bg-winterthur-red z-40 flex flex-col items-center justify-center">
+        <nav class="text-center space-y-8">
+            <button onclick="showPage('home')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Home / Dashboard</button>
+            <button onclick="showPage('mission')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Unsere Mission</button>
+            <button onclick="showPage('challenge')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Quartier-Challenge</button>
+            <button onclick="showPage('kids')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">WinLion Kids</button>
+            <button onclick="showPage('partner')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Partnerprogramm</button>
+        </nav>
+    </div>
+
+    <main class="pt-28 min-h-screen" id="main-container">
+
+        <div id="page-home" class="page-content active max-w-7xl mx-auto px-6">
+            <div class="relative flex flex-col items-center justify-center min-h-[700px] mb-20" id="hero-section">
+                <div class="absolute top-0 left-0 md:left-10 max-w-2xl hidden md:block">
+                    <div class="vision-text">Winterthur brüllt grün: <br> Gemeinsam ans Netto-Null-Ziel</div>
+                </div>
+                <div class="flex justify-center relative w-full items-center">
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none hidden lg:block" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                        <line id="line-left" x1="420" y1="200" x2="220" y2="100" stroke="#D1D5DB" stroke-width="2" stroke-dasharray="10 5" class="connector-line" />
+                        <line id="line-right" x1="580" y1="200" x2="780" y2="100" stroke="#D32F2F" stroke-width="2" stroke-dasharray="10 5" class="connector-line" />
+                    </svg>
+
+                    <div class="absolute left-0 lg:left-20 top-1/2 -translate-y-full md:-translate-y-1/2 roar-content">
+                        <div class="flex flex-col items-center">
+                            <div class="w-24 h-24 bg-white border-4 border-yellow-400 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden mb-2">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wuelflingen-blazon.svg/120px-Wuelflingen-blazon.svg.png" class="w-16 h-16" alt="Wülflingen">
+                            </div>
+                            <span class="bg-yellow-400 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase mb-1">Rang #1</span>
+                            <span class="text-sm font-black uppercase text-gray-800">Wülflingen</span>
+                        </div>
+                    </div>
+
+                    <div class="relative w-80 h-80 flex items-center justify-center lion-float z-30">
+                        <svg class="barometer-svg absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="8" />
+                            <circle id="barometer-fill" class="barometer-progress" cx="50" cy="50" r="45" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" />
+                        </svg>
+                        <div id="lion-sprite" class="w-64 h-64 bg-white rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden z-10 border-4 border-gray-50">
+                            <svg viewBox="0 0 100 100" class="w-48 h-48">
+                                <path d="M50,5 C75,5 95,25 95,50 C95,75 75,95 50,95 C25,95 5,75 5,50 C5,25 25,5 50,5" fill="#F59E0B" />
+                                <circle cx="50" cy="50" r="35" fill="#FBBF24"/><circle cx="25" cy="25" r="8" fill="#F59E0B"/><circle cx="75" cy="25" r="8" fill="#F59E0B"/>
+                                <ellipse cx="50" cy="55" rx="20" ry="18" fill="#FEF3C7" opacity="0.9"/><circle cx="40" cy="45" r="3.5" fill="#1F2937"/><circle cx="60" cy="45" r="3.5" fill="#1F2937"/>
+                                <path id="lion-mouth" d="M 42 65 Q 50 72 58 65" stroke="#1F2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <path d="M 47 58 L 53 58 L 50 63 Z" fill="#D32F2F" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="absolute right-0 lg:right-20 top-1/2 -translate-y-full md:-translate-y-1/2 roar-content">
+                        <div class="text-right">
+                            <p class="text-winterthur-red text-xs font-black uppercase tracking-widest mb-1">gesparte CO2 in KG</p>
+                            <div class="flex items-baseline justify-end space-x-2">
+                                <span id="co2-counter" class="text-5xl font-black text-gray-900 tracking-tighter">145.321</span>
+                                <span class="text-xl font-bold text-green-500 uppercase">kg</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="py-24 bg-red-50 -mx-6 px-6 rounded-[5rem] mb-20">
+                <div class="max-w-6xl mx-auto text-center">
+                    <h2 class="text-3xl font-black mb-16 uppercase tracking-tighter text-winterthur-red italic">Das sagen unsere Löwen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
+                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i></div>
+                            <p class="text-gray-600 mb-6 italic">"Velo fahren macht endlich wieder richtig Spass!"</p>
+                            <p class="text-sm font-black text-gray-800">Marc S. - Wülflingen</p>
+                        </div>
+                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
+                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i></div>
+                            <p class="text-gray-600 mb-6 italic">"Die Challenge motiviert uns jeden Tag aufs Neue."</p>
+                            <p class="text-sm font-black text-gray-800">Lena K. - Seen</p>
+                        </div>
+                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
+                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="w-5 h-5"></i></div>
+                            <p class="text-gray-600 mb-6 italic">"Tolle Idee, Nachhaltigkeit so emotional zu verpacken."</p>
+                            <p class="text-sm font-black text-gray-800">Patrick M. - Stadt</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-challenge" class="page-content py-12 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-5xl font-black text-winterthur-red uppercase tracking-tighter mb-4 italic">Stadtkreis-Rivalen</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto italic">Interaktive Karte: Wähle ein Wappen, um Rivalitäten und CO2-Ranking zu sehen.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                    <div class="lg:col-span-2 bg-gray-50 rounded-[3rem] p-8 border-2 border-gray-100 relative shadow-inner overflow-hidden min-h-[500px]">
+                        <svg viewBox="0 0 800 600" class="w-full h-auto">
+                            <path class="district-path" d="M300,50 L500,80 L650,200 L700,400 L550,550 L300,580 L100,450 L50,200 Z" />
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Wappen_Winterthur.svg/120px-Wappen_Winterthur.svg.png" x="370" y="270" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Stadt Winterthur')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Wappen_Oberwinterthur.svg/120px-Wappen_Oberwinterthur.svg.png" x="530" y="150" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Oberwinterthur')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Wappen_Seen.svg/120px-Wappen_Seen.svg.png" x="550" y="400" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Seen')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wappen_Toess.svg/120px-Wappen_Toess.svg.png" x="180" y="400" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Töss')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wuelflingen-blazon.svg/120px-Wuelflingen-blazon.svg.png" x="120" y="180" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Wülflingen')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Wappen_Veltheim_Winterthur.svg/120px-Wappen_Veltheim_Winterthur.svg.png" x="340" y="120" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Veltheim')"/>
+                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Wappen_Winterthur.svg/120px-Wappen_Winterthur.svg.png" x="450" y="480" width="60" height="60" class="wappen-icon" opacity="0.6" onclick="selectDistrict('Mattenbach')"/>
+                        </svg>
+                    </div>
+
+                    <div id="district-card" class="bg-white rounded-[3rem] p-10 border-2 border-red-50 shadow-2xl flex flex-col justify-center transform transition-all duration-500 scale-95 opacity-0">
+                        <h3 id="district-name" class="text-4xl font-black text-gray-900 uppercase mb-2 leading-none">Quartier</h3>
+                        <span id="district-rank" class="bg-winterthur-red text-white px-4 py-1 rounded-full text-xs font-black uppercase inline-block mb-6">Rang #?</span>
+                        <div class="space-y-6">
+                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CO2 Ersparnis</p>
+                            <p class="text-5xl font-black text-winterthur-red tracking-tighter"><span id="district-co2">0</span> <small class="text-xl">kg</small></p>
+                            <div class="pt-6 border-t border-gray-100" id="rivalry-info"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-12 rounded-[4rem] border-2 border-gray-50 shadow-sm">
+                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-10 tracking-tight">Gesamt-Ranking Stadtkreise</h3>
+                    <div id="main-barchart" class="space-y-8"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-mission" class="page-content py-12 px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-winterthur-red text-white p-16 rounded-[4rem] shadow-2xl">
+                    <h2 class="text-5xl font-black mb-8 uppercase tracking-tighter italic">Unsere Mission</h2>
+                    <p class="text-xl leading-relaxed opacity-90 mb-8">WinLion verbindet Technologie, Gamification und lokale Wirtschaft. Wir wollen Winterthur zur Vorzeigestadt für grüne Mobilität machen.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-partner" class="page-content py-12 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-20">
+                    <h2 class="text-5xl font-black text-winterthur-red uppercase tracking-tighter mb-4 italic">Partnerprogramm</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Verbinden Sie Ihr lokales Gewerbe mit umweltbewussten Bürgern.</p>
+                </div>
+
+                <div class="bg-gray-50 p-12 rounded-[4rem] mb-24">
+                    <div class="max-w-3xl mx-auto text-center">
+                        <h3 class="text-3xl font-black mb-8 uppercase">Partner-Anfrage erstellen</h3>
+                        <form class="space-y-6 text-left">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Firma</label>
+                                    <input type="text" placeholder="Ihre Firma" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Ansprechperson</label>
+                                    <input type="text" placeholder="Name Vorname" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">E-Mail</label>
+                                    <input type="email" placeholder="beispiel@firma.ch" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Telefonnummer</label>
+                                    <input type="tel" placeholder="+41 52 000 00 00" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Was bieten Sie den WinLion-Nutzern an?</label>
+                                <textarea rows="4" placeholder="Beschreiben Sie hier Ihre Belohnungen oder Angebote (z.B. 10% Rabatt für Radfahrer, Gratis-Kaffee etc.)..." class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none"></textarea>
+                            </div>
+                            <button type="button" onclick="alert('Vielen Dank! Ihre Anfrage wurde gesendet.')" class="w-full bg-winterthur-red text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-lg hover:bg-red-700 transition">Anfrage senden</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mb-12">
+                    <h3 class="text-[10px] font-black uppercase text-gray-400 tracking-[0.4em] mb-12">Bereits Teil der Bewegung</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 items-center justify-items-center grayscale opacity-60">
+                        <div class="partner-logo-box text-sm font-black">HOUSE OF WINTERTHUR</div>
+                        <div class="partner-logo-box text-sm font-black">STADTBUS WINTERTHUR</div>
+                        <div class="partner-logo-box text-sm font-black">CAFÉ ALTSTADT</div>
+                        <div class="partner-logo-box text-sm font-black">BÄCKEREI STEINER</div>
+                        <div class="partner-logo-box text-sm font-black">ZHAW</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-kids" class="page-content py-12 px-6"><div class="text-center text-4xl font-black text-gray-200 uppercase mt-20 italic">WinLion Kids coming soon</div></div>
+
+    </main>
+
+    <footer class="bg-gray-950 text-white py-16 px-6 border-t-8 border-winterthur-red text-center md:text-left mt-10">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-12 md:space-y-0">
+            <div><span class="text-3xl font-black uppercase tracking-tighter italic">WINLION</span></div>
+            <p class="text-[10px] text-gray-700 font-bold uppercase tracking-widest">© 2026 WinLion Team Winterthur</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const districts = [
+            { name: "Wülflingen", co2: 42800 },
+            { name: "Stadt Winterthur", co2: 38200 },
+            { name: "Oberwinterthur", co2: 35100 },
+            { name: "Seen", co2: 31500 },
+            { name: "Mattenbach", co2: 26400 },
+            { name: "Töss", co2: 22100 },
+            { name: "Veltheim", co2: 18700 }
+        ].sort((a, b) => b.co2 - a.co2);
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            const targetPage = document.getElementById('page-' + pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if(pageId === 'home') setTimeout(triggerInitialRoar, 100);
+                if(pageId === 'challenge') renderChallengeData();
+            }
+            const navMenu = document.getElementById('nav-menu');
+            if (navMenu && navMenu.classList.contains('open')) toggleMenu();
+        }
+
+        function renderChallengeData() {
+            const chart = document.getElementById('main-barchart');
+            const maxVal = districts[0].co2;
+            chart.innerHTML = districts.map((d, i) => `
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-black uppercase text-gray-700"><span>#${i+1} ${d.name}</span><span>${d.co2.toLocaleString('de-CH')} kg</span></div>
+                    <div class="w-full bg-gray-50 h-6 rounded-full overflow-hidden border border-gray-100">
+                        <div class="bar-grow h-full bg-winterthur-red" style="width: ${(d.co2/maxVal)*100}%; opacity: ${1 - (i*0.1)}"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectDistrict(name) {
+            const data = districts.find(d => d.name === name);
+            const rank = districts.findIndex(d => d.name === name) + 1;
+            const topCo2 = districts[0].co2;
+            const diffPercent = Math.round(((topCo2 - data.co2) / topCo2) * 100);
+
+            const card = document.getElementById('district-card');
+            card.classList.remove('opacity-0', 'scale-95');
+            card.classList.add('opacity-100', 'scale-100');
+
+            document.getElementById('district-name').innerText = name;
+            document.getElementById('district-rank').innerText = `Rang #${rank}`;
+            document.getElementById('district-co2').innerText = data.co2.toLocaleString('de-CH');
+
+            const rivalryHtml = rank === 1 
+                ? `<div class="bg-green-50 p-4 rounded-2xl border border-green-100 text-green-700 text-sm font-bold italic">🦁 Du bist der König! Wülflingen führt an.</div>`
+                : `<div class="space-y-3"><p class="text-xs font-black text-gray-400 uppercase tracking-widest">Abstand zum Platz 1</p>
+                   <div class="flex justify-between text-sm font-black text-winterthur-red"><span>Rückstand</span><span>${diffPercent}%</span></div>
+                   <div class="w-full bg-gray-100 h-2 rounded-full"><div class="bg-winterthur-red h-full rounded-full" style="width: ${diffPercent}%"></div></div></div>`;
+            
+            document.getElementById('rivalry-info').innerHTML = rivalryHtml;
+        }
+
+        function triggerInitialRoar() {
+            const lion = document.getElementById('lion-sprite');
+            const mouth = document.getElementById('lion-mouth');
+            const barometerFill = document.getElementById('barometer-fill');
+            const hero = document.getElementById('hero-section');
+            if (barometerFill) barometerFill.style.strokeDashoffset = "70";
+            if (lion) lion.classList.add('lion-roar-anim');
+            if (mouth) mouth.setAttribute('d', 'M 32 75 Q 50 85 68 75');
+            setTimeout(() => hero.classList.add('roar-active'), 300);
+            setTimeout(() => {
+                if (lion) lion.classList.remove('lion-roar-anim');
+                if (mouth) mouth.setAttribute('d', 'M 42 65 Q 50 72 58 65');
+            }, 850);
+        }
+
+        window.onload = () => setTimeout(triggerInitialRoar, 1000);
+
+        function toggleMenu() {
+            const navMenu = document.getElementById('nav-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const isOpen = navMenu.classList.toggle('open');
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+            menuIcon.innerHTML = isOpen ? `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>` : `<line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line>`;
+            lucide.createIcons();
+        }
+        document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+
+        let count = 145321;
+        setInterval(() => {
+            count += Math.floor(Math.random() * 5);
+            document.getElementById('co2-counter').innerText = count.toLocaleString('de-CH');
+        }, 5000);
+    </script>
+</body>
+</html>
