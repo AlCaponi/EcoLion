@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-// Import the default lion image
+
+// Import base movements
 import idleParams from "../../assets/mascot/idle.png";
 import bikingDisplay from "../../assets/mascot/biking.png";
 import carDisplay from "../../assets/mascot/car.png";
@@ -8,13 +9,17 @@ import homeOfficeDisplay from "../../assets/mascot/homeOffice.png";
 import publicTransportDisplay from "../../assets/mascot/public_transport.png";
 import walkingDisplay from "../../assets/mascot/walking.png";
 
-type Mood = "happy" | "sad" | "determined" | "angry";
+// Import accessories
+import birthdayHat from "../../assets/articles/hats/birthday_hat/birthday_hat.png";
+import detectiveHat from "../../assets/articles/hats/detective_hat/DetectiveHat.png";
+
 type Movement = "idle" | "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 
 interface MascotDisplayProps {
   movement?: Movement;
   level?: number;
   xp?: number;
+  accessories?: string[]; // IDs of equipped accessories
   className?: string;
   style?: CSSProperties;
 }
@@ -29,29 +34,52 @@ const MOVEMENT_IMAGES: Record<Movement, string> = {
   pool: carPoolingDisplay,
 };
 
+const ACCESSORY_IMAGES: Record<string, string> = {
+  "hat-birthday": birthdayHat,
+  "hat-detective": detectiveHat,
+  // Add other mappings as needed
+};
+
 export default function MascotDisplay({
   movement = "idle",
   level = 1,
   xp = 0,
+  accessories = [],
   className = "",
   style,
 }: MascotDisplayProps) {
-  const imageSrc = MOVEMENT_IMAGES[movement] || idleParams;
+  const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
 
   return (
     <div className={`mascot-container ${className}`} style={{ ...styles.container, ...style }}>
       <div className="mascot-visual" style={styles.visualWrapper}>
-         {/* Base Layer */}
+         {/* Base Layer (Z-Index 1) */}
         <img 
-          src={imageSrc} 
+          src={baseImageSrc} 
           alt={`Eco-Lion is ${movement}`} 
-          style={styles.lionImage} 
+          style={{ ...styles.layer, ...styles.baseLayer }} 
         />
         
-        {/* Simple speech bubble for "Duolingo" feel */}
-        <div style={styles.speechBubble}>
-          Let's go green today! 🌿
-        </div>
+        {/* Accessory Layer (Z-Index 2+) */}
+        {accessories.map((accId, index) => {
+          const src = ACCESSORY_IMAGES[accId];
+          if (!src) return null;
+          return (
+            <img 
+              key={accId}
+              src={src}
+              alt={`Accessory ${accId}`}
+              style={{ ...styles.layer, zIndex: 10 + index }} // Stack in order
+            />
+          );
+        })}
+        
+        {/* Optional Speech Bubble for Idle state */}
+        {movement === "idle" && (
+            <div style={styles.speechBubble}>
+              Let's go green today! 🌿
+            </div>
+        )}
       </div>
 
       <div className="mascot-stats" style={styles.statsContainer}>
@@ -74,16 +102,22 @@ const styles: Record<string, CSSProperties> = {
   },
   visualWrapper: {
     position: "relative",
-    width: "280px", // adjust based on image natural size
+    width: "280px", 
     height: "280px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
-  lionImage: {
+  layer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
     width: "100%",
     height: "100%",
     objectFit: "contain",
+  },
+  baseLayer: {
+    zIndex: 1,
   },
   speechBubble: {
     position: "absolute",
@@ -96,7 +130,7 @@ const styles: Record<string, CSSProperties> = {
     fontSize: "0.9rem",
     fontWeight: "bold",
     color: "#333",
-    zIndex: 10,
+    zIndex: 100, // Always on top
     animation: "float 3s ease-in-out infinite",
   },
   statsContainer: {
@@ -111,7 +145,7 @@ const styles: Record<string, CSSProperties> = {
     backdropFilter: "blur(4px)",
     display: "flex",
     gap: "0.5rem",
-    color: "#fff", // Assuming dark background or card
+    color: "#fff",
     fontWeight: "500",
   },
 };

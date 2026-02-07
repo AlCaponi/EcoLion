@@ -14,7 +14,7 @@ export interface UserDTO {
   lion: {
     mood: "sad" | "neutral" | "happy";
     activityMode: "sleeping" | "idle" | "walking" | "riding";
-    accessories: string[];
+    accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
     coins: number;
   };
   currentActivity?: {
@@ -30,20 +30,27 @@ export interface AssetDTO {
   category: "glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor";
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  co2SavedKg: number;
+  rank: number;
+  isMe?: boolean;
+}
+
+export interface QuartierEntry {
+  id: string;
+  name: string;
+  co2SavedKg: number;
+  rank: number;
+  isMe?: boolean;           // the user's own quartier
+}
+
 export interface LeaderboardDTO {
   streakDays: number;
-  quartiers: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    rank: number;
-  }>;
-  friends: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    streakDays: number;
-  }>;
+  quartiers: QuartierEntry[];
+  friends: LeaderboardEntry[];
+  city: LeaderboardEntry[];  // city-wide ranking (all users)
 }
 
 export interface ShopItemDTO {
@@ -52,11 +59,26 @@ export interface ShopItemDTO {
   priceCoins: number;
   category: "hats" | "outfits" | "accessories" | "decor";
   owned: boolean;
-  assetPath: string;
+  assetPath: string; // e.g. "/assets/shop/hat-cap.png"
 }
 
 export interface PurchaseDTO {
   itemId: string;
+}
+
+export interface EquipDTO {
+  itemId: string;
+}
+
+export interface BuyCoinDTO {
+  amount: number; // e.g. 100 coins
+  paymentMethod: "card" | "paypal"; // payment method
+}
+
+export interface BuyCoinResponseDTO {
+  transactionId: string;
+  coinsAdded: number;
+  newBalance: number;
 }
 
 export interface FriendDTO {
@@ -117,7 +139,6 @@ export interface RewardsPageDTO {
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
 }
-
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
