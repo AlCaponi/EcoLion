@@ -141,11 +141,14 @@ export interface RewardsPageDTO {
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 667bb2e (fix(api): syntax corrections in types and endpoints)
 =======
 >>>>>>> 9f88386 (Syntax fixes)
+=======
+>>>>>>> 0673ce5 (Syntax fixes)
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
