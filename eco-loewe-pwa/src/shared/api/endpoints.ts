@@ -62,4 +62,5 @@ export const Api = {
     apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
   getActivity: (activityId: number) =>
     apiRequest<GetActivityResponseDTO>(`/v1/activity/${activityId}`),
+  chat: (message: string) => apiRequest<{ reply: string }>("/v1/chat", "POST", { message }),
 };

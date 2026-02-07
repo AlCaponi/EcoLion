@@ -391,6 +391,14 @@ export function createStore(dbPath) {
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY(friend_user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS user_quotas (
+      user_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, date),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   const pokeColumns = db.prepare("PRAGMA table_info(pokes)").all();
@@ -424,6 +432,26 @@ export function createStore(dbPath) {
   return {
     close() {
       db.close();
+    },
+
+    checkAndIncrementQuota(userId) {
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const limit = 50;
+
+      const row = db.prepare("SELECT count FROM user_quotas WHERE user_id = ? AND date = ?").get(userId, today);
+      const currentCount = row ? row.count : 0;
+
+      if (currentCount >= limit) {
+        return false;
+      }
+
+      db.prepare(`
+        INSERT INTO user_quotas (user_id, date, count)
+        VALUES (@userId, @date, 1)
+        ON CONFLICT(user_id, date) DO UPDATE SET count = count + 1
+      `).run({ userId, date: today });
+
+      return true;
     },
 
     createAuthSession({ kind, userId = null, displayName = null, metadata = null }) {

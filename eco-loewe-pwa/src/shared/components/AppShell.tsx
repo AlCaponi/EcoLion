@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "./BottomNav";
+import ChatWidget from "./ChatWidget";
 import { Api } from "../api/endpoints";
 
 interface AppShellProps {
@@ -71,6 +72,7 @@ export default function AppShell({ children, onLogout }: AppShellProps) {
       <main className="content">{children}</main>
 
       <BottomNav />
+      <ChatWidget />
     </div>
   );
 }
