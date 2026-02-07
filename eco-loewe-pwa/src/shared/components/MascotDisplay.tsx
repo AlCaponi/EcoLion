@@ -114,12 +114,4 @@ const styles: Record<string, CSSProperties> = {
     color: "#fff", // Assuming dark background or card
     fontWeight: "500",
   },
-  coinPill: {
-    backgroundColor: "#F4B400", // Gold-ish
-    color: "#fff",
-    padding: "0.4rem 0.8rem",
-    borderRadius: "20px",
-    fontWeight: "bold",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-  },
 };
