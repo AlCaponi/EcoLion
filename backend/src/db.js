@@ -285,8 +285,22 @@ export function createStore(dbPath) {
       user_id TEXT,
       display_name TEXT,
       challenge TEXT NOT NULL,
+      meta_json TEXT,
       consumed INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS passkeys (
+      credential_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      public_key_spki_b64url TEXT NOT NULL,
+      algorithm INTEGER NOT NULL,
+      counter INTEGER NOT NULL DEFAULT 0,
+      transports_json TEXT,
+      user_handle_b64url TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS tokens (
@@ -368,12 +382,27 @@ export function createStore(dbPath) {
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY(target_user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS friends (
+      user_id TEXT NOT NULL,
+      friend_user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (user_id, friend_user_id),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(friend_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   const pokeColumns = db.prepare("PRAGMA table_info(pokes)").all();
   const pokeColumnNames = new Set(pokeColumns.map((col) => col.name));
   if (pokeColumnNames.has("friend_id") && !pokeColumnNames.has("target_user_id")) {
     db.exec("ALTER TABLE pokes RENAME COLUMN friend_id TO target_user_id");
+  }
+
+  const authSessionColumns = db.prepare("PRAGMA table_info(auth_sessions)").all();
+  const authSessionColumnNames = new Set(authSessionColumns.map((col) => col.name));
+  if (!authSessionColumnNames.has("meta_json")) {
+    db.exec("ALTER TABLE auth_sessions ADD COLUMN meta_json TEXT");
   }
 
   if (!db.prepare("SELECT 1 FROM settings WHERE key = 'default_dashboard'").get()) {
@@ -397,20 +426,37 @@ export function createStore(dbPath) {
       db.close();
     },
 
-    createAuthSession({ kind, userId = null, displayName = null }) {
+    createAuthSession({ kind, userId = null, displayName = null, metadata = null }) {
       const sessionId = crypto.randomUUID();
       const challenge = crypto.randomBytes(24).toString("base64url");
       db.prepare(
         `
-          INSERT INTO auth_sessions (id, kind, user_id, display_name, challenge, created_at)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO auth_sessions (
+            id, kind, user_id, display_name, challenge, meta_json, created_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
-      ).run(sessionId, kind, userId, displayName, challenge, nowIso());
+      ).run(
+        sessionId,
+        kind,
+        userId,
+        displayName,
+        challenge,
+        metadata ? JSON.stringify(metadata) : null,
+        nowIso(),
+      );
       return { sessionId, challenge };
     },
 
     getAuthSession(sessionId) {
-      return db.prepare("SELECT * FROM auth_sessions WHERE id = ?").get(sessionId);
+      const row = db.prepare("SELECT * FROM auth_sessions WHERE id = ?").get(sessionId);
+      if (!row) {
+        return null;
+      }
+      return {
+        ...row,
+        metadata: safeParseJson(row.meta_json, null),
+      };
     },
 
     consumeAuthSession(sessionId) {
@@ -419,6 +465,14 @@ export function createStore(dbPath) {
 
     userExists(userId) {
       return Boolean(db.prepare("SELECT 1 FROM users WHERE id = ?").get(userId));
+    },
+
+    getUserById(userId) {
+      return (
+        db
+          .prepare("SELECT id, display_name AS displayName FROM users WHERE id = ?")
+          .get(userId) ?? null
+      );
     },
 
     createUser(displayName) {
@@ -447,6 +501,75 @@ export function createStore(dbPath) {
       return row?.user_id ?? null;
     },
 
+    getPasskeyByCredentialId(credentialId) {
+      return (
+        db
+          .prepare(
+            `
+              SELECT
+                credential_id,
+                user_id,
+                public_key_spki_b64url,
+                algorithm,
+                counter,
+                transports_json,
+                user_handle_b64url
+              FROM passkeys
+              WHERE credential_id = ?
+            `,
+          )
+          .get(credentialId) ?? null
+      );
+    },
+
+    addPasskey({
+      credentialId,
+      userId,
+      publicKeySpkiB64Url,
+      algorithm,
+      counter = 0,
+      transports = [],
+      userHandleB64Url = null,
+    }) {
+      const now = nowIso();
+      db.prepare(
+        `
+          INSERT INTO passkeys (
+            credential_id,
+            user_id,
+            public_key_spki_b64url,
+            algorithm,
+            counter,
+            transports_json,
+            user_handle_b64url,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+      ).run(
+        credentialId,
+        userId,
+        publicKeySpkiB64Url,
+        algorithm,
+        counter,
+        JSON.stringify(transports),
+        userHandleB64Url,
+        now,
+        now,
+      );
+    },
+
+    updatePasskeyCounter(credentialId, counter) {
+      db.prepare(
+        `
+          UPDATE passkeys
+          SET counter = ?, updated_at = ?
+          WHERE credential_id = ?
+        `,
+      ).run(counter, nowIso(), credentialId);
+    },
+
     getDashboard(userId) {
       let row = db
         .prepare("SELECT * FROM dashboard_state WHERE user_id = ?")
@@ -471,6 +594,11 @@ export function createStore(dbPath) {
         };
       }
       return dashboard;
+    },
+
+    updateDashboard(userId, dashboard) {
+      upsertDashboardForUser(db, userId, dashboard);
+      return this.getDashboard(userId);
     },
 
     getLeaderboard(userId) {
@@ -505,11 +633,41 @@ export function createStore(dbPath) {
         rank: index + 1,
         isMe: userId ? row.id === userId : undefined,
       }));
+      const friendIds = userId
+        ? db
+            .prepare(
+              "SELECT friend_user_id AS friendId FROM friends WHERE user_id = ?",
+            )
+            .all(userId)
+            .map((row) => row.friendId)
+        : [];
+      const friendSet = new Set(friendIds);
+      if (userId) {
+        friendSet.add(userId);
+      }
+      if (friendSet.size < 3) {
+        for (const row of userRows) {
+          if (friendSet.size >= 3) break;
+          if (!friendSet.has(row.id)) {
+            friendSet.add(row.id);
+          }
+        }
+      }
+      const friends = userRows
+        .filter((row) => friendSet.has(row.id))
+        .map((row) => ({
+          user: { id: row.id, displayName: row.displayName },
+          score: Number(Number(row.score ?? 0).toFixed(3)),
+          isMe: userId ? row.id === userId : undefined,
+        }))
+        .sort((a, b) => b.score - a.score || a.user.displayName.localeCompare(b.user.displayName))
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
       return {
         streakDays: defaultDashboard.streakDays ?? 0,
         quartiers,
         users,
+        friends,
       };
     },
 
@@ -551,15 +709,63 @@ export function createStore(dbPath) {
         "INSERT OR IGNORE INTO user_shop_ownership (user_id, item_id) VALUES (?, ?)",
       ).run(userId, itemId);
 
-      if (!dashboard.lion.accessories.includes(itemId)) {
-        dashboard.lion.accessories = [...dashboard.lion.accessories, itemId];
-      }
+      // Auto-equip on purchase? Maybe not, let user decide.
+      // But for now let's just add ownership.
+      
       dashboard.lion.coins = Math.max(0, dashboard.lion.coins - item.price_coins);
       upsertDashboardForUser(db, userId, dashboard);
 
       return { notFound: false, insufficientFunds: false };
     },
 
+    equipItem(userId, itemId) {
+      const itemInfo = db
+        .prepare("SELECT * FROM shop_items WHERE id = ?")
+        .get(itemId);
+
+      const ownership = db
+        .prepare("SELECT 1 FROM user_shop_ownership WHERE user_id = ? AND item_id = ?")
+        .get(userId, itemId);
+
+      if (!itemInfo || !ownership) {
+        return null; // Not owned or doesn't exist
+      }
+
+      const dashboard = this.getDashboard(userId);
+
+      // Filter out items of the same category from current accessories
+      // We need to check the category of each currently equipped item
+      const newAccessories = dashboard.lion.accessories.filter((accId) => {
+        const accDetails = db
+          .prepare("SELECT category FROM shop_items WHERE id = ?")
+          .get(accId);
+        // Keep item if it has a DIFFERENT category (or if category lookup fails, safe fallback)
+        return accDetails && accDetails.category !== itemInfo.category;
+      });
+
+      // Add the new item
+      newAccessories.push(itemId);
+
+      dashboard.lion.accessories = newAccessories;
+      upsertDashboardForUser(db, userId, dashboard);
+      return dashboard;
+    },
+
+    unequipItem(userId, itemId) {
+      const dashboard = this.getDashboard(userId);
+      if (dashboard.lion.accessories.includes(itemId)) {
+        dashboard.lion.accessories = dashboard.lion.accessories.filter(id => id !== itemId);
+        upsertDashboardForUser(db, userId, dashboard);
+      }
+      return dashboard;
+    },
+
+    addCoins(userId, amount) {
+      const dashboard = this.getDashboard(userId);
+      dashboard.lion.coins += amount;
+      upsertDashboardForUser(db, userId, dashboard);
+      return dashboard;
+    },
     listUsers() {
       const rows = db
         .prepare(
@@ -585,6 +791,53 @@ export function createStore(dbPath) {
         streakDays: Number(row.streakDays ?? 0),
         co2SavedKg: Number(Number(row.co2SavedKg ?? 0).toFixed(3)),
       }));
+    },
+
+    listFriends(userId) {
+      const rows = db
+        .prepare(
+          `
+            SELECT u.id, u.display_name AS displayName
+            FROM friends f
+            JOIN users u
+              ON u.id = f.friend_user_id
+            WHERE f.user_id = ?
+            ORDER BY displayName ASC
+          `,
+        )
+        .all(userId);
+      return rows.map((row) => ({ id: row.id, displayName: row.displayName }));
+    },
+
+    addFriendById(userId, friendUserId) {
+      const friendId = typeof friendUserId === "string" ? friendUserId.trim() : "";
+      if (!friendId) {
+        return { status: "invalid" };
+      }
+      if (friendId === userId) {
+        return { status: "self" };
+      }
+      const friend = db
+        .prepare(
+          `
+            SELECT id, display_name AS displayName
+            FROM users
+            WHERE id = ?
+          `,
+        )
+        .get(friendId);
+      if (!friend) {
+        return { status: "not_found" };
+      }
+      const result = db
+        .prepare(
+          "INSERT OR IGNORE INTO friends (user_id, friend_user_id, created_at) VALUES (?, ?, ?)",
+        )
+        .run(userId, friend.id, nowIso());
+      if (result.changes === 0) {
+        return { status: "duplicate", friend };
+      }
+      return { status: "ok", friend };
     },
 
     pokeUser(userId, targetUserId) {

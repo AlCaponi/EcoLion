@@ -4,7 +4,11 @@ import type {
   LeaderboardDTO,
   ShopItemDTO,
   PurchaseDTO,
+  EquipDTO,
+  FriendDTO,
   UserListEntryDTO,
+  AddFriendRequestDTO,
+  AddFriendResponseDTO,
   AssetDTO,
   RewardsPageDTO,
   StartActivityRequestDTO,
@@ -13,14 +17,38 @@ import type {
   StopActivityRequestDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
+  PasskeyRegisterBeginRequestDTO,
+  PasskeyRegisterBeginResponseDTO,
+  PasskeyRegisterFinishRequestDTO,
+  PasskeyRegisterFinishResponseDTO,
+  PasskeyLoginBeginRequestDTO,
+  PasskeyLoginBeginResponseDTO,
+  PasskeyLoginFinishRequestDTO,
+  PasskeyLoginFinishResponseDTO,
+  WhoAmIDTO
 } from "./types";
 
 export const Api = {
+  registerBegin: (payload: PasskeyRegisterBeginRequestDTO) =>
+    apiRequest<PasskeyRegisterBeginResponseDTO>("/v1/auth/register/begin", "POST", payload),
+  registerFinish: (payload: PasskeyRegisterFinishRequestDTO) =>
+    apiRequest<PasskeyRegisterFinishResponseDTO>("/v1/auth/register/finish", "POST", payload),
+  loginBegin: (payload?: PasskeyLoginBeginRequestDTO) =>
+    apiRequest<PasskeyLoginBeginResponseDTO>("/v1/auth/login/begin", "POST", payload),
+  loginFinish: (payload: PasskeyLoginFinishRequestDTO) =>
+    apiRequest<PasskeyLoginFinishResponseDTO>("/v1/auth/login/finish", "POST", payload),
+  whoami: () => apiRequest<WhoAmIDTO>("/v1/whoami"),
   dashboard: () => apiRequest<UserDTO>("/v1/dashboard"),
   leaderboard: () => apiRequest<LeaderboardDTO>("/v1/leaderboard"),
   shopItems: () => apiRequest<ShopItemDTO[]>("/v1/shop/items"),
-  purchase: (payload: PurchaseDTO) => apiRequest<void>("/v1/shop/purchase", "POST", payload),
+  purchase: (payload: PurchaseDTO) => apiRequest<UserDTO>("/v1/shop/purchase", "POST", payload),
+  equip: (payload: EquipDTO) => apiRequest<UserDTO>("/v1/shop/equip", "POST", payload),
+  unequip: (itemId: string) => apiRequest<UserDTO>(`/v1/shop/unequip/${itemId}`, "POST"),
+  friends: () => apiRequest<FriendDTO[]>("/v1/friends"),
+  pokeFriend: (friendId: string) => apiRequest<void>(`/v1/friends/${friendId}/poke`, "POST"),
   users: () => apiRequest<UserListEntryDTO[]>("/v1/users"),
+  addFriend: (payload: AddFriendRequestDTO) =>
+    apiRequest<AddFriendResponseDTO>("/v1/friends", "POST", payload),
   pokeUser: (userId: string) => apiRequest<void>(`/v1/users/${userId}/poke`, "POST"),
   asset: (id: string) => apiRequest<AssetDTO>(`/v1/assets/${id}`),
   assets: (ids: string[]) => apiRequest<AssetDTO[]>(`/v1/assets?ids=${ids.join(",")}`),

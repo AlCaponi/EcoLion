@@ -1,0 +1,68 @@
+.authPage {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--brand) 18%, white 82%), transparent 45%),
+    linear-gradient(180deg, #fff 0%, #f7f8fb 100%);
+}
+
+.authCard {
+  width: min(100%, 420px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.authEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.authCard h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.authDescription {
+  margin: 0;
+  color: var(--muted);
+}
+
+.authForm {
+  display: grid;
+  gap: 8px;
+}
+
+.authForm label {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.authForm input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font: inherit;
+}
+
+.authForm input:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand) 35%, white 65%);
+  border-color: var(--brand);
+}
+
+.authError {
+  margin: 0;
+  color: #9e1221;
+  font-weight: 600;
+}

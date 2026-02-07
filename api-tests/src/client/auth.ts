@@ -22,6 +22,7 @@ export interface RegisterBeginRequest {
 export interface RegisterBeginResponse {
   sessionId: string;
   challenge: string;
+  publicKey?: unknown;
 }
 
 /** POST /v1/auth/register/finish */
@@ -43,6 +44,7 @@ export interface LoginBeginRequest {
 export interface LoginBeginResponse {
   sessionId: string;
   challenge: string;
+  publicKey?: unknown;
 }
 
 /** POST /v1/auth/login/finish */

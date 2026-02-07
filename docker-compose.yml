@@ -9,8 +9,12 @@ services:
       - PORT=8080
       - DATABASE_PATH=/app/data/eco-loewe.db
       - PURGE_DB_ON_START=${PURGE_DB_ON_START:-0}
+      - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-localhost}
+      - WEBAUTHN_RP_NAME=${WEBAUTHN_RP_NAME:-Eco-Loewe}
+      - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080,https://ecolion.d00.ch,https://ecolionapi.d00.ch}
     volumes:
       - ./backend/data:/app/data
+      - ./backend/src:/app/src
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
