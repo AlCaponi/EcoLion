@@ -1,5 +1,15 @@
 import Card from "../shared/components/Card";
 
+const MOCK_QUARTIERS = [
+  { id: "k3", name: "Seen",            co2SavedKg: 520, rank: 1, isMe: false },
+  { id: "k1", name: "Stadt",           co2SavedKg: 495, rank: 2, isMe: false },
+  { id: "k4", name: "Töss",            co2SavedKg: 470, rank: 3, isMe: true },
+  { id: "k2", name: "Oberwinterthur",  co2SavedKg: 450, rank: 4, isMe: false },
+  { id: "k5", name: "Veltheim",        co2SavedKg: 420, rank: 5, isMe: false },
+  { id: "k7", name: "Mattenbach",      co2SavedKg: 390, rank: 6, isMe: false },
+  { id: "k6", name: "Wülflingen",      co2SavedKg: 350, rank: 7, isMe: false },
+];
+
 export default function StatsPage() {
   return (
     <div className="page statsPage">
@@ -36,6 +46,45 @@ export default function StatsPage() {
               <span className="weekLabel">{day}</span>
             </div>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="sectionTitle">Dein Quartier</div>
+        <div className="quartierMap">
+          <svg viewBox="0 0 320 180" role="img" aria-label="Quartiere Karte">
+            <rect x="8" y="8" width="304" height="164" rx="14" />
+            {MOCK_QUARTIERS.map((q, idx) => {
+              const points = [
+                { x: 160, y: 50 },   // Seen (north-east)
+                { x: 110, y: 90 },   // Stadt (center)
+                { x: 60,  y: 70 },   // Töss (west)
+                { x: 240, y: 60 },   // Oberwinterthur (east)
+                { x: 80,  y: 130 },  // Veltheim (south-west)
+                { x: 200, y: 130 },  // Mattenbach (south-east)
+                { x: 50,  y: 40 },   // Wülflingen (north-west)
+              ];
+              const p = points[idx] ?? { x: 160, y: 95 };
+              return (
+                <g key={q.id}>
+                  <circle cx={p.x} cy={p.y} r={q.isMe ? 13 : 10} className={q.isMe ? "pinMe" : ""} />
+                  <text x={p.x + 16} y={p.y + 5}>
+                    {q.rank}. {q.name}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          <div className="quartierList">
+            {MOCK_QUARTIERS.map((q) => (
+              <div key={q.id} className={`quartierRow${q.isMe ? " quartierRowMe" : ""}`}>
+                <div className="quartierRank">{q.rank}</div>
+                <div className="quartierName">{q.name}{q.isMe ? " ⭐" : ""}</div>
+                <div className="quartierMetric">{q.co2SavedKg} kg CO₂</div>
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
     </div>

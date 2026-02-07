@@ -1,5 +1,7 @@
 import Card from "../shared/components/Card";
 
+const STREAK_DAYS = 8;
+
 export default function HomePage() {
   return (
     <div className="page homePage">
@@ -13,8 +15,13 @@ export default function HomePage() {
           </div>
           <div>
             <div className="label">Streak</div>
-            <div className="heroValue">8 Tage 🔥</div>
+            <div className="heroValue">{STREAK_DAYS} Tage 🔥</div>
           </div>
+        </div>
+        <div className="streakBar" aria-hidden="true">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span key={i} className={i < STREAK_DAYS ? "dot on" : "dot"} />
+          ))}
         </div>
       </Card>
 
