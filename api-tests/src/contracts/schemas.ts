@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DashboardSchema = z.object({
+export const UserSchema = z.object({
   sustainabilityScore: z.number().nonnegative(),
   streakDays: z.number().int().nonnegative(),
   today: z.object({

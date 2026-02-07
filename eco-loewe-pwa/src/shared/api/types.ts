@@ -1,6 +1,6 @@
 export type MobilityMode = "walk" | "pt" | "car";
 
-export interface DashboardDTO {
+export interface UserDTO {
   sustainabilityScore: number;
   streakDays: number;
   today: { walkKm: number; ptTrips: number; carKm: number };
