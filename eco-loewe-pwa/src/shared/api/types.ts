@@ -111,6 +111,8 @@ export interface RewardsPageDTO {
   quests: QuestDTO[];
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
+}
+
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
