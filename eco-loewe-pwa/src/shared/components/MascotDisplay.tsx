@@ -37,7 +37,8 @@ const MOVEMENT_IMAGES: Record<Movement, string> = {
 const ACCESSORY_IMAGES: Record<string, string> = {
   "hat-birthday": birthdayHat,
   "hat-detective": detectiveHat,
-  // Add other mappings as needed
+  // Add other mappings as needed, e.g. placeholders from old mock
+  // "hat-cap": ..., 
 };
 
 export default function MascotDisplay({
