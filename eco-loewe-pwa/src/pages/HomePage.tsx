@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import { Api } from "../shared/api/endpoints";
 import type { ActivityType, UserDTO } from "../shared/api/types";
 import { useLocationTracking } from "../hooks/useLocationTracking";
+
+// Component to update map view when location changes
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+}
 
 import busIcon from "../assets/transport_types/bus_icon.png";
 import carIcon from "../assets/transport_types/car_icon.png";
@@ -62,6 +71,14 @@ export default function HomePage() {
   
   // GPS route tracking
   const { points, startTracking, stopTracking } = useLocationTracking();
+
+  // Update map center to follow latest tracked point
+  useEffect(() => {
+    if (points.length > 0) {
+      const latestPoint = points[points.length - 1];
+      setUserLocation([latestPoint.lat, latestPoint.lng]);
+    }
+  }, [points]);
 
   useEffect(() => {
     fetchDashboard();
@@ -184,6 +201,7 @@ export default function HomePage() {
               style={{ height: "100%", width: "100%" }}
               zoomControl={false}
             >
+              <MapUpdater center={userLocation} />
               <TileLayer
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -192,7 +210,10 @@ export default function HomePage() {
               {/* Route polyline - shows tracked path */}
               {points.length > 1 && (
                 <Polyline 
-                  positions={points.map(p => [p.lat, p.lng])}
+                  positions={points.map(p => {
+                    console.log(`📍 Point: [${p.lat}, ${p.lng}]`);
+                    return [p.lat, p.lng];
+                  })}
                   color="#e74c3c"
                   weight={4}
                   opacity={0.8}
