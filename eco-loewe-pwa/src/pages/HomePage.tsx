@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
+import { api } from "../shared/api/endpoints";
+import type { ActivityType } from "../shared/api/types";
 
 import busIcon from "../assets/transport_types/bus_icon.png";
 import carIcon from "../assets/transport_types/car_icon.png";
@@ -22,8 +24,28 @@ const ACTIVITIES = [
 const STREAK_DAYS = 8;
 
 export default function HomePage() {
-  const [activeActivity, setActiveActivity] = useState<string | null>(null);
+  const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
+  const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
+  const [userStats, setUserStats] = useState({ level: 1, xp: 0 });
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
+    try {
+        const { data } = await api.dashboard.get();
+        // Calculate level based on XP (simplified logic for now)
+        // In real app, backend might send level or we compute it
+        setUserStats({ 
+            level: Math.floor(data.sustainabilityScore / 100) + 1, 
+            xp: data.sustainabilityScore 
+        });
+    } catch (e) {
+        console.error("Failed to fetch dashboard", e);
+    }
+  };
 
   useEffect(() => {
     let interval: number;
@@ -39,15 +61,30 @@ export default function HomePage() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const handleStart = (id: string) => {
-    setActiveActivity(id);
+  const handleStart = async (id: string) => {
+    const type = id as ActivityType;
+    setActiveActivity(type);
     setTimer(0);
+    try {
+        const { data } = await api.activity.start(type);
+        setCurrentActivityId(data.activityId);
+    } catch (e) {
+        console.error("Failed to start activity", e);
+    }
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
+    if (currentActivityId) {
+        try {
+            await api.activity.stop(currentActivityId);
+            await fetchDashboard(); // Refresh stats
+        } catch (e) {
+            console.error("Failed to stop activity", e);
+        }
+    }
     setActiveActivity(null);
+    setCurrentActivityId(null);
     setTimer(0);
-    // In a real app, save the activity here
   };
 
   if (activeActivity) {
@@ -60,9 +97,9 @@ export default function HomePage() {
         </div>
         
         <MascotDisplay 
-            movement={activeActivity as any} 
-            level={5} 
-            xp={120} 
+            movement={activeActivity} 
+            level={userStats.level} 
+            xp={userStats.xp} 
             style={{ marginBottom: "2rem" }}
         />
 
@@ -86,8 +123,8 @@ export default function HomePage() {
            <div className="sectionTitle">Dein Begleiter</div>
         </div>
         <MascotDisplay 
-            level={5} 
-            xp={120} 
+            level={userStats.level} 
+            xp={userStats.xp} 
         />
       </Card>
 
