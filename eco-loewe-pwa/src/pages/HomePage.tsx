@@ -18,6 +18,21 @@ import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 
+// Create custom red marker
+const RedIcon = L.icon({
+  iconUrl: `data:image/svg+xml;base64,${btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" fill="#e74c3c">
+      <path d="M12 0C7.03 0 3 4.03 3 9c0 5.25 9 18 9 18s9-12.75 9-18c0-4.97-4.03-9-9-9z"/>
+      <circle cx="12" cy="9" r="4" fill="white"/>
+    </svg>
+  `)}`,
+  shadowUrl: iconShadow,
+  iconSize: [30, 45],
+  iconAnchor: [15, 45],
+  popupAnchor: [0, -45],
+  shadowSize: [41, 41],
+});
+
 const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
@@ -157,7 +172,7 @@ export default function HomePage() {
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
-              <Marker position={userLocation}>
+              <Marker position={userLocation} icon={RedIcon}>
                 <Popup>Your location</Popup>
               </Marker>
             </MapContainer>
