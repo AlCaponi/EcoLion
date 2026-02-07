@@ -180,6 +180,31 @@ app.post("/v1/shop/purchase", async (request, reply) => {
   return { ok: true };
 });
 
+app.post("/v1/shop/buyCoins", async (request, reply) => {
+  const { amount, paymentMethod } = request.body;
+  
+  // Validierung
+  if (typeof amount !== "number" || amount <= 0) {
+    return reply.code(400).send({ error: "Invalid amount" });
+  }
+  if (!["card", "paypal"].includes(paymentMethod)) {
+    return reply.code(400).send({ error: "Invalid payment method" });
+  }
+
+  // Coins zu User hinzufügen
+  const dashboard = store.getDashboard(request.userId);
+  const transactionId = `TXN-${Date.now()}`;
+  
+  dashboard.lion.coins += amount;
+  store.updateDashboard(request.userId, dashboard);
+
+  return {
+    transactionId,
+    coinsAdded: amount,
+    newBalance: dashboard.lion.coins,
+  };
+});
+
 app.get("/v1/users", async () => {
   return store.listUsers();
 });
