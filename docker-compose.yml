@@ -1,12 +1,34 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_PATH=/app/data/eco-loewe.db
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   frontend:
     build:
       context: ./eco-loewe-pwa
       dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
     volumes:
       - ./eco-loewe-pwa/src:/app/src
     restart: unless-stopped
@@ -23,6 +45,9 @@ services:
       dockerfile: Dockerfile
     environment:
       - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
+    depends_on:
+      backend:
+        condition: service_healthy
     volumes:
       - ./api-tests/src:/app/src
     profiles:

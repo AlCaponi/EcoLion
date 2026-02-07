@@ -3,6 +3,9 @@ import type { QuestDTO, MilestoneDTO, RewardDTO, RewardCategory } from "../share
 
 /* ── Mock rewards (linked via rewardId in milestones) ─────── */
 
+// Generate expiry date once: 90 days from now
+const defaultExpiryDate = new Date(Date.now() + 90 * 24 * 3600_000).toISOString();
+
 const mockRewards: RewardDTO[] = [
   {
     id: "r1",
@@ -12,7 +15,7 @@ const mockRewards: RewardDTO[] = [
     category: "culture",
     icon: "🎭",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: defaultExpiryDate,
     code: "ECO-TECH-10",
   },
   {
@@ -23,7 +26,7 @@ const mockRewards: RewardDTO[] = [
     category: "mobility",
     icon: "🚲",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: defaultExpiryDate,
     code: "ECO-VELO-CHK",
   },
   {
@@ -34,7 +37,7 @@ const mockRewards: RewardDTO[] = [
     category: "gastro",
     icon: "🍽️",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: defaultExpiryDate,
     code: "ECO-OSKAR-15",
   },
   {
@@ -45,7 +48,7 @@ const mockRewards: RewardDTO[] = [
     category: "sport",
     icon: "🧗",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: defaultExpiryDate,
     code: "ECO-KLETTER-20",
   },
   {
@@ -56,7 +59,7 @@ const mockRewards: RewardDTO[] = [
     category: "mobility",
     icon: "🚌",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: defaultExpiryDate,
     code: "ECO-STBUS-50",
   },
 ];
@@ -216,22 +219,29 @@ export default function RewardsPage() {
   };
 
   /* Claim a milestone → unlock its reward */
-  const claimMilestone = (id: string) => {
-    const ms = milestones.find((m) => m.id === id);
-    // Only allow claiming if the milestone exists, is completed, and not already claimed
-    if (!ms || ms.claimed || !ms.completed) {
-      return;
+  const claimMilestone = (id: string, rewardId: string) => {
+    // Use functional updates with rewardId passed in to avoid stale state
+    let shouldUpdateReward = false;
+    
+    setMilestones((prev) => {
+      const ms = prev.find((m) => m.id === id);
+      // Only allow claiming if the milestone exists, is completed, and not already claimed
+      if (!ms || ms.claimed || !ms.completed) {
+        return prev;
+      }
+      shouldUpdateReward = true;
+      return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
+    });
+    
+    if (shouldUpdateReward) {
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === rewardId
+            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+            : r
+        )
+      );
     }
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
-    );
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === ms.rewardId
-          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-          : r
-      )
-    );
   };
 
   /* Derived */
@@ -250,16 +260,24 @@ export default function RewardsPage() {
       </header>
 
       {/* ── Tab bar ── */}
-      <div className="rwTabs">
+      <div className="rwTabs" role="tablist" aria-label="Belohnungen Navigation">
         <button
           className={`rwTab ${tab === "quests" ? "active" : ""}`}
           onClick={() => setTab("quests")}
+          role="tab"
+          aria-selected={tab === "quests"}
+          aria-controls="quests-panel"
+          id="quests-tab"
         >
           Quests
         </button>
         <button
           className={`rwTab ${tab === "rewards" ? "active" : ""}`}
           onClick={() => setTab("rewards")}
+          role="tab"
+          aria-selected={tab === "rewards"}
+          aria-controls="rewards-panel"
+          id="rewards-tab"
         >
           Meine Rewards
         </button>
@@ -267,7 +285,11 @@ export default function RewardsPage() {
 
       {/* ── Quests tab ── */}
       {tab === "quests" && (
-        <>
+        <div
+          id="quests-panel"
+          role="tabpanel"
+          aria-labelledby="quests-tab"
+        >
           {/* Daily */}
           <section className="rwSection">
             <h2 className="rwSectionTitle">📅 Tägliche Quests</h2>
@@ -310,12 +332,17 @@ export default function RewardsPage() {
               ))}
             </div>
           </section>
-        </>
+        </div>
       )}
 
       {/* ── My Rewards tab ── */}
       {tab === "rewards" && (
-        <section className="rwSection">
+        <div
+          id="rewards-panel"
+          role="tabpanel"
+          aria-labelledby="rewards-tab"
+        >
+          <section className="rwSection">
           {claimedRewards.length === 0 ? (
             <div className="rwEmpty">
               <span className="rwEmptyIcon">🎯</span>
@@ -331,7 +358,8 @@ export default function RewardsPage() {
               ))}
             </div>
           )}
-        </section>
+          </section>
+        </div>
       )}
     </div>
   );
@@ -387,7 +415,7 @@ function MilestoneCard({
 }: {
   milestone: MilestoneDTO;
   reward: RewardDTO | undefined;
-  onClaim: (id: string) => void;
+  onClaim: (id: string, rewardId: string) => void;
 }) {
   const pct = Math.min((milestone.progress / milestone.goal) * 100, 100);
   const cat = reward ? categoryInfo[reward.category] : null;
@@ -426,7 +454,7 @@ function MilestoneCard({
       {milestone.completed && !milestone.claimed && (
         <button
           className="rwClaimBtnLarge"
-          onClick={() => onClaim(milestone.id)}
+          onClick={() => onClaim(milestone.id, milestone.rewardId)}
           aria-label="Reward einlösen"
         >
           <span aria-hidden="true">🎁</span> Reward einlösen
