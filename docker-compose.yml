@@ -11,6 +11,12 @@ services:
       - ./eco-loewe-pwa/src:/app/src
     restart: unless-stopped
 
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
   api-tests:
     build:
       context: ./api-tests

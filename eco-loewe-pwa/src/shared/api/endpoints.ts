@@ -6,7 +6,7 @@ import type {
   PurchaseDTO,
   FriendDTO,
   AssetDTO,
-  RewardsPageDTO
+  RewardsPageDTO,
   StartActivityRequestDTO,
   StartActivityResponseDTO,
   StopActivityRequestDTO,
