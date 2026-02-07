@@ -70,17 +70,17 @@ export default function HomePage() {
 
   const handleStart = async (id: string) => {
     const type = id as ActivityType;
-    setActiveActivity(type);
-    setTimer(0);
     try {
       const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
+      if (!data || typeof data.activityId !== "number") {
+        console.error("Failed to start activity: invalid response payload", data);
+        return;
+      }
       setCurrentActivityId(data.activityId);
+      setActiveActivity(type);
+      setTimer(0);
     } catch (e) {
       console.error("Failed to start activity", e);
-      // Revert UI state if the activity could not be started on the server
-      setActiveActivity(null);
-      setCurrentActivityId(null);
-      setTimer(0);
     }
   };
 
