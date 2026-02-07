@@ -85,8 +85,7 @@ export function useLocationTracking(): UseLocationTrackingReturn {
     setError(errorMessage);
   }, []);
 
-  const startTracking = useCallback((useMockData = false) => {
-    // Clear any existing watchers/intervals to prevent duplicates
+  const cleanupTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
@@ -96,6 +95,11 @@ export function useLocationTracking(): UseLocationTrackingReturn {
       clearInterval(intervalIdRef.current);
       intervalIdRef.current = null;
     }
+  }, []);
+
+  const startTracking = useCallback((useMockData = false) => {
+    // Clear any existing watchers/intervals to prevent duplicates
+    cleanupTracking();
 
     setError(null);
     setIsTracking(true);
@@ -164,24 +168,16 @@ export function useLocationTracking(): UseLocationTrackingReturn {
     );
 
     console.log("🎯 Location tracking started");
-  }, [addPoint, handleError]);
+  }, [addPoint, handleError, cleanupTracking]);
 
   const stopTracking = useCallback((): LocationPoint[] => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    
-    if (intervalIdRef.current !== null) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
+    cleanupTracking();
     
     setIsTracking(false);
     console.log(`🛑 Location tracking stopped. Total points: ${points.length}`);
     
     return points;
-  }, [points]);
+  }, [points, cleanupTracking]);
 
   const clearPoints = useCallback(() => {
     setPoints([]);
@@ -191,12 +187,7 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   // Cleanup on unmount
   useRef(() => {
     return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-      if (intervalIdRef.current !== null) {
-        clearInterval(intervalIdRef.current);
-      }
+      cleanupTracking();
     };
   });
 
