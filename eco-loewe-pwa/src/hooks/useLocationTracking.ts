@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export interface LocationPoint {
   lat: number;
@@ -185,11 +185,11 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   }, []);
 
   // Cleanup on unmount
-  useRef(() => {
+  useEffect(() => {
     return () => {
       cleanupTracking();
     };
-  });
+  }, [cleanupTracking]);
 
   return {
     points,
