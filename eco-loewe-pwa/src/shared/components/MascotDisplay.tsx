@@ -38,11 +38,16 @@ const ACCESSORY_IMAGES: Record<string, string> = {
   "hat-birthday": birthdayHat,
   "hat-detective": detectiveHat,
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Add other mappings as needed, e.g. placeholders from old mock
   // "hat-cap": ..., 
 =======
   // Add other mappings as needed
 >>>>>>> 9f88386 (Syntax fixes)
+=======
+  // Add other mappings as needed, e.g. placeholders from old mock
+  // "hat-cap": ..., 
+>>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
 };
 
 export default function MascotDisplay({

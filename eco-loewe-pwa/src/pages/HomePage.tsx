@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../shared/components/Card";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
@@ -23,10 +24,13 @@ const ACTIVITIES = [
   { id: "pool", label: "Pooling", iconSrc: carPoolingIcon, emoji: "🤝" },
 ];
 >>>>>>> 9f88386 (Syntax fixes)
+=======
+>>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
 
 const STREAK_DAYS = 8;
 
 export default function HomePage() {
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
@@ -127,6 +131,8 @@ export default function HomePage() {
   }
 
 >>>>>>> 9f88386 (Syntax fixes)
+=======
+>>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
   return (
     <div className="page homePage">
       <h1>Willkommen, Eco-Löwe! 🦁</h1>
@@ -180,6 +186,7 @@ export default function HomePage() {
 
       <Card>
         <div className="sectionTitle">Dein Löwe</div>
+<<<<<<< HEAD
         {user ? (
           <MascotDisplay 
             level={Math.floor(user.sustainabilityScore / 100) + 1}
@@ -227,6 +234,16 @@ export default function HomePage() {
           </div>
         </div>
       </Card>
+=======
+        <div className="lionPreview">
+          <div className="lionEmoji">🦁</div>
+          <div>
+            <div className="lionMood">Stimmung: 😊 Happy</div>
+            <div className="lionLevel">Level 5 · 120 XP · 85 Coins</div>
+          </div>
+        </div>
+      </Card>
+>>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
     </div>
   );
 }
