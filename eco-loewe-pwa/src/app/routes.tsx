@@ -1,12 +1,14 @@
 import type { RouteObject } from "react-router-dom";
 import HomePage from "../pages/HomePage";
+import DashboardPage from "../pages/DashboardPage";
 import StatsPage from "../pages/StatsPage";
 import ShopPage from "../pages/ShopPage";
 import LeaderboardPage from "../pages/LeaderboardPage";
 import RewardsPage from "../pages/RewardsPage";
 
 export const routes: RouteObject[] = [
-  { path: "/", element: <HomePage /> },
+  { path: "/", element: <DashboardPage /> },
+  { path: "/profile", element: <HomePage /> },
   { path: "/stats", element: <StatsPage /> },
   { path: "/shop", element: <ShopPage /> },
   { path: "/leaderboard", element: <LeaderboardPage /> },

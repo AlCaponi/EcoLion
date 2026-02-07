@@ -32,3 +32,41 @@
   margin: 0 auto;
   padding: 14px;
 }
+
+/* Burger button in the top bar */
+.burger{
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+.burger:hover{ background: var(--surface-2); }
+
+/* Simple modal used for Über uns */
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+.modal{
+  background: var(--surface);
+  color: var(--text);
+  max-width: 680px;
+  width: calc(100% - 40px);
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.modalHeader{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.modalClose{ background:transparent; border:none; font-size:18px; padding:6px; border-radius:8px; }
+.modalClose:hover{ background: var(--surface-2); }
+.modalBody{ margin-top:12px; line-height:1.5; }

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <!-- Gelber Hintergrund -->
+  <rect width="120" height="160" fill="#FFD700"/>
+  
+  <!-- Blauer Traubenbund oben links -->
+  <g transform="translate(25, 30)">
+    <!-- Traubenstiel -->
+    <line x1="0" y1="0" x2="0" y2="8" stroke="#228B22" stroke-width="1.5"/>
+    <!-- Traubenblatt -->
+    <path d="M -3 -2 Q -5 -1 -4 2 Q -2 3 0 2" fill="#228B22"/>
+    <!-- Trauben (Kreise) -->
+    <circle cx="0" cy="10" r="3" fill="#0052CC"/>
+    <circle cx="-4" cy="14" r="3" fill="#0052CC"/>
+    <circle cx="4" cy="14" r="3" fill="#0052CC"/>
+    <circle cx="-6" cy="20" r="2.5" fill="#0052CC"/>
+    <circle cx="0" cy="22" r="2.5" fill="#0052CC"/>
+    <circle cx="6" cy="20" r="2.5" fill="#0052CC"/>
+  </g>
+  
+  <!-- Rotes Schwert oben rechts -->
+  <g transform="translate(95, 25)">
+    <!-- Klinge -->
+    <polygon points="0,-12 -2,15 0,18 2,15" fill="#DC143C"/>
+    <!-- Griff -->
+    <rect x="-1.5" y="18" width="3" height="8" fill="#8B4513"/>
+    <!-- Parierstange -->
+    <rect x="-4" y="26" width="8" height="2" fill="#FFD700"/>
+  </g>
+  
+  <!-- Rotes Kreuz in der Mitte -->
+  <g transform="translate(60, 80)">
+    <!-- Vertikale Linie -->
+    <rect x="-2" y="-12" width="4" height="24" fill="#DC143C"/>
+    <!-- Horizontale Linie -->
+    <rect x="-12" y="-2" width="24" height="4" fill="#DC143C"/>
+    <!-- Weiße Innenlinie vertikal -->
+    <rect x="-1" y="-10" width="2" height="20" fill="#FFFFFF"/>
+    <!-- Weiße Innenlinie horizontal -->
+    <rect x="-10" y="-1" width="20" height="2" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Grüne Büsche unten -->
+  <g transform="translate(25, 135)">
+    <!-- Linker Busch -->
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="#228B22"/>
+    <ellipse cx="-8" cy="-2" rx="8" ry="6" fill="#2D5016"/>
+  </g>
+  
+  <g transform="translate(60, 138)">
+    <!-- Mittlerer Busch -->
+    <ellipse cx="0" cy="0" rx="14" ry="9" fill="#228B22"/>
+    <ellipse cx="0" cy="-3" rx="10" ry="7" fill="#2D5016"/>
+  </g>
+  
+  <g transform="translate(95, 135)">
+    <!-- Rechter Busch -->
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="#228B22"/>
+    <ellipse cx="8" cy="-2" rx="8" ry="6" fill="#2D5016"/>
+  </g>
+</svg>

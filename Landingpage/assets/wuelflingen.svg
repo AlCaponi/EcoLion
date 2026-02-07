@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <!-- Gelber Hintergrund oben -->
+  <rect y="0" width="120" height="80" fill="#FFD700"/>
+  
+  <!-- Grüner Hintergrund unten -->
+  <rect y="80" width="120" height="80" fill="#228B22"/>
+  
+  <!-- Weißer Vogel (Feder/Taube) oben in der Mitte -->
+  <g transform="translate(85, 35)">
+    <!-- Körper -->
+    <ellipse cx="0" cy="0" rx="5" ry="7" fill="#FFFFFF"/>
+    <!-- Kopf -->
+    <circle cx="0" cy="-7" r="4" fill="#FFFFFF"/>
+    <!-- Schnabel (gelb) -->
+    <polygon points="2,-7 6,-6 5,-8" fill="#FFD700"/>
+    <!-- Auge -->
+    <circle cx="1" cy="-8" r="1" fill="#000000"/>
+    <!-- Flügel -->
+    <ellipse cx="-4" cy="-2" rx="3" ry="5" fill="#F5F5F5"/>
+    <ellipse cx="4" cy="-2" rx="3" ry="5" fill="#F5F5F5"/>
+    <!-- Schwanzfedern -->
+    <path d="M -2 6 L -3 12" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 0 7 L 0 13" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 2 6 L 3 12" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Roter Hirsch/Bock in der Mitte -->
+  <g transform="translate(40, 75)">
+    <!-- Körper -->
+    <ellipse cx="0" cy="0" rx="16" ry="22" fill="#DC143C"/>
+    
+    <!-- Kopf -->
+    <circle cx="0" cy="-20" r="10" fill="#DC143C"/>
+    
+    <!-- Ohren -->
+    <ellipse cx="-6" cy="-26" rx="3" ry="5" fill="#DC143C"/>
+    <ellipse cx="6" cy="-26" rx="3" ry="5" fill="#DC143C"/>
+    
+    <!-- Geweih (Hörner) links -->
+    <line x1="-8" y1="-25" x2="-14" y2="-32" stroke="#8B0000" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-14" y1="-32" x2="-16" y2="-38" stroke="#8B0000" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-14" y1="-32" x2="-18" y2="-28" stroke="#8B0000" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Geweih (Hörner) rechts -->
+    <line x1="8" y1="-25" x2="14" y2="-32" stroke="#8B0000" stroke-width="2" stroke-linecap="round"/>
+    <line x1="14" y1="-32" x2="16" y2="-38" stroke="#8B0000" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="14" y1="-32" x2="18" y2="-28" stroke="#8B0000" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Auge -->
+    <circle cx="-3" cy="-22" r="1.5" fill="#FFFFFF"/>
+    <circle cx="3" cy="-22" r="1.5" fill="#FFFFFF"/>
+    
+    <!-- Nase/Schnauze -->
+    <ellipse cx="0" cy="-12" rx="4" ry="3" fill="#8B0000"/>
+    
+    <!-- Vorderbeine -->
+    <rect x="-8" y="18" width="3" height="16" fill="#DC143C"/>
+    <rect x="5" y="18" width="3" height="16" fill="#DC143C"/>
+    
+    <!-- Hinterbeine -->
+    <rect x="-12" y="16" width="3" height="18" fill="#DC143C"/>
+    <rect x="9" y="16" width="3" height="18" fill="#DC143C"/>
+    
+    <!-- Schwanz (nach oben) -->
+    <path d="M 14 8 Q 20 2 22 -4" stroke="#DC143C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

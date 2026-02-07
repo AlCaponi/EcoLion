@@ -1,0 +1,371 @@
+/* ── Home page (Company/City Overview) ─────────────────────────────────── */
+
+.homePage {
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+}
+
+/* Hero Section */
+.heroSection {
+  text-align: center;
+  padding: 24px 0;
+  background: #D32F2F;
+  color: white;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.heroSection h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.heroSubtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+/* City Stats Grid */
+.cityStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cityStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.05), rgba(239, 68, 68, 0.05));
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.statNumber {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.statSubtext {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* Section Title */
+.sectionTitle {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--brand);
+}
+
+/* Challenges List */
+.challengesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.challengeItem {
+  padding: 12px;
+  background: var(--surface);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.challengeItem.completed {
+  opacity: 0.7;
+  border-left-color: #D32F2F;
+}
+
+.challengeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.challengeHeader h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: var(--brand);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+.badge.completed {
+  background: #D32F2F;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), #E74C3C);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: right;
+  margin-bottom: 6px;
+}
+
+.challengeReward {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* Rewards / Shop Grid */
+.rewardsSubtext {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.rewardsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.rewardItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.rewardItem:hover {
+  background: rgba(16, 185, 129, 0.05);
+  transform: translateY(-2px);
+}
+
+.rewardIcon {
+  font-size: 28px;
+}
+
+.rewardItem h4 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rewardCost {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.coinIcon {
+  font-size: 14px;
+}
+
+.rarityTag {
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Testimonials */
+.testimonialsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.testimonialItem {
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(250, 204, 21, 0.05));
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+}
+
+.testimonialHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.testimonialAvatar {
+  font-size: 24px;
+}
+
+.testimonialHeader h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.testimonialText {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.testimonialStat {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* Coins Circulation */
+.coinsCirculation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.circulationBig {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--brand);
+}
+
+.amount {
+  font-size: 32px;
+}
+
+.circulationText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* CTA Section */
+.ctaSection {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.ctaSection h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.ctaSection p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.ctaButton {
+  padding: 12px 24px;
+  background: #D32F2F;
+  color: white;
+  font-weight: 800;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.ctaButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.ctaButton:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+  .cityStatsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .rewardsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection h1 {
+    font-size: 20px;
+  }
+
+  .statNumber {
+    font-size: 18px;
+  }
+
+  .rewardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

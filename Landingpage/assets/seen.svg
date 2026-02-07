@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <!-- Schwarz Hintergrund -->
+  <rect width="120" height="160" fill="#000000"/>
+  
+  <!-- Gelber Stern oben rechts -->
+  <g transform="translate(90, 30)">
+    <polygon points="0,-18 5,-6 18,-6 7,2 12,14 0,8 -12,14 -7,2 -18,-6 -5,-6" fill="#FFD700"/>
+  </g>
+  
+  <!-- Gelber Löwe unten links -->
+  <g transform="translate(35, 95)">
+    <!-- Körper -->
+    <ellipse cx="0" cy="0" rx="14" ry="18" fill="#FFD700"/>
+    
+    <!-- Kopf mit Mähne -->
+    <circle cx="0" cy="-18" r="12" fill="#FFD700"/>
+    <circle cx="-12" cy="-18" r="8" fill="#FFD700"/>
+    <circle cx="12" cy="-18" r="8" fill="#FFD700"/>
+    <circle cx="-14" cy="-12" r="6" fill="#FFD700"/>
+    <circle cx="14" cy="-12" r="6" fill="#FFD700"/>
+    
+    <!-- Vorderbeine -->
+    <rect x="-8" y="12" width="4" height="16" fill="#FFD700"/>
+    <rect x="4" y="12" width="4" height="16" fill="#FFD700"/>
+    
+    <!-- Hinterbeine -->
+    <rect x="-12" y="10" width="4" height="18" fill="#FFD700"/>
+    <rect x="8" y="10" width="4" height="18" fill="#FFD700"/>
+    
+    <!-- Schwanz -->
+    <path d="M 14 0 Q 24 -5 28 5 Q 26 12 20 14" stroke="#FFD700" stroke-width="4" fill="none" stroke-linecap="round"/>
+    
+    <!-- Augen (schwarz) -->
+    <circle cx="-3" cy="-20" r="1.5" fill="#000000"/>
+    <circle cx="3" cy="-20" r="1.5" fill="#000000"/>
+  </g>
+</svg>

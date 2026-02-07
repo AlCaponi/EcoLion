@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <!-- Weißer Hintergrund oben -->
+  <rect y="0" width="120" height="80" fill="#FFFFFF"/>
+  
+  <!-- Grüner/Weißer Wellenhintergrund unten -->
+  <rect y="80" width="120" height="80" fill="#228B22"/>
+  
+  <!-- Weiße Wellenmuster unten -->
+  <path d="M 0 85 Q 15 75 30 85 T 60 85 T 90 85 T 120 85 L 120 95 Q 105 105 90 95 T 60 95 T 30 95 T 0 95 Z" fill="#FFFFFF"/>
+  <path d="M 0 105 Q 15 95 30 105 T 60 105 T 90 105 T 120 105 L 120 115 Q 105 125 90 115 T 60 115 T 30 115 T 0 115 Z" fill="#FFFFFF"/>
+  <path d="M 0 125 Q 15 115 30 125 T 60 125 T 90 125 T 120 125 L 120 135 Q 105 145 90 135 T 60 135 T 30 135 T 0 135 Z" fill="#FFFFFF"/>
+  
+  <!-- Roter 3-köpfiger Löwe oben -->
+  <!-- Mittlerer Kopf (Hauptkopf) -->
+  <g transform="translate(60, 35)">
+    <!-- Kopf -->
+    <circle cx="0" cy="0" r="10" fill="#DC143C"/>
+    <!-- Mähne -->
+    <circle cx="-10" cy="0" r="7" fill="#DC143C"/>
+    <circle cx="10" cy="0" r="7" fill="#DC143C"/>
+    <circle cx="-8" cy="-8" r="6" fill="#DC143C"/>
+    <circle cx="8" cy="-8" r="6" fill="#DC143C"/>
+    <!-- Schnauze -->
+    <ellipse cx="0" cy="6" rx="4" ry="3" fill="#8B0000"/>
+    <!-- Augen -->
+    <circle cx="-3" cy="-2" r="1" fill="#FFFFFF"/>
+    <circle cx="3" cy="-2" r="1" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Linker Kopf -->
+  <g transform="translate(30, 40)">
+    <!-- Kopf -->
+    <circle cx="0" cy="0" r="8" fill="#DC143C"/>
+    <!-- Mähne -->
+    <circle cx="-8" cy="0" r="5.5" fill="#DC143C"/>
+    <circle cx="8" cy="0" r="5.5" fill="#DC143C"/>
+    <!-- Schnauze -->
+    <ellipse cx="0" cy="5" rx="3" ry="2.5" fill="#8B0000"/>
+    <!-- Auge -->
+    <circle cx="-2" cy="-1" r="0.8" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Rechter Kopf -->
+  <g transform="translate(90, 40)">
+    <!-- Kopf -->
+    <circle cx="0" cy="0" r="8" fill="#DC143C"/>
+    <!-- Mähne -->
+    <circle cx="-8" cy="0" r="5.5" fill="#DC143C"/>
+    <circle cx="8" cy="0" r="5.5" fill="#DC143C"/>
+    <!-- Schnauze -->
+    <ellipse cx="0" cy="5" rx="3" ry="2.5" fill="#8B0000"/>
+    <!-- Auge -->
+    <circle cx="2" cy="-1" r="0.8" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Körper des Löwen (unter den Köpfen) -->
+  <ellipse cx="60" cy="65" rx="20" ry="18" fill="#DC143C"/>
+  
+  <!-- Vorderbeine -->
+  <rect x="45" y="75" width="4" height="12" fill="#DC143C"/>
+  <rect x="71" y="75" width="4" height="12" fill="#DC143C"/>
+</svg>

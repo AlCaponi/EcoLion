@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
+  <!-- Rot: Löwe oben -->
+  <rect width="100" height="60" fill="#FFD700"/>
+  <g transform="translate(50, 30)">
+    <!-- Vereinfachter roter Löwe -->
+    <ellipse cx="0" cy="-8" rx="12" ry="10" fill="#DC143C"/>
+    <!-- Kopf -->
+    <circle cx="0" cy="-5" r="8" fill="#DC143C"/>
+    <!-- Mähne -->
+    <circle cx="-8" cy="-8" r="6" fill="#DC143C"/>
+    <circle cx="8" cy="-8" r="6" fill="#DC143C"/>
+    <!-- Körper -->
+    <ellipse cx="0" cy="5" rx="10" ry="14" fill="#DC143C"/>
+    <!-- Schwanz -->
+    <path d="M 8 5 Q 16 3 18 -2" stroke="#DC143C" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- Blau-Weiß Schachbrettmuster unten -->
+  <g>
+    <rect y="60" width="100" height="60" fill="#FFFFFF"/>
+    <!-- Blaue Quadrate -->
+    <rect x="0" y="60" width="20" height="20" fill="#0052CC"/>
+    <rect x="40" y="60" width="20" height="20" fill="#0052CC"/>
+    <rect x="80" y="60" width="20" height="20" fill="#0052CC"/>
+    
+    <rect x="20" y="80" width="20" height="20" fill="#0052CC"/>
+    <rect x="60" y="80" width="20" height="20" fill="#0052CC"/>
+    
+    <rect x="0" y="100" width="20" height="20" fill="#0052CC"/>
+    <rect x="40" y="100" width="20" height="20" fill="#0052CC"/>
+    <rect x="80" y="100" width="20" height="20" fill="#0052CC"/>
+  </g>
+</svg>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecolion – Winterthur wird Grün</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700;900&family=Merriweather:wght@700;900&display=swap');
+        
+        body { font-family: 'Noto Sans', sans-serif; background: white; overflow-x: hidden; }
+        
+        .hero-gradient { background: linear-gradient(135deg, #D32F2F 0%, #10B981 100%); }
+        .section-padding { padding: 60px 20px; }
+        .container-max { max-width: 1200px; margin: 0 auto; }
+        
+        .stat-counter { font-size: 2.5rem; font-weight: 900; color: #D32F2F; }
+        .stat-label { font-size: 0.875rem; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .feature-card { border-radius: 1.5rem; padding: 2rem; background: white; border: 2px solid #E5E7EB; transition: all 0.3s ease; }
+        .feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #D32F2F; }
+        
+        .card-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .card-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #D32F2F; }
+        .card-text { font-size: 0.95rem; line-height: 1.5; color: #6B7280; }
+        
+        .testimonial { background: #F9FAFB; border-left: 4px solid #10B981; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; }
+        .testimonial-name { font-weight: 800; color: #1F2937; margin-bottom: 0.25rem; }
+        .testimonial-text { font-size: 0.95rem; line-height: 1.6; color: #6B7280; font-style: italic; }
+        .testimonial-stat { font-weight: 700; color: #10B981; margin-top: 0.75rem; font-size: 0.875rem; }
+        
+        .cta-button { 
+            background: linear-gradient(135deg, #D32F2F, #10B981); 
+            color: white; 
+            padding: 1rem 2.5rem; 
+            border: none; 
+            border-radius: 0.75rem; 
+            font-weight: 800; 
+            font-size: 1rem;
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .cta-button:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3); }
+        .cta-button:active { transform: scale(0.98); }
+        
+        .leaderboard-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            padding: 1rem; 
+            background: #F9FAFB; 
+            border-radius: 0.75rem; 
+            margin-bottom: 0.75rem;
+        }
+        
+        .rank-badge { 
+            min-width: 50px; 
+            text-align: center; 
+            font-weight: 900; 
+            font-size: 1.125rem; 
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+        .rank-other { background: #E5E7EB; color: #6B7280; }
+        
+        .wappen-img { width: 50px; height: 65px; object-fit: contain; }
+        
+        .progress-bar { 
+            flex: 1; 
+            height: 8px; 
+            background: #E5E7EB; 
+            border-radius: 4px; 
+            overflow: hidden;
+            margin: 0 1rem;
+        }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10B981, #34D399); }
+        
+        #district-map-container { height: 500px; border-radius: 1.5rem; overflow: hidden; margin-bottom: 2rem; background: white; }
+        
+        .partner-logo { 
+            height: 60px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 800; 
+            color: #9CA3AF;
+            text-align: center;
+            font-size: 0.75rem;
+            padding: 1rem;
+        }
+        
+        .nav-button {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: white;
+        }
+        
+        header { background: #1F2937; color: white; padding: 1rem 2rem; }
+        footer { background: #1F2937; color: white; padding: 3rem 2rem; text-align: center; font-size: 0.875rem; }
+        
+        .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .number-animate { color: #D32F2F; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="flex justify-between items-center">
+        <h1 style="font-size: 1.5rem; font-weight: 900;">🦁 Ecolion</h1>
+        <nav class="hidden md:flex gap-4">
+            <button class="text-sm font-bold hover:text-green-400" onclick="scrollTo('impact')">Impact</button>
+            <button class="text-sm font-bold hover:text-green-400" onclick="scrollTo('leaderboard')">Ranking</button>
+            <button class="text-sm font-bold hover:text-green-400" onclick="scrollTo('testimonials')">Nutzer</button>
+            <button class="text-sm font-bold hover:text-green-400" onclick="scrollTo('download')">App</button>
+        </nav>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero-gradient text-white section-padding">
+        <div class="container-max text-center">
+            <h2 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 1rem; line-height: 1.1;">
+                Winterthur wird Grün
+            </h2>
+            <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Jeden Tag nachhaltiger unterwegs. Deinen Löwen leveln. Echte Rewards gewinnen. Zusammen die Stadt verändern.
+            </p>
+            <button class="cta-button" onclick="document.getElementById('download').scrollIntoView({behavior: 'smooth'})">
+                Jetzt App Downloaden
+            </button>
+        </div>
+    </section>
+
+    <!-- IMPACT STATS -->
+    <section class="section-padding" id="impact">
+        <div class="container-max">
+            <h3 style="font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 3rem; color: #D32F2F;">
+                Unsere Wirkung
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center p-6 bg-green-50 rounded-xl">
+                    <div class="stat-counter animate-fade-in">156K</div>
+                    <div class="stat-label">Tonnen CO₂ eingespart</div>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-xl">
+                    <div class="stat-counter animate-fade-in">4,856</div>
+                    <div class="stat-label">Aktive Nutzer</div>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-xl">
+                    <div class="stat-counter animate-fade-in">2.3M</div>
+                    <div class="stat-label">km nachhaltig</div>
+                </div>
+                <div class="text-center p-6 bg-green-50 rounded-xl">
+                    <div class="stat-counter animate-fade-in">8,423</div>
+                    <div class="stat-label">Flugstunden erspart</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section-padding" style="background: #F9FAFB;">
+        <div class="container-max">
+            <h3 style="font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 3rem; color: #D32F2F;">
+                Wie es funktioniert
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="feature-card">
+                    <div class="card-icon">🚶</div>
+                    <div class="card-title">Nachhaltig Unterwegs</div>
+                    <div class="card-text">Zu Fuß, Fahrrad oder ÖV – jede Fahrt zählt und wird automatisch getrackt.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="card-icon">🦁</div>
+                    <div class="card-title">Löwe Leveln</div>
+                    <div class="card-text">Beobachte deinen Löwen wachsen. Verdiene Coins. Sammle coole Accessoires.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="card-icon">💎</div>
+                    <div class="card-title">Echte Rewards</div>
+                    <div class="card-text">Tausche Coins gegen Gutscheine, Merchandise oder Stadtbus Passes.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE MAP -->
+    <section class="section-padding">
+        <div class="container-max">
+            <h3 style="font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 1rem; color: #D32F2F;">
+                Schau an, wie dein Viertel im Ranking abschneidet
+            </h3>
+            <p style="text-align: center; color: #6B7280; margin-bottom: 2rem; font-size: 0.95rem;">
+                Klicke auf die Marker um Details zu sehen
+            </p>
+            <div id="district-map-container"></div>
+        </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="section-padding" style="background: #F9FAFB;" id="leaderboard">
+        <div class="container-max">
+            <h3 style="font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 3rem; color: #D32F2F;">
+                🏆 Quartier-Ranking
+            </h3>
+            <div style="max-width: 600px; margin: 0 auto;">
+                <!-- Ranking items will be inserted here by JavaScript -->
+                <div id="leaderboard-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section-padding" id="testimonials">
+        <div class="container-max">
+            <h3 style="font-size: 2.5rem; font-weight: 900; text-align: center; margin-bottom: 3rem; color: #D32F2F;">
+                💬 Das sagen unsere Nutzer
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="testimonial">
+                    <div class="testimonial-name">😊 Marco S.</div>
+                    <div class="testimonial-text">"Ich fahre jetzt täglich mit dem Fahrrad. Ecolion macht es so viel spaßiger!"</div>
+                    <div class="testimonial-stat">🌍 345 kg CO₂ gespart</div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-name">🤩 Nina K.</div>
+                    <div class="testimonial-text">"Mein Löwe ist so süß geworden! Die Accessoires sind das Beste."</div>
+                    <div class="testimonial-stat">🦁 3 Löwen gezüchtet</div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-name">🌱 Alex T.</div>
+                    <div class="testimonial-text">"Endlich ein System das CO₂-Sparen belohnt. Winterthur macht es vor!"</div>
+                    <div class="testimonial-stat">🌍 289 kg CO₂ gespart</div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-name">🎯 Julia L.</div>
+                    <div class="testimonial-text">"Mit meinen Freunden im Team – das macht noch mehr Sinn!"</div>
+                    <div class="testimonial-stat">👥 Team Stadtzentrum</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PARTNERS -->
+    <section class="section-padding" style="background: #F9FAFB;">
+        <div class="container-max">
+            <h3 style="font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 2rem; color: #D32F2F;">
+                Unsere Partner
+            </h3>
+            <p style="text-align: center; color: #6B7280; margin-bottom: 2rem; font-size: 0.95rem;">
+                Unterstützt von führenden Unternehmen Winterthurs
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="partner-logo">🚌 Stadtbus<br>Winterthur</div>
+                <div class="partner-logo">🏢 House of<br>Winterthur</div>
+                <div class="partner-logo">☕ Café<br>Altstadt</div>
+                <div class="partner-logo">🎓 ZHAW</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / DOWNLOAD -->
+    <section class="section-padding hero-gradient text-white" id="download">
+        <div class="container-max text-center">
+            <h3 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem;">
+                Bereit für die Mobilitätswende?
+            </h3>
+            <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Lade Ecolion kostenlos herunter und werde Teil der Bewegung für ein grüneres Winterthur.
+            </p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <button class="bg-white text-red-600 font-bold px-6 py-3 rounded-lg hover:bg-gray-100 transition">
+                    📱 App Store
+                </button>
+                <button class="bg-white text-red-600 font-bold px-6 py-3 rounded-lg hover:bg-gray-100 transition">
+                    🤖 Google Play
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>🦁 Ecolion — © 2026 Winterthur | Nachhaltige Mobilität für alle</p>
+        <div style="margin-top: 1rem; font-size: 0.75rem; opacity: 0.7;">
+            <a href="#" style="color: inherit; margin: 0 1rem;">Datenschutz</a>
+            <a href="#" style="color: inherit; margin: 0 1rem;">Nutzungsbedingungen</a>
+            <a href="#" style="color: inherit; margin: 0 1rem;">Kontakt</a>
+        </div>
+    </footer>
+
+    <script>
+        // District data
+        const districts = [
+            { name: 'Stadtzentrum', rank: 1, lat: 47.500, lng: 8.755, co2: 2850, percentage: 100, emotion: '😄', wappen: 'assets/stadtzentrum.svg' },
+            { name: 'Töss', rank: 2, lat: 47.480, lng: 8.760, co2: 2621, percentage: 92, emotion: '😊', wappen: 'assets/toess.svg' },
+            { name: 'Seen', rank: 3, lat: 47.520, lng: 8.730, co2: 2394, percentage: 84, emotion: '😊', wappen: 'assets/seen.svg' },
+            { name: 'Wülflingen', rank: 4, lat: 47.510, lng: 8.780, co2: 2166, percentage: 76, emotion: '😐', wappen: 'assets/wuelflingen.svg' },
+            { name: 'Mattenbach', rank: 5, lat: 47.490, lng: 8.715, co2: 1938, percentage: 68, emotion: '😐', wappen: 'assets/mattenbach.svg' },
+            { name: 'Oberwinterthur', rank: 6, lat: 47.470, lng: 8.745, co2: 1710, percentage: 60, emotion: '😐', wappen: 'assets/oberwinterthur.svg' },
+            { name: 'Veltheim', rank: 7, lat: 47.530, lng: 8.710, co2: 1482, percentage: 52, emotion: '😔', wappen: 'assets/veltheim.svg' }
+        ];
+
+        // Populate Leaderboard
+        function populateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard-list');
+            districts.forEach(d => {
+                const rankClass = d.rank <= 3 ? `rank-${d.rank}` : 'rank-other';
+                const html = `
+                    <div class="leaderboard-item">
+                        <div class="rank-badge ${rankClass}">${d.rank <= 3 ? ['🥇', '🥈', '🥉'][d.rank-1] : d.rank}</div>
+                        <img src="${d.wappen}" alt="${d.name}" class="wappen-img">
+                        <div style="flex: 1; text-align: left;">
+                            <div style="font-weight: 800;">${d.name}</div>
+                            <div style="font-size: 0.875rem; color: #6B7280;">${d.co2} kg CO₂</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${d.percentage}%"></div>
+                        </div>
+                        <div style="font-size: 1.5rem;">${d.emotion}</div>
+                    </div>
+                `;
+                leaderboard.innerHTML += html;
+            });
+        }
+
+        // Initialize map
+        let districtMap;
+        function initMap() {
+            districtMap = L.map('district-map-container').setView([47.497, 8.754], 12);
+            L.tileLayer('https://wmts.geo.admin.ch/tiles/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg', {
+                attribution: '© geo.admin.ch',
+                maxZoom: 18
+            }).addTo(districtMap);
+
+            // Add markers
+            districts.forEach(d => {
+                const iconHtml = `
+                    <div style="text-align: center;">
+                        <img src="${d.wappen}" alt="${d.name}" style="width: 40px; height: 50px; object-fit: contain; border-radius: 4px;">
+                    </div>
+                `;
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    iconSize: [50, 60],
+                    className: 'custom-marker'
+                });
+
+                L.marker([d.lat, d.lng], { icon: customIcon })
+                    .bindPopup(`
+                        <div style="text-align: center; padding: 10px;">
+                            <h4 style="margin: 0 0 8px; font-weight: 800; color: #D32F2F;">${d.name}</h4>
+                            <p style="margin: 0 0 4px; font-size: 12px;"><strong>Rang #${d.rank}</strong></p>
+                            <p style="margin: 0 0 4px; font-size: 12px;">${d.co2} kg CO₂</p>
+                            <p style="margin: 0; font-size: 24px;">${d.emotion}</p>
+                        </div>
+                    `)
+                    .addTo(districtMap);
+            });
+
+            districtMap.invalidateSize();
+        }
+
+        // Smooth scroll
+        function scrollTo(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            populateLeaderboard();
+            initMap();
+        });
+    </script>
+</body>
+</html>

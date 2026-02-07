@@ -3,429 +3,1600 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WinLion – Die spielerische Mobilitätswende für Winterthur</title>
+    <title>Ecolion – Die spielerische Mobilitätswende für Winterthur</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700;900&family=Merriweather:wght@700;900&display=swap');
         
-        body {
-            font-family: 'Noto Sans', sans-serif;
-            background-color: #ffffff;
-            overflow-x: hidden;
-        }
-
+        body { font-family: 'Noto Sans', sans-serif; background-color: #ffffff; overflow-x: hidden; }
         .bg-winterthur-red { background-color: #D32F2F; }
         .text-winterthur-red { color: #D32F2F; }
-        .border-winterthur-red { border-color: #D32F2F; }
-
-        .vision-text {
-            font-family: 'Merriweather', serif;
-            font-size: 35pt;
-            color: #D32F2F;
-            line-height: 1.15;
-            text-align: left;
-        }
-
-        .menu-overlay {
-            transition: transform 0.4s cubic-bezier(0.77,0.2,0.05,1.0);
-            transform: translateY(-100%);
-        }
-        .menu-overlay.open {
-            transform: translateY(0);
-        }
-
+        .vision-text { font-family: 'Merriweather', serif; font-size: 35pt; color: #D32F2F; line-height: 1.15; text-align: left; }
+        .menu-overlay { transition: transform 0.4s cubic-bezier(0.77,0.2,0.05,1.0); transform: translateY(-100%); }
+        .menu-overlay.open { transform: translateY(0); }
         .barometer-svg { transform: rotate(-90deg); }
-        .barometer-progress {
-            stroke-dasharray: 283; 
-            stroke-dashoffset: 283;
-            transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .connector-line {
-            stroke-dasharray: 300;
-            stroke-dashoffset: 300;
-            transition: stroke-dashoffset 1s ease-out;
-        }
-        .draw-line { stroke-dashoffset: 0 !important; }
-
-        .roar-content {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.8s ease-out;
-        }
-        .roar-active .roar-content {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .lion-roar-anim { animation: roar-sequence 0.8s ease-in-out; }
-        @keyframes roar-sequence {
-            0% { transform: scale(1); }
-            30% { transform: scale(1.2) rotate(5deg); }
-            50% { transform: scale(1.2) rotate(-5deg); }
-            70% { transform: scale(1.25) rotate(0deg); }
-            100% { transform: scale(1); }
-        }
-
+        .barometer-progress { stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 2s ease-in-out; }
         .lion-float { animation: floating 4s ease-in-out infinite; }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .page-content {
-            display: none;
-            animation: fadeIn 0.5s ease-out forwards;
-        }
+        @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .page-content { display: none; animation: fadeIn 0.5s ease-out forwards; }
         .page-content.active { display: block; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback-card { transition: all 0.3s ease; }
-        .feedback-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(211, 47, 47, 0.1);
-        }
-
-        .bar-grow {
-            animation: grow-width 1.5s ease-out forwards;
-            transform-origin: left;
-        }
-        @keyframes grow-width {
-            from { transform: scaleX(0); }
-            to { transform: scaleX(1); }
-        }
-
-        .partner-logo-box {
-            filter: grayscale(100%);
-            transition: all 0.3s ease;
-            opacity: 0.6;
-        }
-        .partner-logo-box:hover {
-            filter: grayscale(0%);
-            opacity: 1;
-            transform: scale(1.05);
-        }
-
-        /* Karte Styling */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* HERO GRADIENT */
+        .hero-gradient { background: linear-gradient(135deg, #D32F2F 0%, #10B981 100%); }
+        
+        .dept-card { background: white; border-radius: 2rem; padding: 2rem; transition: all 0.3s ease; border: 1px solid #f3f4f6; height: 100%; position: relative; overflow: hidden; }
+        .dept-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
+        
         .district-path { fill: #f3f4f6; stroke: #ffffff; stroke-width: 2; transition: all 0.3s ease; }
-        .district-path:hover { fill: #fee2e2; cursor: pointer; }
-        .wappen-icon { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); transition: transform 0.3s ease; cursor: pointer; }
-        .wappen-icon:hover { transform: scale(1.15) translateY(-5px); }
+        .flag-node { cursor: pointer; transition: transform 0.3s ease; }
+        .flag-node:hover { transform: scale(1.1) translateY(-5px); }
+        .flag-pole { stroke: #4b5563; stroke-width: 3; stroke-linecap: round; }
+        .flag-banner { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        
+        .bar-grow { animation: grow-width 1.5s ease-out forwards; transform-origin: left; }
+        @keyframes grow-width { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+        .challenge-card { border-left: 8px solid #D32F2F; }
+        .reward-card { border-left: 8px solid #10B981; }
+
+        .mission-grid-card { border-radius: 1.5rem; padding: 2rem; text-align: center; transition: transform 0.3s ease; }
+        .mission-grid-card:hover { transform: translateY(-5px); }
+        
+        /* Barchart styles */
+        .ranking-container { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 3rem; }
+        .ranking-item { display: flex; align-items: center; gap: 1rem; animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+        .ranking-item:nth-child(1) { animation-delay: 0.1s; }
+        .ranking-item:nth-child(2) { animation-delay: 0.2s; }
+        .ranking-item:nth-child(3) { animation-delay: 0.3s; }
+        .ranking-item:nth-child(4) { animation-delay: 0.4s; }
+        .ranking-item:nth-child(5) { animation-delay: 0.5s; }
+        .ranking-item:nth-child(6) { animation-delay: 0.6s; }
+        .ranking-item:nth-child(7) { animation-delay: 0.7s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .ranking-badge { min-width: 50px; font-weight: 900; text-align: center; font-size: 18px; padding: 0.5rem; border-radius: 0.75rem; }
+        .ranking-badge.medal-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+        .ranking-badge.medal-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }
+        .ranking-badge.medal-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+        .ranking-badge.medal-other { background: #E5E7EB; color: #6B7280; }
+        
+        .ranking-bar-container { flex: 1; background: #f3f4f6; border-radius: 1rem; overflow: hidden; height: 3rem; display: flex; align-items: center; position: relative; }
+        .ranking-bar { height: 100%; background: linear-gradient(90deg, #10B981, #34D399); border-radius: 1rem; display: flex; align-items: center; justify-content: flex-end; padding-right: 1rem; color: white; font-weight: 900; font-size: 14px; transition: width 1s ease-out; }
+        
+        .ranking-label { display: flex; align-items: center; gap: 0.75rem; min-width: 180px; font-weight: 900; text-align: left; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .ranking-flag { font-size: 32px; width: 40px; text-align: center; }
+
+        /* District Map styles */
+        .district-map { display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-top: 3rem; }
+        .map-container { width: 100%; max-width: 600px; background: white; border: 2px solid #E5E7EB; border-radius: 1.5rem; padding: 2rem; }
+        .map-title { font-size: 20px; font-weight: 900; text-align: center; color: #D32F2F; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+        
+        .district-region { cursor: pointer; transition: all 0.3s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .district-region:hover { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); opacity: 0.9; }
+        .district-region.rank-1 { fill: #10B981; }
+        .district-region.rank-2 { fill: #34D399; }
+        .district-region.rank-3 { fill: #6EE7B7; }
+        .district-region.rank-4 { fill: #A7F3D0; }
+        .district-region.rank-5 { fill: #CCFBF1; }
+        .district-region.rank-6 { fill: #D1FAE5; }
+        .district-region.rank-7 { fill: #ECFDF5; }
+        .district-region.rank-other { fill: #F3F4F6; }
+        .district-region { stroke: white; stroke-width: 2; }
+        
+        .district-label { font-size: 13px; font-weight: 900; text-anchor: middle; dominant-baseline: middle; letter-spacing: 0.03em; pointer-events: none; }
+        .district-label.dark { fill: #1F2937; }
+        .district-label.light { fill: white; }
+
+        /* Leaflet Map Container */
+        #district-map-container { height: 500px; border-radius: 1.5rem; overflow: hidden; margin-bottom: 2rem; background: white; }
+        .leaflet-container { background: white; border-radius: 1.5rem; }
+        .leaflet-popup-content-wrapper { border-radius: 0.75rem; background: white; }
+        .district-popup { text-align: center; padding: 1rem; }
+        .district-popup h4 { font-weight: 900; font-size: 18px; color: #D32F2F; margin-bottom: 0.5rem; }
+        .district-popup-stat { font-size: 14px; font-weight: bold; margin: 0.5rem 0; color: #374151; }
+        .district-popup-emoji { font-size: 48px; margin-top: 1rem; }
+
+        /* Toggle Switch for Barchart Metrics */
+        .metric-toggle-container { display: flex; justify-content: center; gap: 1rem; align-items: center; margin-bottom: 2rem; }
+        .metric-btn { padding: 0.75rem 1.5rem; font-weight: 900; border-radius: 0.75rem; border: 2px solid #D32F2F; background: white; color: #D32F2F; cursor: pointer; text-transform: uppercase; font-size: 14px; transition: all 0.3s ease; letter-spacing: 0.05em; }
+        .metric-btn.active { background: #D32F2F; color: white; }
+        .metric-btn:hover { transform: scale(1.05); }
+
+        /* KidsLion Accordion Styles */
+        .story-accordion { max-width: 900px; margin: 2rem auto; border-radius: 1.5rem; }
+        .story-item { background: white; border: 2px solid #E5E7EB; border-radius: 1rem; margin-bottom: 1rem; overflow: hidden; transition: all 0.3s ease; }
+        .story-item:hover { border-color: #D32F2F; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.1); }
+        .story-item.active { border-color: #D32F2F; }
+        .story-trigger { width: 100%; background: white; border: none; padding: 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; text-align: left; font-weight: 900; font-size: 18px; color: #1F2937; }
+        .story-item.active .story-trigger { background: linear-gradient(135deg, #D32F2F, #B91C1C); color: white; }
+        .story-item.active .story-trigger i { transform: rotate(180deg); }
+        .story-trigger i { transition: transform 0.3s ease; color: #D32F2F; width: 24px; height: 24px; }
+        .story-item.active .story-trigger i { color: white; }
+        .story-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .story-item.active .story-content { max-height: 1000px; }
+        .story-body { padding: 0 1.5rem 1.5rem 1.5rem; }
+        
+        .story-icon { font-size: 2.5rem; margin-right: 1rem; }
+        .story-header { display: flex; align-items: center; }
+        .story-title { font-size: 22px; font-weight: 900; }
+        
+        .impact-card { background: linear-gradient(135deg, #FEE2E2, #FECACA); border-left: 4px solid #D32F2F; padding: 1.5rem; border-radius: 0.75rem; margin: 1rem 0; }
+        .impact-card.warning { background: linear-gradient(135deg, #FEF3C7, #FEF08A); border-left-color: #F59E0B; }
+        .impact-card.danger { background: linear-gradient(135deg, #FEE2E2, #FECACA); border-left-color: #DC2626; }
+        
+        .kids-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .kids-card { background: white; border: 2px solid #E5E7EB; border-radius: 1rem; padding: 1.5rem; text-align: center; transition: all 0.3s ease; }
+        .kids-card:hover { transform: translateY(-5px); border-color: #D32F2F; box-shadow: 0 10px 25px rgba(211, 47, 47, 0.1); }
+        .kids-card-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .kids-card-title { font-size: 18px; font-weight: 900; color: #1F2937; margin-bottom: 0.5rem; }
+        .kids-card-desc { font-size: 14px; color: #6B7280; line-height: 1.6; }
+        
+        .behavior-box { background: white; border-left: 4px solid #D32F2F; padding: 1rem; border-radius: 0.5rem; margin: 0.75rem 0; font-weight: bold; }
+        .behavior-box.good { border-left-color: #10B981; background: linear-gradient(135deg, #F0FDF4, white); }
+        .behavior-box.bad { border-left-color: #EF4444; background: linear-gradient(135deg, #FEE2E2, white); }
+        .behavior-box-emoji { font-size: 1.5rem; margin-right: 0.75rem; }
     </style>
 </head>
 <body class="text-gray-900">
 
     <header class="fixed top-0 left-0 w-full z-50 bg-winterthur-red shadow-lg px-6 py-3 flex justify-between items-center border-b-2 border-white/10">
-        <div class="flex flex-col cursor-pointer" onclick="showPage('home')">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-winterthur-red shadow-inner">
-                    <i data-lucide="shield-check"></i>
-                </div>
-                <span class="text-2xl font-black tracking-widest text-white uppercase">WINLION</span>
+        <div class="flex items-center">
+            <button id="menu-toggle" class="z-50 text-white focus:outline-none p-2 hover:bg-white/10 rounded-lg transition mr-4">
+                <i data-lucide="menu" id="menu-icon" class="w-8 h-8"></i>
+            </button>
+            <div class="flex flex-col cursor-pointer" onclick="showPage('home')">
+                <span class="text-2xl font-black tracking-widest text-white uppercase italic">ECOLION</span>
+                <span class="text-[9px] text-white/80 font-bold uppercase tracking-[0.15em]">Winterthur</span>
             </div>
-            <span class="text-[9px] text-white/80 font-bold uppercase tracking-[0.15em] mt-1 pl-1">Klimaneutralität spielerisch erreichen</span>
         </div>
-        <button id="menu-toggle" class="z-50 text-white focus:outline-none p-2 hover:bg-white/10 rounded-lg transition">
-            <i data-lucide="menu" id="menu-icon" class="w-8 h-8"></i>
-        </button>
+        <div class="flex items-center space-x-4">
+            <select class="bg-white/10 text-white text-xs font-bold py-2 px-2 rounded-lg border border-white/20 outline-none">
+                <option value="de" class="text-black">DE</option>
+                <option value="en" class="text-black">EN</option>
+            </select>
+            <button class="bg-white text-winterthur-red px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest shadow-md">Sign Up</button>
+        </div>
     </header>
 
     <div id="nav-menu" class="menu-overlay fixed top-0 left-0 w-full h-screen bg-winterthur-red z-40 flex flex-col items-center justify-center">
-        <nav class="text-center space-y-8">
-            <button onclick="showPage('home')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Home / Dashboard</button>
-            <button onclick="showPage('mission')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Unsere Mission</button>
-            <button onclick="showPage('challenge')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Quartier-Challenge</button>
-            <button onclick="showPage('kids')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">WinLion Kids</button>
-            <button onclick="showPage('partner')" class="block text-3xl font-bold text-white hover:opacity-75 w-full uppercase tracking-tighter">Partnerprogramm</button>
+        <nav class="text-center space-y-6">
+            <button onclick="showPage('home')" class="block text-3xl font-bold text-white hover:opacity-70 uppercase tracking-tighter">Home</button>
+            <button onclick="showPage('vision-mission')" class="block text-3xl font-bold text-white hover:opacity-70 uppercase tracking-tighter">Vision & Mission</button>
+            <button onclick="showPage('about')" class="block text-3xl font-bold text-white hover:opacity-70 uppercase tracking-tighter">Über uns</button>
+            <button onclick="showPage('kids')" class="block text-3xl font-bold text-white hover:opacity-70 uppercase tracking-tighter">Kidslion</button>
+            <button onclick="showPage('partner')" class="block text-3xl font-bold text-white hover:opacity-70 uppercase tracking-tighter">Partnerprogramm</button>
         </nav>
     </div>
 
-    <main class="pt-28 min-h-screen" id="main-container">
-
-        <div id="page-home" class="page-content active max-w-7xl mx-auto px-6">
-            <div class="relative flex flex-col items-center justify-center min-h-[700px] mb-20" id="hero-section">
-                <div class="absolute top-0 left-0 md:left-10 max-w-2xl hidden md:block">
-                    <div class="vision-text">Winterthur brüllt grün: <br> Gemeinsam ans Netto-Null-Ziel</div>
+    <main class="pt-28 min-h-screen">
+        <div id="page-home" class="page-content active max-w-7xl mx-auto px-6 text-center">
+            <!-- NEW HERO SECTION -->
+            <div class="relative flex flex-col items-center justify-center min-h-[600px] mb-12 bg-winterthur-red rounded-3xl p-12 text-white">
+                <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight italic">
+                    Winterthur brüllt Grün 🦁
+                </h1>
+                <p class="text-lg md:text-2xl font-bold mb-8 max-w-2xl leading-relaxed opacity-95">
+                    Jeden Tag nachhaltiger unterwegs.<br>
+                    Deinen Löwen leveln.<br>
+                    Echte Rewards gewinnen.<br>
+                    Zusammen die Stadt verändern.
+                </p>
+                <button class="bg-white text-red-600 px-8 py-4 rounded-xl font-black text-lg uppercase tracking-wider hover:scale-105 transition shadow-2xl mb-6">
+                    📱 App Herunterladen
+                </button>
+                <div class="text-sm opacity-80 font-bold">
+                    Verfügbar auf iOS & Android
                 </div>
-                <div class="flex justify-center relative w-full items-center">
-                    <svg class="absolute inset-0 w-full h-full pointer-events-none hidden lg:block" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
-                        <line id="line-left" x1="420" y1="200" x2="220" y2="100" stroke="#D1D5DB" stroke-width="2" stroke-dasharray="10 5" class="connector-line" />
-                        <line id="line-right" x1="580" y1="200" x2="780" y2="100" stroke="#D32F2F" stroke-width="2" stroke-dasharray="10 5" class="connector-line" />
+            </div>
+
+            <!-- ALTE LION BAROMETER SECTION -->
+            <div class="relative flex flex-col items-center justify-center min-h-[400px]">
+                <div class="absolute top-0 left-0 max-w-2xl hidden md:block text-left">
+                    <div class="vision-text italic text-sm">Unsere Wirkung</div>
+                </div>
+                <div class="relative w-80 h-80 flex items-center justify-center lion-float z-30">
+                    <svg class="barometer-svg absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="8" />
+                        <circle id="barometer-fill" class="barometer-progress" cx="50" cy="50" r="45" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" />
                     </svg>
-
-                    <div class="absolute left-0 lg:left-20 top-1/2 -translate-y-full md:-translate-y-1/2 roar-content">
-                        <div class="flex flex-col items-center">
-                            <div class="w-24 h-24 bg-white border-4 border-yellow-400 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden mb-2">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wuelflingen-blazon.svg/120px-Wuelflingen-blazon.svg.png" class="w-16 h-16" alt="Wülflingen">
-                            </div>
-                            <span class="bg-yellow-400 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase mb-1">Rang #1</span>
-                            <span class="text-sm font-black uppercase text-gray-800">Wülflingen</span>
-                        </div>
-                    </div>
-
-                    <div class="relative w-80 h-80 flex items-center justify-center lion-float z-30">
-                        <svg class="barometer-svg absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="8" />
-                            <circle id="barometer-fill" class="barometer-progress" cx="50" cy="50" r="45" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" />
-                        </svg>
-                        <div id="lion-sprite" class="w-64 h-64 bg-white rounded-full flex items-center justify-center shadow-2xl relative overflow-hidden z-10 border-4 border-gray-50">
-                            <svg viewBox="0 0 100 100" class="w-48 h-48">
-                                <path d="M50,5 C75,5 95,25 95,50 C95,75 75,95 50,95 C25,95 5,75 5,50 C5,25 25,5 50,5" fill="#F59E0B" />
-                                <circle cx="50" cy="50" r="35" fill="#FBBF24"/><circle cx="25" cy="25" r="8" fill="#F59E0B"/><circle cx="75" cy="25" r="8" fill="#F59E0B"/>
-                                <ellipse cx="50" cy="55" rx="20" ry="18" fill="#FEF3C7" opacity="0.9"/><circle cx="40" cy="45" r="3.5" fill="#1F2937"/><circle cx="60" cy="45" r="3.5" fill="#1F2937"/>
-                                <path id="lion-mouth" d="M 42 65 Q 50 72 58 65" stroke="#1F2937" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                                <path d="M 47 58 L 53 58 L 50 63 Z" fill="#D32F2F" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="absolute right-0 lg:right-20 top-1/2 -translate-y-full md:-translate-y-1/2 roar-content">
-                        <div class="text-right">
-                            <p class="text-winterthur-red text-xs font-black uppercase tracking-widest mb-1">gesparte CO2 in KG</p>
-                            <div class="flex items-baseline justify-end space-x-2">
-                                <span id="co2-counter" class="text-5xl font-black text-gray-900 tracking-tighter">145.321</span>
-                                <span class="text-xl font-bold text-green-500 uppercase">kg</span>
-                            </div>
+                    <div class="w-64 h-64 bg-white rounded-full flex items-center justify-center shadow-2xl overflow-hidden border-4 border-gray-50 z-10">
+                        <div class="text-center">
+                            <div class="text-5xl font-black text-winterthur-red">42%</div>
+                            <div class="text-sm font-bold text-gray-600 uppercase tracking-wider">Weniger CO₂</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <section class="py-24 bg-red-50 -mx-6 px-6 rounded-[5rem] mb-20">
-                <div class="max-w-6xl mx-auto text-center">
-                    <h2 class="text-3xl font-black mb-16 uppercase tracking-tighter text-winterthur-red italic">Das sagen unsere Löwen</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
-                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i></div>
-                            <p class="text-gray-600 mb-6 italic">"Velo fahren macht endlich wieder richtig Spass!"</p>
-                            <p class="text-sm font-black text-gray-800">Marc S. - Wülflingen</p>
+            <!-- IMPACT STATS SECTION -->
+            <div class="max-w-6xl mx-auto py-12 px-6 mb-12">
+                <h2 class="text-4xl font-black text-center text-winterthur-red uppercase mb-10">Unsere Wirkung</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="text-center p-8 bg-red-50 rounded-2xl border-2 border-red-200">
+                        <div class="text-4xl font-black text-winterthur-red mb-2">156K</div>
+                        <div class="text-sm font-bold text-gray-600 uppercase tracking-wider">Tonnen CO₂ eingespart</div>
+                    </div>
+                    <div class="text-center p-8 bg-red-50 rounded-2xl border-2 border-red-200">
+                        <div class="text-4xl font-black text-winterthur-red mb-2">4,856</div>
+                        <div class="text-sm font-bold text-gray-600 uppercase tracking-wider">Aktive Nutzer</div>
+                    </div>
+                    <div class="text-center p-8 bg-red-50 rounded-2xl border-2 border-red-200">
+                        <div class="text-4xl font-black text-winterthur-red mb-2">2.3M</div>
+                        <div class="text-sm font-bold text-gray-600 uppercase tracking-wider">km nachhaltig</div>
+                    </div>
+                    <div class="text-center p-8 bg-red-50 rounded-2xl border-2 border-red-200">
+                        <div class="text-4xl font-black text-winterthur-red mb-2">8,423</div>
+                        <div class="text-sm font-bold text-gray-600 uppercase tracking-wider">Flugstunden erspart</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOW IT WORKS SECTION -->
+            <div class="max-w-6xl mx-auto py-12 px-6 mb-12 bg-gray-50 rounded-3xl">
+                <h2 class="text-4xl font-black text-center text-winterthur-red uppercase mb-10">Wie es funktioniert</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-2xl border-2 border-gray-200 hover:border-winterthur-red transition">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🚶</div>
+                        <h3 class="text-xl font-black text-winterthur-red mb-2">Nachhaltig Unterwegs</h3>
+                        <p class="text-gray-700 font-bold leading-relaxed">Zu Fuß, Fahrrad oder ÖV – jede Fahrt zählt und wird automatisch getrackt.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border-2 border-gray-200 hover:border-winterthur-red transition">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🦁</div>
+                        <h3 class="text-xl font-black text-winterthur-red mb-2">Löwe Leveln</h3>
+                        <p class="text-gray-700 font-bold leading-relaxed">Beobachte deinen Löwen wachsen. Verdiene Coins. Sammle coole Accessoires.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border-2 border-gray-200 hover:border-winterthur-red transition">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">💎</div>
+                        <h3 class="text-xl font-black text-winterthur-red mb-2">Echte Rewards</h3>
+                        <p class="text-gray-700 font-bold leading-relaxed">Tausche Coins gegen Gutscheine, Merchandise oder Stadtbus Passes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TESTIMONIALS SECTION -->
+            <div class="max-w-6xl mx-auto py-12 px-6 mb-12">
+                <h2 class="text-4xl font-black text-center text-winterthur-red uppercase mb-10">💬 Das sagen unsere Nutzer</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 border-l-4 border-winterthur-red rounded-lg p-6">
+                        <div class="text-2xl mb-2">😊 Marco S.</div>
+                        <p class="text-gray-700 font-bold leading-relaxed italic mb-3">"Ich fahre jetzt täglich mit dem Fahrrad. Ecolion macht es so viel spaßiger!"</p>
+                        <div class="text-sm font-black text-winterthur-red">🌍 345 kg CO₂ gespart</div>
+                    </div>
+                    <div class="bg-gray-50 border-l-4 border-winterthur-red rounded-lg p-6">
+                        <div class="text-2xl mb-2">🤩 Nina K.</div>
+                        <p class="text-gray-700 font-bold leading-relaxed italic mb-3">"Mein Löwe ist so süß geworden! Die Accessoires sind das Beste."</p>
+                        <div class="text-sm font-black text-winterthur-red">🦁 3 Löwen gezüchtet</div>
+                    </div>
+                    <div class="bg-gray-50 border-l-4 border-winterthur-red rounded-lg p-6">
+                        <div class="text-2xl mb-2">🌱 Alex T.</div>
+                        <p class="text-gray-700 font-bold leading-relaxed italic mb-3">"Endlich ein System das CO₂-Sparen belohnt. Winterthur macht es vor!"</p>
+                        <div class="text-sm font-black text-winterthur-red">🌍 289 kg CO₂ gespart</div>
+                    </div>
+                    <div class="bg-gray-50 border-l-4 border-winterthur-red rounded-lg p-6">
+                        <div class="text-2xl mb-2">🎯 Julia L.</div>
+                        <p class="text-gray-700 font-bold leading-relaxed italic mb-3">"Mit meinen Freunden im Team – das macht noch mehr Sinn!"</p>
+                        <div class="text-sm font-black text-winterthur-red">👥 Team Stadtzentrum</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTNER SECTION -->
+            <div class="max-w-6xl mx-auto py-12 px-6 mb-12 bg-gray-900 text-white rounded-3xl">
+                <h2 class="text-4xl font-black text-center uppercase mb-2">Unsere Partner</h2>
+                <p class="text-center text-gray-300 font-bold mb-10">Unterstützt von führenden Unternehmen Winterthurs</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div class="flex items-center justify-center p-8 bg-white/10 rounded-xl text-center">
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚌</div>
+                            <div class="font-bold text-sm">Stadtbus<br>Winterthur</div>
                         </div>
-                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
-                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i></div>
-                            <p class="text-gray-600 mb-6 italic">"Die Challenge motiviert uns jeden Tag aufs Neue."</p>
-                            <p class="text-sm font-black text-gray-800">Lena K. - Seen</p>
+                    </div>
+                    <div class="flex items-center justify-center p-8 bg-white/10 rounded-xl text-center">
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏢</div>
+                            <div class="font-bold text-sm">House of<br>Winterthur</div>
                         </div>
-                        <div class="feedback-card bg-white p-8 rounded-[2.5rem] shadow-sm text-left">
-                            <div class="flex text-yellow-400 mb-4"><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="fill-current w-5 h-5"></i><i data-lucide="star" class="w-5 h-5"></i></div>
-                            <p class="text-gray-600 mb-6 italic">"Tolle Idee, Nachhaltigkeit so emotional zu verpacken."</p>
-                            <p class="text-sm font-black text-gray-800">Patrick M. - Stadt</p>
+                    </div>
+                    <div class="flex items-center justify-center p-8 bg-white/10 rounded-xl text-center">
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">☕</div>
+                            <div class="font-bold text-sm">Café<br>Altstadt</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center p-8 bg-white/10 rounded-xl text-center">
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎓</div>
+                            <div class="font-bold text-sm">ZHAW</div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <div class="max-w-xl mx-auto mb-20 bg-gray-50 p-8 rounded-[3rem] border border-gray-100">
+                <p class="text-xl font-bold text-gray-700 mb-6 italic">Mit einem Klick entstehen gute Taten.</p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" class="h-12 hover:scale-105 transition"></a>
+                    <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" class="h-12 hover:scale-105 transition"></a>
+                </div>
+            </div>
         </div>
 
         <div id="page-challenge" class="page-content py-12 px-6">
             <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-16">
-                    <h2 class="text-5xl font-black text-winterthur-red uppercase tracking-tighter mb-4 italic">Stadtkreis-Rivalen</h2>
-                    <p class="text-gray-600 max-w-2xl mx-auto italic">Interaktive Karte: Wähle ein Wappen, um Rivalitäten und CO2-Ranking zu sehen.</p>
+                <div class="text-center mb-12">
+                    <h2 class="text-5xl font-black text-winterthur-red uppercase italic mb-4">Stadtkreis-Rivalen</h2>
+                    <p class="text-gray-600 italic">Klicke auf die Quartier-Flaggen für Details.</p>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-                    <div class="lg:col-span-2 bg-gray-50 rounded-[3rem] p-8 border-2 border-gray-100 relative shadow-inner overflow-hidden min-h-[500px]">
-                        <svg viewBox="0 0 800 600" class="w-full h-auto">
-                            <path class="district-path" d="M300,50 L500,80 L650,200 L700,400 L550,550 L300,580 L100,450 L50,200 Z" />
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Wappen_Winterthur.svg/120px-Wappen_Winterthur.svg.png" x="370" y="270" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Stadt Winterthur')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Wappen_Oberwinterthur.svg/120px-Wappen_Oberwinterthur.svg.png" x="530" y="150" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Oberwinterthur')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Wappen_Seen.svg/120px-Wappen_Seen.svg.png" x="550" y="400" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Seen')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wappen_Toess.svg/120px-Wappen_Toess.svg.png" x="180" y="400" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Töss')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Wuelflingen-blazon.svg/120px-Wuelflingen-blazon.svg.png" x="120" y="180" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Wülflingen')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Wappen_Veltheim_Winterthur.svg/120px-Wappen_Veltheim_Winterthur.svg.png" x="340" y="120" width="60" height="60" class="wappen-icon" onclick="selectDistrict('Veltheim')"/>
-                            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Wappen_Winterthur.svg/120px-Wappen_Winterthur.svg.png" x="450" y="480" width="60" height="60" class="wappen-icon" opacity="0.6" onclick="selectDistrict('Mattenbach')"/>
-                        </svg>
-                    </div>
-
-                    <div id="district-card" class="bg-white rounded-[3rem] p-10 border-2 border-red-50 shadow-2xl flex flex-col justify-center transform transition-all duration-500 scale-95 opacity-0">
-                        <h3 id="district-name" class="text-4xl font-black text-gray-900 uppercase mb-2 leading-none">Quartier</h3>
-                        <span id="district-rank" class="bg-winterthur-red text-white px-4 py-1 rounded-full text-xs font-black uppercase inline-block mb-6">Rang #?</span>
-                        <div class="space-y-6">
-                            <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CO2 Ersparnis</p>
-                            <p class="text-5xl font-black text-winterthur-red tracking-tighter"><span id="district-co2">0</span> <small class="text-xl">kg</small></p>
-                            <div class="pt-6 border-t border-gray-100" id="rivalry-info"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    <div id="district-card" class="lg:col-span-2 lg:col-span-3 bg-white rounded-[3rem] p-6 border-2 border-red-50 shadow-lg opacity-0 transform scale-95 transition-all duration-500 hidden">
+                        <h3 id="district-name" class="text-2xl font-black text-gray-900 uppercase mb-1 leading-none">Quartier</h3>
+                        <span id="district-rank" class="bg-winterthur-red text-white px-3 py-1 rounded-full text-[10px] font-black uppercase mb-4 tracking-widest inline-block">Rang #?</span>
+                        <div class="grid grid-cols-1 gap-2 text-left">
+                            <div class="p-3 bg-gray-50 rounded-2xl"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">CO2 Ersparnis</p><p class="text-xl font-black text-winterthur-red"><span id="district-co2">0</span> kg</p></div>
+                            <div class="p-3 bg-gray-50 rounded-2xl"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Teilnehmer</p><p class="text-xl font-black text-gray-800"><span id="district-users">0</span></p></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white p-12 rounded-[4rem] border-2 border-gray-50 shadow-sm">
-                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-10 tracking-tight">Gesamt-Ranking Stadtkreise</h3>
-                    <div id="main-barchart" class="space-y-8"></div>
+                <!-- Geo.admin.ch Map with Interactive Districts -->
+                <div class="bg-white rounded-[3rem] p-6 border-2 border-gray-100 shadow-lg mb-16">
+                    <div class="text-center mb-4">
+                        <h3 class="text-2xl font-black text-winterthur-red uppercase italic mb-1">Schau an, wie dein Viertel im Ranking abschneidet</h3>
+                        <p class="text-sm text-gray-500 font-bold">Klicke auf die Marker um Details zu sehen</p>
+                    </div>
+                    <div id="district-map-container"></div>
+                </div>
+
+                <!-- Barchart with District Rankings -->
+                <div class="bg-white rounded-[3rem] p-10 border-2 border-gray-100 shadow-lg">
+                    <div class="text-center mb-8">
+                        <h3 class="text-3xl font-black text-winterthur-red uppercase italic mb-2">Quartier-Rangliste</h3>
+                        <p class="text-gray-600 font-bold">CO2-Einsparungen und Teilnehmerzahlen</p>
+                    </div>
+
+                    <!-- Metric Toggle Buttons -->
+                    <div class="metric-toggle-container">
+                        <button class="metric-btn active" id="metric-co2" onclick="toggleMetric('co2')">🌍 CO2 Ersparnis</button>
+                        <button class="metric-btn" id="metric-km" onclick="toggleMetric('km')">🚴 Km gefahren</button>
+                        <button class="metric-btn" id="metric-km-walk" onclick="toggleMetric('km-walk')">🚶 Km gelaufen</button>
+                        <button class="metric-btn" id="metric-flight" onclick="toggleMetric('flight')">✈️ Flugstunden</button>
+                    </div>
+                    
+                    <div class="ranking-container">
+                        <!-- Rank 1 - Stadtzentrum -->
+                        <div class="ranking-item" data-co2="2850" data-km="12000" data-km-walk="28500" data-flight="5.7">
+                            <div class="ranking-badge medal-1">🥇</div>
+                            <div class="ranking-label">
+                                <img src="assets/stadtzentrum.svg" alt="Stadtzentrum" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Stadtzentrum</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 100%;">
+                                    <span class="bar-value">2,850 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 2 - Töss -->
+                        <div class="ranking-item" data-co2="2621" data-km="11340" data-km-walk="26210" data-flight="5.2">
+                            <div class="ranking-badge medal-2">🥈</div>
+                            <div class="ranking-label">
+                                <img src="assets/toess.svg" alt="Töss" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Töss</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 92%;">
+                                    <span class="bar-value">2,621 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 3 - Seen -->
+                        <div class="ranking-item" data-co2="2394" data-km="10230" data-km-walk="23940" data-flight="4.8">
+                            <div class="ranking-badge medal-3">🥉</div>
+                            <div class="ranking-label">
+                                <img src="assets/seen.svg" alt="Seen" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Seen</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 84%;">
+                                    <span class="bar-value">2,394 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 4 - Wülflingen -->
+                        <div class="ranking-item" data-co2="2166" data-km="9120" data-km-walk="21660" data-flight="4.3">
+                            <div class="ranking-badge medal-other">4</div>
+                            <div class="ranking-label">
+                                <img src="assets/wuelflingen.svg" alt="Wülflingen" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Wülflingen</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 76%;">
+                                    <span class="bar-value">2,166 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 5 - Mattenbach -->
+                        <div class="ranking-item" data-co2="1938" data-km="8010" data-km-walk="19380" data-flight="3.9">
+                            <div class="ranking-badge medal-other">5</div>
+                            <div class="ranking-label">
+                                <img src="assets/mattenbach.svg" alt="Mattenbach" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Mattenbach</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 68%;">
+                                    <span class="bar-value">1,938 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 6 - Oberwinterthur -->
+                        <div class="ranking-item" data-co2="1710" data-km="6900" data-km-walk="17100" data-flight="3.4">
+                            <div class="ranking-badge medal-other">6</div>
+                            <div class="ranking-label">
+                                <img src="assets/oberwinterthur.svg" alt="Oberwinterthur" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Oberwinterthur</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 60%;">
+                                    <span class="bar-value">1,710 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rank 7 - Veltheim -->
+                        <div class="ranking-item" data-co2="1482" data-km="5790" data-km-walk="14820" data-flight="3.0">
+                            <div class="ranking-badge medal-other">7</div>
+                            <div class="ranking-label">
+                                <img src="assets/veltheim.svg" alt="Veltheim" style="width: 40px; height: 53px; object-fit: contain;">
+                                <div>Veltheim</div>
+                            </div>
+                            <div class="ranking-bar-container">
+                                <div class="ranking-bar" style="width: 52%;">
+                                    <span class="bar-value">1,482 kg CO2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 text-center text-xs text-gray-500 font-bold uppercase tracking-widest">
+                        Aktualisiert: Februar 2026
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="page-mission" class="page-content py-12 px-6">
-            <div class="max-w-4xl mx-auto">
-                <div class="bg-winterthur-red text-white p-16 rounded-[4rem] shadow-2xl">
+            <div class="max-w-6xl mx-auto text-center">
+                <div class="bg-winterthur-red text-white p-16 rounded-[4rem] shadow-2xl mb-12">
                     <h2 class="text-5xl font-black mb-8 uppercase tracking-tighter italic">Unsere Mission</h2>
-                    <p class="text-xl leading-relaxed opacity-90 mb-8">WinLion verbindet Technologie, Gamification und lokale Wirtschaft. Wir wollen Winterthur zur Vorzeigestadt für grüne Mobilität machen.</p>
+                    <p class="text-2xl leading-relaxed font-bold opacity-95">
+                        "Wir verwandeln CO2-Einsparungen in lokale Erlebnisse und stärken durch den „Quartier-Stolz“ den Zusammenhalt in Winterthur."
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 text-left">
+                    <div class="mission-grid-card bg-yellow-50 border-2 border-yellow-200">
+                        <div class="w-20 h-20 bg-yellow-400 text-white rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="cpu" class="w-10 h-10"></i></div>
+                        <h3 class="text-xl font-black text-yellow-700 uppercase mb-4 text-center">Smart City Tech</h3>
+                        <p class="text-sm text-yellow-800 leading-relaxed font-bold">Automatische Erkennung, CO2-Tracking, Predictive Nudging und Smart-Data-Loop.</p>
+                    </div>
+                    <div class="mission-grid-card bg-orange-50 border-2 border-orange-200">
+                        <div class="w-20 h-20 bg-orange-400 text-white rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="book-open" class="w-10 h-10"></i></div>
+                        <h3 class="text-xl font-black text-orange-700 uppercase mb-4 text-center">Individuelles & Kollektives Lernen</h3>
+                        <p class="text-sm text-orange-800 leading-relaxed font-bold">Eco-Insights, Schul-Challenges, Data Literacy und Feedback-Loop.</p>
+                    </div>
+                    <div class="mission-grid-card bg-pink-50 border-2 border-pink-200">
+                        <div class="w-20 h-20 bg-pink-400 text-white rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="network" class="w-10 h-10"></i></div>
+                        <h3 class="text-xl font-black text-pink-700 uppercase mb-4 text-center">Kollaboratives Ökosystem</h3>
+                        <p class="text-sm text-pink-800 leading-relaxed font-bold">Coins, Quartier-Battles, WinLab-Circle und Community-Plattform.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISION & MISSION PAGE -->
+        <div id="page-vision-mission" class="page-content py-12 px-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- Page Header -->
+                <div class="text-center mb-16">
+                    <h1 class="text-6xl font-black text-winterthur-red uppercase italic mb-4">Vision & Mission</h1>
+                    <p class="text-xl font-bold text-gray-700 max-w-2xl mx-auto">
+                        Wir verwandeln nachhaltiges Verhalten in ein Spiel, das Winterthur verändern wird.
+                    </p>
+                </div>
+
+                <!-- VISION SECTION -->
+                <div class="mb-20">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <div class="text-7xl mb-6">🌍</div>
+                            <h2 class="text-4xl font-black text-winterthur-red uppercase mb-6 italic">Unsere Vision</h2>
+                            <p class="text-lg font-bold text-gray-800 leading-relaxed mb-4">
+                                <strong>"Winterthur wird zum Vorbild für spielerische Mobilitätswende."</strong>
+                            </p>
+                            <p class="text-gray-700 font-bold leading-relaxed mb-4">
+                                Wir träumen von einer Stadt, in der jede Person ihre CO₂-Einsparung sieht, versteht und belohnt wird. Ein Ort, wo Nachhaltigkeit nicht Verzicht bedeutet, sondern Freude, Zusammenhalt und echte Wirkung.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">✅</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">Nachhaltigkeit als Alltag</strong>
+                                        <p class="text-sm text-gray-600 font-bold">Zu Fuß, Fahrrad und ÖV werden zur Norm</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">✅</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">Sichtbare Wirkung</strong>
+                                        <p class="text-sm text-gray-600 font-bold">156K Tonnen CO₂ in 2 Jahren = reale Veränderung</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <span class="text-2xl">✅</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">Quartier-Stolz</strong>
+                                        <p class="text-sm text-gray-600 font-bold">Districts konkurrieren um die beste CO₂-Bilanz</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-red-50 rounded-3xl p-12 border-4 border-winterthur-red text-center">
+                            <div class="text-8xl mb-4">🦁</div>
+                            <h3 class="text-2xl font-black text-winterthur-red mb-3">Ecolion</h3>
+                            <p class="text-lg font-bold text-gray-800">
+                                Dein Begleiter auf dem Weg zur nachhaltigen Stadt
+                            </p>
+                            <div class="mt-8 text-6xl">💚 ❤️ 🌿</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- MISSION SECTION -->
+                <div class="mb-20">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase mb-12 italic text-center">Unsere Mission</h2>
+                    <p class="text-xl font-bold text-center text-gray-800 mb-12 max-w-3xl mx-auto">
+                        "Wir befähigen Winterthurer*innen, ihre Mobilität bewusst zu gestalten – durch Spielmechaniken, Rewards und gesellschaftlichen Zusammenhalt."
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Mission 1: Smart Tech -->
+                        <div class="bg-white border-2 border-winterthur-red rounded-3xl p-8 hover:shadow-2xl transition">
+                            <div class="w-24 h-24 bg-red-100 text-winterthur-red rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">⚡</div>
+                            <h3 class="text-2xl font-black text-winterthur-red uppercase mb-4 text-center">Smart Tech</h3>
+                            <p class="text-gray-700 font-bold leading-relaxed mb-4 text-center">Automatische Mobilitätserkennung</p>
+                            <div class="space-y-2 text-sm font-bold text-gray-600">
+                                <p>✓ GPS-Tracking (opt-in)</p>
+                                <p>✓ CO₂-Berechnung in Echtzeit</p>
+                                <p>✓ Smart-Data-Loop für Insights</p>
+                            </div>
+                        </div>
+
+                        <!-- Mission 2: Learning & Impact -->
+                        <div class="bg-white border-2 border-winterthur-red rounded-3xl p-8 hover:shadow-2xl transition">
+                            <div class="w-24 h-24 bg-red-100 text-winterthur-red rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">📚</div>
+                            <h3 class="text-2xl font-black text-winterthur-red uppercase mb-4 text-center">Lernen & Wirkung</h3>
+                            <p class="text-gray-700 font-bold leading-relaxed mb-4 text-center">Eco-Insights & Schulprogramme</p>
+                            <div class="space-y-2 text-sm font-bold text-gray-600">
+                                <p>✓ KidsLion für Schulen</p>
+                                <p>✓ Persönliches CO₂-Dashboard</p>
+                                <p>✓ Daten-Literacy für alle</p>
+                            </div>
+                        </div>
+
+                        <!-- Mission 3: Community & Rewards -->
+                        <div class="bg-white border-2 border-winterthur-red rounded-3xl p-8 hover:shadow-2xl transition">
+                            <div class="w-24 h-24 bg-red-100 text-winterthur-red rounded-full flex items-center justify-center mx-auto mb-6 text-5xl">🎯</div>
+                            <h3 class="text-2xl font-black text-winterthur-red uppercase mb-4 text-center">Community & Rewards</h3>
+                            <p class="text-gray-700 font-bold leading-relaxed mb-4 text-center">Spielerische Anreize & echte Preise</p>
+                            <div class="space-y-2 text-sm font-bold text-gray-600">
+                                <p>✓ Quartier-Battles & Leaderboards</p>
+                                <p>✓ Coins → echte Gutscheine</p>
+                                <p>✓ Community-Plattform</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- NACHHALTIGKEIT IM FOKUS -->
+                <div class="mb-16">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase mb-12 italic text-center">🌱 Nachhaltigkeit im Fokus</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- SDG Goals -->
+                        <div class="bg-gradient-to-br from-red-50 to-white rounded-3xl p-8 border-2 border-red-100">
+                            <h3 class="text-2xl font-black text-winterthur-red mb-6">UN Nachhaltigkeitsziele (SDGs)</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">🌍</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">SDG 13: Klimaschutz</strong>
+                                        <p class="text-xs text-gray-600 font-bold">Massive CO₂-Reduktion durch nachhaltiges Mobilitätsverhalten</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">🏙️</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">SDG 11: Nachhaltige Städte</strong>
+                                        <p class="text-xs text-gray-600 font-bold">Saubere, sichere und inklusive Mobilität</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">🤝</span>
+                                    <div>
+                                        <strong class="text-winterthur-red">SDG 17: Partnerschaften</strong>
+                                        <p class="text-xs text-gray-600 font-bold">Zusammenarbeit mit Städten, Schulen und Unternehmen</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Impact Metrics -->
+                        <div class="bg-gradient-to-br from-white to-red-50 rounded-3xl p-8 border-2 border-red-100">
+                            <h3 class="text-2xl font-black text-winterthur-red mb-6">Unser Impact</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="text-3xl font-black text-winterthur-red">156K</div>
+                                    <p class="text-sm text-gray-700 font-bold">Tonnen CO₂ eingespart</p>
+                                    <div class="h-2 bg-gray-200 rounded mt-2"><div class="h-2 bg-winterthur-red rounded" style="width: 75%;"></div></div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-black text-winterthur-red">4,856</div>
+                                    <p class="text-sm text-gray-700 font-bold">Aktive Teilnehmer*innen</p>
+                                    <div class="h-2 bg-gray-200 rounded mt-2"><div class="h-2 bg-winterthur-red rounded" style="width: 85%;"></div></div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-black text-winterthur-red">2.3M</div>
+                                    <p class="text-sm text-gray-700 font-bold">Kilometer nachhaltig</p>
+                                    <div class="h-2 bg-gray-200 rounded mt-2"><div class="h-2 bg-winterthur-red rounded" style="width: 92%;"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- INNOVATION SECTION -->
+                <div>
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase mb-12 italic text-center">🚀 Unsere Innovation</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-2xl p-6 border-l-4 border-winterthur-red">
+                            <div class="text-4xl mb-3">🎮</div>
+                            <h4 class="font-black text-winterthur-red mb-2">Gamification</h4>
+                            <p class="text-xs text-gray-700 font-bold">Psychologische Spielmechaniken für langfristiges Engagement</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border-l-4 border-winterthur-red">
+                            <div class="text-4xl mb-3">📊</div>
+                            <h4 class="font-black text-winterthur-red mb-2">Data-Driven</h4>
+                            <p class="text-xs text-gray-700 font-bold">Transparente CO₂-Metriken für jede Person & Quartier</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border-l-4 border-winterthur-red">
+                            <div class="text-4xl mb-3">🤝</div>
+                            <h4 class="font-black text-winterthur-red mb-2">Community-First</h4>
+                            <p class="text-xs text-gray-700 font-bold">Quartier-Teams schaffen sozialen Zusammenhalt</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border-l-4 border-winterthur-red">
+                            <div class="text-4xl mb-3">💰</div>
+                            <h4 class="font-black text-winterthur-red mb-2">Echte Rewards</h4>
+                            <p class="text-xs text-gray-700 font-bold">Coins in echte Gutscheine & Services umwandelbar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM CTA -->
+                <div class="text-center mt-16 p-12 bg-winterthur-red rounded-3xl text-white">
+                    <h3 class="text-3xl font-black mb-4">🦁 Bereit, die Wende zu erleben?</h3>
+                    <p class="text-lg font-bold mb-6 opacity-95">
+                        Werde Teil der Ecolion-Bewegung und verändere Winterthur – spielend, nachhaltig und gemeinsam!
+                    </p>
+                    <button class="bg-white text-winterthur-red px-8 py-3 rounded-xl font-black text-lg uppercase tracking-wider hover:scale-105 transition">
+                        📱 App Herunterladen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KIDSLION PAGE -->
+        <div id="page-kids" class="page-content py-12 px-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- KidsLion Header -->
+                <div class="text-center mb-12">
+                    <h1 class="text-6xl font-black text-winterthur-red uppercase italic mb-4">🦁 KidsLion</h1>
+                    <p class="text-xl font-bold text-gray-700 max-w-2xl mx-auto">
+                        Lerne wie deine Fahrten die Welt verändern! Mit spannenden Stories erfährst du, was CO₂ bedeutet, wie du Staus vermeidest und wie du dich im Verkehr richtig verhältst.
+                    </p>
+                </div>
+
+                <!-- Interactive Story Accordion -->
+                <div class="story-accordion">
+                    
+                    <!-- Story 1: Warum zu Fuß gehen wichtig ist -->
+                    <div class="story-item" onclick="toggleStory(this)">
+                        <div class="story-trigger">
+                            <div class="story-header">
+                                <span class="story-icon">👟</span>
+                                <span class="story-title">Zu Fuß in die Schule – Kleine Schritte, große Wirkung</span>
+                            </div>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                        <div class="story-content">
+                            <div class="story-body">
+                                <p class="text-gray-700 font-bold mb-4 leading-relaxed">
+                                    Stell dir vor: Wenn nur <strong>10 Kinder</strong> täglich zu Fuß in die Schule gehen statt mit dem Auto, spart das in einem Jahr etwa <strong>2,5 Tonnen CO₂</strong> ein!
+                                </p>
+                                
+                                <div class="impact-card">
+                                    <strong style="color: #D32F2F;">✨ Das ist so viel CO₂ wie...</strong>
+                                    <ul class="mt-2 text-sm font-bold text-gray-700 list-disc list-inside space-y-1">
+                                        <li>Ein durchschnittlicher Flugtag für eine Person</li>
+                                        <li>500 km mit dem Auto fahren</li>
+                                        <li>Eine Einsparung, die 5 Bäume in einem Jahr absorbieren</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                                    <strong class="text-blue-900">💡 Wusstest du?</strong>
+                                    <p class="text-sm text-blue-800 mt-2 font-bold">
+                                        Der Schulweg zu Fuß macht dich konzentrierter in der Schule! Die Bewegung bringt Blut ins Gehirn – du lernst besser und schneller.
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 text-sm text-gray-600 font-bold">
+                                    🎯 <strong>Deine Challenge:</strong> Zähle für eine Woche, wie oft du zu Fuß zur Schule gehst. Jeder Weg = 5 Coins in Ecolion! 🪙
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 2: Was ist CO₂? -->
+                    <div class="story-item" onclick="toggleStory(this)">
+                        <div class="story-trigger">
+                            <div class="story-header">
+                                <span class="story-icon">💨</span>
+                                <span class="story-title">Was ist CO₂? Das unsichtbare Gas erklärt</span>
+                            </div>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                        <div class="story-content">
+                            <div class="story-body">
+                                <p class="text-gray-700 font-bold mb-4 leading-relaxed">
+                                    CO₂ (Kohlendioxid) ist ein <strong>unsichtbares Gas</strong>, das entsteht, wenn wir Autos fahren, fliegen, oder Strom aus Kohle machen.
+                                </p>
+
+                                <div class="kids-grid">
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">🚗</div>
+                                        <div class="kids-card-title">Auto fahren</div>
+                                        <div class="kids-card-desc">produziert CO₂ aus Benzin</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">✈️</div>
+                                        <div class="kids-card-title">Fliegen</div>
+                                        <div class="kids-card-desc">produziert besonders viel CO₂</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">🏭</div>
+                                        <div class="kids-card-title">Fabriken</div>
+                                        <div class="kids-card-desc">produzieren CO₂ aus Energie</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">🚴</div>
+                                        <div class="kids-card-title">Fahrrad fahren</div>
+                                        <div class="kids-card-desc">produziert 0 CO₂! 🌍</div>
+                                    </div>
+                                </div>
+
+                                <div class="impact-card danger" style="margin-top: 1.5rem;">
+                                    <strong style="color: #DC2626;">⚠️ Das Problem:</strong>
+                                    <p class="text-sm text-red-700 mt-2 font-bold">
+                                        Zu viel CO₂ in der Luft macht die Erde immer wärmer. Das führt zu:<br>
+                                        🌊 Mehr Hochwasser | 🥵 Extreme Hitze | 🌪️ Stärkere Stürme | 🐧 Tiere verlieren ihre Heimat
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 text-sm text-gray-600 font-bold">
+                                    🎯 <strong>Dein Impact:</strong> Jedes Mal wenn du zu Fuß, Fahrrad oder ÖV fährst, rettest du die Erde ein kleines bisschen mehr! 🦁
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 3: Verkehrsüberlastung und Staus -->
+                    <div class="story-item" onclick="toggleStory(this)">
+                        <div class="story-trigger">
+                            <div class="story-header">
+                                <span class="story-icon">🚗</span>
+                                <span class="story-title">Staus und Verkehrsüberlastung – Wer trägt Schuld?</span>
+                            </div>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                        <div class="story-content">
+                            <div class="story-body">
+                                <p class="text-gray-700 font-bold mb-4 leading-relaxed">
+                                    In Winterthur sind täglich tausende Autos unterwegs. Wenn alle zur gleichen Zeit fahren, entsteht ein <strong>RIESENSTAU</strong>! 🚗🚗🚗
+                                </p>
+
+                                <div class="impact-card warning">
+                                    <strong style="color: #B45309;">🚦 Was passiert in einem Stau?</strong>
+                                    <ul class="mt-2 text-sm font-bold text-amber-900 list-disc list-inside space-y-2">
+                                        <li><strong>Autos verbrauchen mehr Benzin</strong> weil ständig Gas und Bremse</li>
+                                        <li><strong>3x mehr CO₂</strong> pro Kilometer in einem Stau!</li>
+                                        <li><strong>Menschen werden gestresst</strong> und verspäten sich</li>
+                                        <li><strong>Lieferfahrer</strong> brauchen länger und kosten mehr</li>
+                                        <li><strong>Rettungswagen</strong> können schwer durchkommen</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mt-6 text-center">
+                                    <h4 class="font-black text-winterthur-red text-lg mb-3">Stau vermeiden ist ganz einfach! 👇</h4>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Mit Bus/Tram fahren</strong> – 50 Menschen statt 50 Autos!
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Fahrrad fahren</strong> – Kein Stau, super für deine Fitness!
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Zu Fuß gehen</strong> – Die beste Wahl für nahe Ziele!
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Zu anderen Zeiten fahren</strong> – Nicht in der Rush Hour!
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 text-sm text-gray-600 font-bold bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                                    🎯 <strong>Dein Benefit:</strong> Weniger Staus = schneller ankommen! Mit Ecolion hilfst du, Winterthur flüssiger zu machen!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 4: Verkehrsregeln und Sicherheit -->
+                    <div class="story-item" onclick="toggleStory(this)">
+                        <div class="story-trigger">
+                            <div class="story-header">
+                                <span class="story-icon">🚦</span>
+                                <span class="story-title">Im Verkehr sicher unterwegs – Das goldene Regelwerk</span>
+                            </div>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                        <div class="story-content">
+                            <div class="story-body">
+                                <p class="text-gray-700 font-bold mb-4 leading-relaxed">
+                                    Wenn du zu Fuß, mit dem Fahrrad oder dem ÖV unterwegs bist, musst du ein paar wichtige Regeln kennen. Sie halten dich SICHER! 🛡️
+                                </p>
+
+                                <div class="mt-4">
+                                    <h4 class="font-black text-lg text-winterthur-red mb-3">🚶 ZU FUSS – Die Regeln:</h4>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Zebrastreifen benutzen</strong> – Immer über die Straße im Zebrastreifen gehen
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Nach links, rechts, links schauen</strong> – Bevor du die Straße überquerst
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Sichtbar sein</strong> – Helle Kleidung oder Reflektoren nachts tragen
+                                    </div>
+                                    <div class="behavior-box bad">
+                                        <span class="behavior-box-emoji">❌</span> <strong>Nicht ablenkbar sein</strong> – Kein Handy beim Überqueren der Straße!
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h4 class="font-black text-lg text-winterthur-red mb-3">🚴 FAHRRAD – Die Regeln:</h4>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Helm tragen</strong> – Immer! Das schützt dein Gehirn
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Mit einer Hand winken</strong> – Bevor du abbiegst
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Fahrradweg benutzen</strong> – Wenn es einen gibt
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Lichter anmachen</strong> – In der Dunkelheit!
+                                    </div>
+                                    <div class="behavior-box bad">
+                                        <span class="behavior-box-emoji">❌</span> <strong>Nicht mit Kopfhörern fahren</strong> – Du musst Autos kommen hören
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h4 class="font-black text-lg text-winterthur-red mb-3">🚌 ÖFFENTLICHE VERKEHRSMITTEL – Die Regeln:</h4>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Einen Sitz anbieten</strong> – Älteren Menschen und Schwangeren
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Leise sein</strong> – Andere sind unterwegs
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Im Türbereich stehen lassen</strong> – Nicht blockieren
+                                    </div>
+                                    <div class="behavior-box bad">
+                                        <span class="behavior-box-emoji">❌</span> <strong>Nicht springen wenn einsteigen</strong> – Sicher einsteigen!
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 bg-red-50 border-l-4 border-winterthur-red p-4 rounded">
+                                    <strong class="text-red-900">🏆 Bonus-Wissen:</strong>
+                                    <p class="text-sm text-red-800 mt-2 font-bold">
+                                        In Winterthur brauchen Kinder bis 12 Jahren <strong>immer einen Fahrradhelm</strong>. Das ist nicht nur eine Regel – das rettet Leben!
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 text-sm text-gray-600 font-bold">
+                                    🎯 <strong>Deine Mission:</strong> Befolge alle Regeln perfekt? Dann verdienst du Safety-Badges in Ecolion! 🏅
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story 5: Nachhaltigkeit im Alltag -->
+                    <div class="story-item" onclick="toggleStory(this)">
+                        <div class="story-trigger">
+                            <div class="story-header">
+                                <span class="story-icon">🌍</span>
+                                <span class="story-title">Nachhaltigkeit – Was bedeutet das überhaupt?</span>
+                            </div>
+                            <i data-lucide="chevron-down"></i>
+                        </div>
+                        <div class="story-content">
+                            <div class="story-body">
+                                <p class="text-gray-700 font-bold mb-4 leading-relaxed">
+                                    Nachhaltig bedeutet: <strong>So leben, dass wir die Erde nicht zerstören</strong> und zukünftige Generationen auch noch ein schönes Leben haben.
+                                </p>
+
+                                <div class="kids-grid">
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">♻️</div>
+                                        <div class="kids-card-title">Weniger Müll</div>
+                                        <div class="kids-card-desc">Dinge wiederverwenden statt wegwerfen</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">💡</div>
+                                        <div class="kids-card-title">Energie sparen</div>
+                                        <div class="kids-card-desc">Lichter ausschalten, weniger fahren</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">🌱</div>
+                                        <div class="kids-card-title">Natur schützen</div>
+                                        <div class="kids-card-desc">Bäume, Wälder und Tiere bewahren</div>
+                                    </div>
+                                    <div class="kids-card">
+                                        <div class="kids-card-icon">🚴</div>
+                                        <div class="kids-card-title">Saubere Mobilität</div>
+                                        <div class="kids-card-desc">Zu Fuß, Fahrrad oder Bus fahren</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                                    <strong class="text-purple-900">💡 Warum interessiert dich das?</strong>
+                                    <p class="text-sm text-purple-800 mt-2 font-bold">
+                                        In 50 Jahren wirst du 50+ Jahre alt sein! Die Erde wird dann sein wie TODAY ist. 🌍 Willst du in einer sauberen Welt leben? Dann hilf jetzt schon!
+                                    </p>
+                                </div>
+
+                                <div class="mt-6">
+                                    <h4 class="font-black text-lg text-winterthur-red mb-3">🎯 Deine Daily Actions:</h4>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Schulweg nachhaltig:</strong> Zu Fuß, Fahrrad oder Bus
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Müll trennen:</strong> Papier, Plastik, Glas
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Wasser sparen:</strong> Duschen statt baden
+                                    </div>
+                                    <div class="behavior-box good">
+                                        <span class="behavior-box-emoji">✅</span> <strong>Freunde einspannen:</strong> Team-Fahrten zu Fuß/Fahrrad
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 text-center bg-red-50 p-6 rounded-xl border-2 border-winterthur-red">
+                                    <h4 class="font-black text-xl text-winterthur-red mb-2">🦁 Mit Ecolion bist du ein HELD!</h4>
+                                    <p class="text-sm text-gray-800 font-bold">
+                                        Jede nachhaltige Fahrt levelt deinen Löwen und bringt Coins. Du sammelst nicht nur digital – <strong>du rettest wirklich die Erde!</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom CTA -->
+                <div class="text-center mt-12 p-8 bg-winterthur-red rounded-3xl text-white">
+                    <h3 class="text-3xl font-black mb-4">🚀 Bereit für dein Abenteuer?</h3>
+                    <p class="text-lg font-bold mb-6 opacity-95">
+                        Lade die Ecolion App herunter und werde zum Mobility-Champion in Winterthur!
+                    </p>
+                    <button class="bg-white text-red-600 px-8 py-3 rounded-xl font-black text-lg uppercase tracking-wider hover:scale-105 transition">
+                        📱 App Herunterladen
+                    </button>
                 </div>
             </div>
         </div>
 
         <div id="page-partner" class="page-content py-12 px-6">
             <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-20">
-                    <h2 class="text-5xl font-black text-winterthur-red uppercase tracking-tighter mb-4 italic">Partnerprogramm</h2>
-                    <p class="text-gray-600 max-w-2xl mx-auto">Verbinden Sie Ihr lokales Gewerbe mit umweltbewussten Bürgern.</p>
-                </div>
-
-                <div class="bg-gray-50 p-12 rounded-[4rem] mb-24">
-                    <div class="max-w-3xl mx-auto text-center">
-                        <h3 class="text-3xl font-black mb-8 uppercase">Partner-Anfrage erstellen</h3>
-                        <form class="space-y-6 text-left">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Firma</label>
-                                    <input type="text" placeholder="Ihre Firma" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Ansprechperson</label>
-                                    <input type="text" placeholder="Name Vorname" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
-                                </div>
+                <div class="text-center mb-16"><h2 class="text-5xl font-black text-winterthur-red uppercase italic">Partnerprogramm</h2></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+                    <div class="bg-white p-10 rounded-[3rem] border-2 border-gray-50 shadow-sm">
+                        <h3 class="text-2xl font-black text-gray-900 uppercase mb-6 flex items-center"><i data-lucide="award" class="mr-3 text-winterthur-red"></i> Warum Partner werden?</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4 font-bold">Verbinden Sie Ihr lokales Gewerbe mit der nachhaltigen Zukunft Winterthurs. Werden Sie Teil eines Ökosystems, das ökologisches Verhalten belohnt.</p>
+                        <ul class="space-y-3 text-sm text-gray-600 font-bold">
+                            <li class="flex items-center"><i data-lucide="check" class="text-winterthur-red mr-2"></i> Steigerung der Kundenfrequenz durch gezielte Store-Visits</li>
+                            <li class="flex items-center"><i data-lucide="check" class="text-winterthur-red mr-2"></i> Positiver Imagetransfer durch lokales Klimaschutz-Engagement</li>
+                            <li class="flex items-center"><i data-lucide="check" class="text-winterthur-red mr-2"></i> Direkter Zugang zu einer umweltbewussten und kaufkräftigen Zielgruppe</li>
+                            <li class="flex items-center"><i data-lucide="check" class="text-winterthur-red mr-2"></i> Teilhabe an der digitalen Transformation der Stadt (Smart City)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-winterthur-red p-10 rounded-[3rem] text-white shadow-xl">
+                        <h3 class="text-2xl font-black uppercase mb-6 flex items-center"><i data-lucide="zap" class="mr-3"></i> Ihr direkter Profit</h3>
+                        <p class="opacity-90 mb-6 font-bold">Ecolion ist Ihre Brücke zwischen Bürgerengagement und Umsatz. Wandeln Sie Klimaschutz-Coins in loyale Kunden um.</p>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                                <p class="text-xs uppercase font-black mb-1">Marketing & Sichtbarkeit</p>
+                                <p class="text-sm">Exklusive Listung als Belohnungspartner in der Ecolion-App inklusive Branding-Möglichkeiten.</p>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">E-Mail</label>
-                                    <input type="email" placeholder="beispiel@firma.ch" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Telefonnummer</label>
-                                    <input type="tel" placeholder="+41 52 000 00 00" class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none">
-                                </div>
+                            <div class="bg-white/10 p-4 rounded-2xl border border-white/20">
+                                <p class="text-xs uppercase font-black mb-1">Gamifizierte Kundenbindung</p>
+                                <p class="text-sm">Binden Sie Kunden durch innovative Belohnungssysteme, die über klassische Rabatte hinausgehen.</p>
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase text-gray-400 tracking-widest px-2">Was bieten Sie den WinLion-Nutzern an?</label>
-                                <textarea rows="4" placeholder="Beschreiben Sie hier Ihre Belohnungen oder Angebote (z.B. 10% Rabatt für Radfahrer, Gratis-Kaffee etc.)..." class="w-full px-6 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red outline-none"></textarea>
-                            </div>
-                            <button type="button" onclick="alert('Vielen Dank! Ihre Anfrage wurde gesendet.')" class="w-full bg-winterthur-red text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-lg hover:bg-red-700 transition">Anfrage senden</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
 
-                <div class="text-center mb-12">
-                    <h3 class="text-[10px] font-black uppercase text-gray-400 tracking-[0.4em] mb-12">Bereits Teil der Bewegung</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 items-center justify-items-center grayscale opacity-60">
-                        <div class="partner-logo-box text-sm font-black">HOUSE OF WINTERTHUR</div>
-                        <div class="partner-logo-box text-sm font-black">STADTBUS WINTERTHUR</div>
-                        <div class="partner-logo-box text-sm font-black">CAFÉ ALTSTADT</div>
-                        <div class="partner-logo-box text-sm font-black">BÄCKEREI STEINER</div>
-                        <div class="partner-logo-box text-sm font-black">ZHAW</div>
-                    </div>
+                <div class="bg-gray-50 p-12 rounded-[4rem] shadow-inner mb-20 max-w-4xl mx-auto">
+                    <h3 class="text-3xl font-black mb-10 uppercase text-center italic">Jetzt Partner werden</h3>
+                    <form class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                        <input type="text" placeholder="Firma" class="p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red">
+                        <input type="text" placeholder="Ansprechperson" class="p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red">
+                        <input type="email" placeholder="E-Mail" class="p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red">
+                        <input type="tel" placeholder="Telefon" class="p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-winterthur-red">
+                        <textarea placeholder="Welchen exklusiven Benefit bieten Sie Ecolion-Nutzern an?" class="md:col-span-2 p-4 rounded-2xl border-none shadow-sm h-32 focus:ring-2 focus:ring-winterthur-red"></textarea>
+                        <button type="button" class="md:col-span-2 bg-winterthur-red text-white font-black py-5 rounded-2xl uppercase tracking-widest shadow-lg">Anfrage absenden</button>
+                    </form>
+                </div>
+
+                <div class="text-center grayscale opacity-50 italic font-black text-xl grid grid-cols-2 md:grid-cols-4 gap-12">
+                    <div>STADTBUS WINTERTHUR</div><div>HOUSE OF WINTERTHUR</div><div>CAFÉ ALTSTADT</div><div>ZHAW</div>
                 </div>
             </div>
         </div>
 
-        <div id="page-kids" class="page-content py-12 px-6"><div class="text-center text-4xl font-black text-gray-200 uppercase mt-20 italic">WinLion Kids coming soon</div></div>
+        <div id="page-about" class="page-content py-12 px-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- Page Header -->
+                <div class="text-center mb-16">
+                    <h1 class="text-6xl font-black text-winterthur-red uppercase italic mb-4">Über Ecolion</h1>
+                    <p class="text-xl font-bold text-gray-700 max-w-3xl mx-auto">
+                        Ein gemeinsames Projekt der Stadt Winterthur für nachhaltige Mobilität. Vier Departemente, ein Ziel: Winterthur grüner machen.
+                    </p>
+                </div>
 
+                <!-- OUR STORY SECTION -->
+                <div class="mb-20 bg-red-50 rounded-3xl p-12 border-2 border-red-100">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase italic mb-8 text-center">Unsere Geschichte</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-5xl mb-4">💡</div>
+                            <h3 class="font-black text-winterthur-red mb-2">Idee</h3>
+                            <p class="text-sm font-bold text-gray-700">2024: Die Departments erkannt das Potential von Gamification für Mobilitätswende</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-4">🏗️</div>
+                            <h3 class="font-black text-winterthur-red mb-2">Entwicklung</h3>
+                            <p class="text-sm font-bold text-gray-700">2025: Ecolion wurde entwickelt, getestet und optimiert</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-4">🚀</div>
+                            <h3 class="font-black text-winterthur-red mb-2">Launch</h3>
+                            <p class="text-sm font-bold text-gray-700">2026: Ecolion geht live und wächst schnell</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-4">🌱</div>
+                            <h3 class="font-black text-winterthur-red mb-2">Zukunft</h3>
+                            <p class="text-sm font-bold text-gray-700">2027+: Expansion auf weitere Schweizer Städte</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- THE 4 DEPARTMENTS SECTION -->
+                <div class="mb-20">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase italic mb-12 text-center">Die 4 Departemente</h2>
+                    
+                    <!-- Department 1: Bau und Mobilität -->
+                    <div class="mb-10 bg-white border-l-8 border-winterthur-red rounded-lg p-8 shadow-md hover:shadow-lg transition">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                            <div>
+                                <div class="text-6xl mb-4">🚗</div>
+                                <h3 class="text-3xl font-black text-winterthur-red uppercase mb-2">Bau & Mobilität</h3>
+                                <p class="text-sm text-gray-600 font-bold italic mb-4">Leitung: Mobilität & Planung</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <h4 class="font-black text-lg text-gray-800 mb-3">Aufgaben & Beitrag:</h4>
+                                <ul class="space-y-2 text-sm font-bold text-gray-700">
+                                    <li>✓ Liefert Verkehrsplanungsdaten und stadtweite Mobilitätsstatistiken</li>
+                                    <li>✓ Integrates Ecolion in stadtische Mobilitätsstrategien</li>
+                                    <li>✓ Nutzt Bewegungsdaten für bessere Verkehrsplanung</li>
+                                    <li>✓ Identifiziert Verbesserungspotentiale in der Infrastruktur</li>
+                                    <li>✓ Profitiert von Live-Daten zur Fußgänger- und ÖV-Nutzung</li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-4 font-bold italic">Kontakt: mobility@winterthur.ch</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Department 2: Kultur und Dienste -->
+                    <div class="mb-10 bg-white border-l-8 border-winterthur-red rounded-lg p-8 shadow-md hover:shadow-lg transition">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                            <div>
+                                <div class="text-6xl mb-4">🤝</div>
+                                <h3 class="text-3xl font-black text-winterthur-red uppercase mb-2">Kultur & Dienste</h3>
+                                <p class="text-sm text-gray-600 font-bold italic mb-4">Federführung & Koordination</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <h4 class="font-black text-lg text-gray-800 mb-3">Aufgaben & Beitrag:</h4>
+                                <ul class="space-y-2 text-sm font-bold text-gray-700">
+                                    <li>✓ <strong>Federführung</strong> des Gesamtprojekts</li>
+                                    <li>✓ Koordination aller 4 Departemente</li>
+                                    <li>✓ Einbindung der Quartiervereine und Community</li>
+                                    <li>✓ Smart-City-Schnittstellen verwalten</li>
+                                    <li>✓ Kulturelle Events & Challenges organisieren</li>
+                                    <li>✓ Public Relations und Kommunikation</li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-4 font-bold italic">Kontakt: kultur@winterthur.ch</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Department 3: Technische Betriebe -->
+                    <div class="mb-10 bg-white border-l-8 border-winterthur-red rounded-lg p-8 shadow-md hover:shadow-lg transition">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                            <div>
+                                <div class="text-6xl mb-4">⚡</div>
+                                <h3 class="text-3xl font-black text-winterthur-red uppercase mb-2">Tech. Betriebe</h3>
+                                <p class="text-sm text-gray-600 font-bold italic mb-4">Daten & Energie</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <h4 class="font-black text-lg text-gray-800 mb-3">Aufgaben & Beitrag:</h4>
+                                <ul class="space-y-2 text-sm font-bold text-gray-700">
+                                    <li>✓ Liefert Umwelt- & Energiedaten</li>
+                                    <li>✓ CO₂-Bilanzierung der Stadt</li>
+                                    <li>✓ Unterstützt Klimaziele der Stadt</li>
+                                    <li>✓ Infrastuktur-Daten (ÖV, Stromnetze)</li>
+                                    <li>✓ Technische Infrastruktur für Datenmanagement</li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-4 font-bold italic">Kontakt: tech@winterthur.ch</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Department 4: Schule und Sport -->
+                    <div class="mb-10 bg-white border-l-8 border-winterthur-red rounded-lg p-8 shadow-md hover:shadow-lg transition">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                            <div>
+                                <div class="text-6xl mb-4">📚</div>
+                                <h3 class="text-3xl font-black text-winterthur-red uppercase mb-2">Schule & Sport</h3>
+                                <p class="text-sm text-gray-600 font-bold italic mb-4">Bildung & Jugend</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <h4 class="font-black text-lg text-gray-800 mb-3">Aufgaben & Beitrag:</h4>
+                                <ul class="space-y-2 text-sm font-bold text-gray-700">
+                                    <li>✓ <strong>KidsLion</strong> in alle Schulen integrieren</li>
+                                    <li>✓ Mobilitäts-Unterricht gestalten</li>
+                                    <li>✓ Schul-Challenges organisieren</li>
+                                    <li>✓ Daten-Literacy für Schüler*innen fördern</li>
+                                    <li>✓ Sport-Veranstaltungen mit Ecolion-Challenges</li>
+                                    <li>✓ Jugend-Engagement & Awareness</li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-4 font-bold italic">Kontakt: schule@winterthur.ch</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- OUR VALUES SECTION -->
+                <div class="mb-20">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase italic mb-12 text-center">🌟 Unsere Werte</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">🌱</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Nachhaltigkeit</h3>
+                            <p class="text-sm font-bold text-gray-700">Wir prioritisieren echte Umweltwirkung über Profit</p>
+                        </div>
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">👥</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Zusammenhalt</h3>
+                            <p class="text-sm font-bold text-gray-700">Quartier-Communities stärken und verbinden</p>
+                        </div>
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">📊</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Transparenz</h3>
+                            <p class="text-sm font-bold text-gray-700">Offene Daten und klare Kommunikation</p>
+                        </div>
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">🎮</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Gamification</h3>
+                            <p class="text-sm font-bold text-gray-700">Nachhaltigkeit sollte Spaß machen!</p>
+                        </div>
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">🤝</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Inklusivität</h3>
+                            <p class="text-sm font-bold text-gray-700">Alle Winterthurer können teilnehmen</p>
+                        </div>
+                        <div class="bg-white border-2 border-winterthur-red rounded-2xl p-8 text-center hover:shadow-lg transition">
+                            <div class="text-5xl mb-4">⚡</div>
+                            <h3 class="font-black text-winterthur-red uppercase mb-3">Innovation</h3>
+                            <p class="text-sm font-bold text-gray-700">Cutting-edge Tech für echte Wirkung</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- THE TEAM SECTION -->
+                <div class="mb-20">
+                    <h2 class="text-4xl font-black text-winterthur-red uppercase italic mb-12 text-center">Das Team</h2>
+                    <p class="text-center text-lg font-bold text-gray-700 mb-12 max-w-2xl mx-auto">
+                        Engagierte Menschen aus verschiedenen Departments, die gemeinsam an der Mobilitätswende arbeiten.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Team Member 1 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">👨‍💼</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Marco Keller</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Projektleitung</p>
+                                <p class="text-xs text-gray-700 font-bold">Kultur & Dienste — koordiniert alle Departments</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 2 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">👩‍💻</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Lisa Müller</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">App Development</p>
+                                <p class="text-xs text-gray-700 font-bold">Tech Lead für Ecolion Frontend & Backend</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 3 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">👨‍🔬</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Dr. Thomas Schmid</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Data Science</p>
+                                <p class="text-xs text-gray-700 font-bold">CO₂-Algorithmen & Impact Analytics</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 4 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">👩‍🏫</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Anna Herold</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">KidsLion</p>
+                                <p class="text-xs text-gray-700 font-bold">Pädagogisches Konzept & Schulintegration</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 5 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">🎨</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Elena Rossi</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Design & UX</p>
+                                <p class="text-xs text-gray-700 font-bold">UX/UI Designerin, Brand Identity</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 6 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">📢</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Jonas Meier</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Marketing</p>
+                                <p class="text-xs text-gray-700 font-bold">Community Outreach & Campaigns</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 7 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">🔒</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Sofia Weber</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Data Security</p>
+                                <p class="text-xs text-gray-700 font-bold">GDPR & Privacy Compliance</p>
+                            </div>
+                        </div>
+
+                        <!-- Team Member 8 -->
+                        <div class="bg-white rounded-2xl border-2 border-red-100 overflow-hidden hover:shadow-lg transition">
+                            <div class="h-40 bg-gradient-to-br from-red-100 to-white flex items-center justify-center text-5xl">🤝</div>
+                            <div class="p-6">
+                                <h4 class="font-black text-winterthur-red mb-1">Peter Andersen</h4>
+                                <p class="text-xs text-gray-600 font-bold mb-3">Partnerships</p>
+                                <p class="text-xs text-gray-700 font-bold">Partner Development & Relations</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div class="h-1 bg-gradient-to-r from-transparent via-winterthur-red to-transparent my-16"></div>
+
+                <!-- CONTACT & CTA SECTION -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <!-- Contact Info -->
+                    <div class="bg-red-50 rounded-3xl p-12 border-2 border-red-100">
+                        <h3 class="text-3xl font-black text-winterthur-red mb-8">Kontakt</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <p class="text-xs font-black text-gray-600 uppercase mb-2">E-Mail</p>
+                                <p class="text-lg font-black text-winterthur-red">info@ecolion.ch</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-gray-600 uppercase mb-2">Adresse</p>
+                                <p class="text-sm font-bold text-gray-700">Stadt Winterthur<br>Abteilung Mobilität & Nachhaltigkeit<br>Winterthur, Schweiz</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-gray-600 uppercase mb-2">Sozial Media</p>
+                                <p class="text-sm font-bold text-gray-700">
+                                    <strong>Instagram:</strong> @ecolion_winterthur<br>
+                                    <strong>LinkedIn:</strong> Ecolion AG<br>
+                                    <strong>TikTok:</strong> @ecolion_ch
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Newsletter CTA -->
+                    <div class="bg-winterthur-red rounded-3xl p-12 text-white text-center">
+                        <h3 class="text-3xl font-black mb-4">Newsletter abonnieren</h3>
+                        <p class="font-bold mb-6 opacity-95">
+                            Erhalte Updates zu neuen Features, Challenges und Winterthur-Nachrichten.
+                        </p>
+                        <div class="space-y-4">
+                            <input type="email" placeholder="Deine E-Mail..." class="w-full px-6 py-3 rounded-xl text-winterthur-red font-bold placeholder-gray-400 border-none outline-none"/>
+                            <button class="w-full bg-white text-winterthur-red px-6 py-3 rounded-xl font-black uppercase tracking-wider hover:scale-105 transition">
+                                Abonnieren
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM CTA -->
+                <div class="text-center mt-16 p-12 bg-red-50 rounded-3xl border-2 border-red-100">
+                    <h3 class="text-3xl font-black text-winterthur-red mb-4">🦁 Teil des Teams werden?</h3>
+                    <p class="font-bold text-gray-700 mb-6">
+                        Wir suchen leidenschaftliche Menschen für Ecolion! Schreib uns deine Ideen.
+                    </p>
+                    <button class="bg-winterthur-red text-white px-8 py-3 rounded-xl font-black text-lg uppercase tracking-wider hover:scale-105 transition">
+                        ✉️ Bewerbung Senden
+                    </button>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <footer class="bg-gray-950 text-white py-16 px-6 border-t-8 border-winterthur-red text-center md:text-left mt-10">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-12 md:space-y-0">
-            <div><span class="text-3xl font-black uppercase tracking-tighter italic">WINLION</span></div>
-            <p class="text-[10px] text-gray-700 font-bold uppercase tracking-widest">© 2026 WinLion Team Winterthur</p>
-        </div>
+    <footer class="bg-gray-950 text-white py-12 px-6 mt-20 border-t-8 border-winterthur-red text-center italic uppercase font-black tracking-widest text-xs">
+        ECOLION — © 2026 Winterthur
     </footer>
 
     <script>
         lucide.createIcons();
 
-        const districts = [
-            { name: "Wülflingen", co2: 42800 },
-            { name: "Stadt Winterthur", co2: 38200 },
-            { name: "Oberwinterthur", co2: 35100 },
-            { name: "Seen", co2: 31500 },
-            { name: "Mattenbach", co2: 26400 },
-            { name: "Töss", co2: 22100 },
-            { name: "Veltheim", co2: 18700 }
-        ].sort((a, b) => b.co2 - a.co2);
-
         function showPage(pageId) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            const targetPage = document.getElementById('page-' + pageId);
-            if (targetPage) {
-                targetPage.classList.add('active');
+            const target = document.getElementById('page-' + pageId);
+            if (target) {
+                target.classList.add('active');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-                if(pageId === 'home') setTimeout(triggerInitialRoar, 100);
-                if(pageId === 'challenge') renderChallengeData();
+                if(pageId === 'home') setTimeout(() => document.getElementById('barometer-fill').style.strokeDashoffset = "70", 100);
             }
-            const navMenu = document.getElementById('nav-menu');
-            if (navMenu && navMenu.classList.contains('open')) toggleMenu();
+            if (document.getElementById('nav-menu').classList.contains('open')) toggleMenu();
         }
-
-        function renderChallengeData() {
-            const chart = document.getElementById('main-barchart');
-            const maxVal = districts[0].co2;
-            chart.innerHTML = districts.map((d, i) => `
-                <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-black uppercase text-gray-700"><span>#${i+1} ${d.name}</span><span>${d.co2.toLocaleString('de-CH')} kg</span></div>
-                    <div class="w-full bg-gray-50 h-6 rounded-full overflow-hidden border border-gray-100">
-                        <div class="bar-grow h-full bg-winterthur-red" style="width: ${(d.co2/maxVal)*100}%; opacity: ${1 - (i*0.1)}"></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function selectDistrict(name) {
-            const data = districts.find(d => d.name === name);
-            const rank = districts.findIndex(d => d.name === name) + 1;
-            const topCo2 = districts[0].co2;
-            const diffPercent = Math.round(((topCo2 - data.co2) / topCo2) * 100);
-
-            const card = document.getElementById('district-card');
-            card.classList.remove('opacity-0', 'scale-95');
-            card.classList.add('opacity-100', 'scale-100');
-
-            document.getElementById('district-name').innerText = name;
-            document.getElementById('district-rank').innerText = `Rang #${rank}`;
-            document.getElementById('district-co2').innerText = data.co2.toLocaleString('de-CH');
-
-            const rivalryHtml = rank === 1 
-                ? `<div class="bg-green-50 p-4 rounded-2xl border border-green-100 text-green-700 text-sm font-bold italic">🦁 Du bist der König! Wülflingen führt an.</div>`
-                : `<div class="space-y-3"><p class="text-xs font-black text-gray-400 uppercase tracking-widest">Abstand zum Platz 1</p>
-                   <div class="flex justify-between text-sm font-black text-winterthur-red"><span>Rückstand</span><span>${diffPercent}%</span></div>
-                   <div class="w-full bg-gray-100 h-2 rounded-full"><div class="bg-winterthur-red h-full rounded-full" style="width: ${diffPercent}%"></div></div></div>`;
-            
-            document.getElementById('rivalry-info').innerHTML = rivalryHtml;
-        }
-
-        function triggerInitialRoar() {
-            const lion = document.getElementById('lion-sprite');
-            const mouth = document.getElementById('lion-mouth');
-            const barometerFill = document.getElementById('barometer-fill');
-            const hero = document.getElementById('hero-section');
-            if (barometerFill) barometerFill.style.strokeDashoffset = "70";
-            if (lion) lion.classList.add('lion-roar-anim');
-            if (mouth) mouth.setAttribute('d', 'M 32 75 Q 50 85 68 75');
-            setTimeout(() => hero.classList.add('roar-active'), 300);
-            setTimeout(() => {
-                if (lion) lion.classList.remove('lion-roar-anim');
-                if (mouth) mouth.setAttribute('d', 'M 42 65 Q 50 72 58 65');
-            }, 850);
-        }
-
-        window.onload = () => setTimeout(triggerInitialRoar, 1000);
 
         function toggleMenu() {
-            const navMenu = document.getElementById('nav-menu');
+            const menu = document.getElementById('nav-menu');
             const menuIcon = document.getElementById('menu-icon');
-            const isOpen = navMenu.classList.toggle('open');
+            const isOpen = menu.classList.toggle('open');
             document.body.style.overflow = isOpen ? 'hidden' : '';
             menuIcon.innerHTML = isOpen ? `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>` : `<line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line>`;
             lucide.createIcons();
         }
         document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+        window.onload = () => setTimeout(() => document.getElementById('barometer-fill').style.strokeDashoffset = "70", 500);
 
-        let count = 145321;
-        setInterval(() => {
-            count += Math.floor(Math.random() * 5);
-            document.getElementById('co2-counter').innerText = count.toLocaleString('de-CH');
-        }, 5000);
+        // District map selection function
+        function selectMapDistrict(element, districtName) {
+            // Reset all polygons
+            document.querySelectorAll('.district-polygon').forEach(p => p.style.opacity = '1');
+            
+            // Highlight selected
+            element.style.opacity = '0.8';
+            console.log('Selected: ' + districtName);
+        }
+
+        // Initialize Leaflet Map with Geo.admin.ch
+        let districtMap = null;
+
+        function initializeDistrictMap() {
+            if (districtMap) return; // Already initialized
+
+            // District data with rankings and positions
+            const districts = [
+                { name: 'Stadtzentrum', rank: 1, lat: 47.500, lng: 8.755, co2: 2850, percentage: 100, emotion: '😄', wappen: 'assets/stadtzentrum.svg' },
+                { name: 'Töss', rank: 2, lat: 47.510, lng: 8.780, co2: 2621, percentage: 92, emotion: '😊', wappen: 'assets/toess.svg' },
+                { name: 'Seen', rank: 3, lat: 47.490, lng: 8.720, co2: 2394, percentage: 84, emotion: '😊', wappen: 'assets/seen.svg' },
+                { name: 'Wülflingen', rank: 4, lat: 47.515, lng: 8.735, co2: 2166, percentage: 76, emotion: '😐', wappen: 'assets/wuelflingen.svg' },
+                { name: 'Mattenbach', rank: 5, lat: 47.480, lng: 8.730, co2: 1938, percentage: 68, emotion: '😐', wappen: 'assets/mattenbach.svg' },
+                { name: 'Oberwinterthur', rank: 6, lat: 47.495, lng: 8.760, co2: 1710, percentage: 60, emotion: '😔', wappen: 'assets/oberwinterthur.svg' },
+                { name: 'Veltheim', rank: 7, lat: 47.475, lng: 8.745, co2: 1482, percentage: 52, emotion: '☹️', wappen: 'assets/veltheim.svg' }
+            ];
+
+            // Initialize map
+            districtMap = L.map('district-map-container', {
+                backgroundColor: '#f5f5f5'
+            }).setView([47.497, 8.754], 12);
+
+            // Add geo.admin.ch tile layer (Swiss mapping service)
+            L.tileLayer('https://wmts.geo.admin.ch/tiles/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg', {
+                attribution: '© swisstopo',
+                minZoom: 10,
+                maxZoom: 18,
+                maxNativeZoom: 18,
+                tms: false
+            }).addTo(districtMap);
+
+            // Add fallback OSM layer (in case geo.admin fails)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                minZoom: 10,
+                maxZoom: 19,
+                opacity: 0.3  // Low opacity so geo.admin shows through if loaded
+            }).addTo(districtMap);
+
+            // Add district markers with popups
+            districts.forEach(district => {
+                // Create custom icon with wappen
+                const customIcon = L.divIcon({
+                    html: `<div class="district-marker" style="position: relative; width: 50px; height: 50px; border-radius: 50%; background: white; border: 3px solid #D32F2F; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); overflow: hidden;">
+                        <img src="${district.wappen}" style="width: 100%; height: 100%; object-fit: contain; padding: 2px;" alt="${district.name}" onerror="this.style.display='none';">
+                    </div>`,
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 25],
+                    popupAnchor: [0, -30],
+                    className: 'custom-marker'
+                });
+
+                const marker = L.marker([district.lat, district.lng], {
+                    icon: customIcon
+                }).addTo(districtMap);
+
+                // Create popup content
+                const popupContent = `
+                    <div class="district-popup">
+                        <h4>${district.name}</h4>
+                        <div class="district-popup-stat">🥇 Rang: <strong>${district.rank}</strong></div>
+                        <div class="district-popup-stat">📊 Vom 1. Platz: <strong>${district.percentage}%</strong></div>
+                        <div class="district-popup-stat">🌍 CO2: <strong>${district.co2} kg</strong></div>
+                        <div class="district-popup-emoji">${district.emotion}</div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                
+                // Open first popup on load
+                if (district.rank === 1) {
+                    marker.openPopup();
+                }
+            });
+
+            // Fit bounds to Winterthur
+            districtMap.fitBounds([[47.470, 8.710], [47.520, 8.800]]);
+        }
+
+        // Initialize map when challenge page is shown
+        const originalShowPage = window.showPage;
+        window.showPage = function(pageId) {
+            originalShowPage(pageId);
+            if (pageId === 'challenge') {
+                setTimeout(() => {
+                    initializeDistrictMap();
+                    if (districtMap) {
+                        districtMap.invalidateSize(); // Force map to recalculate size
+                    }
+                }, 100);
+            }
+        }
+
+        // Metric Toggle Function
+        let currentMetric = 'co2';
+
+        function toggleMetric(metric) {
+            currentMetric = metric;
+
+            // Update button states
+            document.getElementById('metric-co2').classList.toggle('active', metric === 'co2');
+            document.getElementById('metric-km').classList.toggle('active', metric === 'km');
+            document.getElementById('metric-km-walk').classList.toggle('active', metric === 'km-walk');
+            document.getElementById('metric-flight').classList.toggle('active', metric === 'flight');
+
+            // Update all ranking items
+            const rankingItems = document.querySelectorAll('.ranking-item');
+            rankingItems.forEach((item, index) => {
+                const co2Value = parseInt(item.dataset.co2);
+                const kmValue = parseInt(item.dataset.km);
+                const kmWalkValue = parseInt(item.dataset['km-walk']);
+                const flightValue = parseFloat(item.dataset.flight);
+                
+                // Max values for percentage calculation
+                const maxCO2 = 2850;
+                const maxKM = 12450;
+                const maxKMWalk = 28500;
+                const maxFlight = 5.7;
+
+                let value, label, percentage;
+
+                if (metric === 'co2') {
+                    value = co2Value;
+                    label = `${(value / 1000).toFixed(2)} t CO2`;
+                    percentage = (value / maxCO2) * 100;
+                } else if (metric === 'km') {
+                    value = kmValue;
+                    label = `${value.toLocaleString('de-CH')} km`;
+                    percentage = (value / maxKM) * 100;
+                } else if (metric === 'km-walk') {
+                    value = kmWalkValue;
+                    label = `${value.toLocaleString('de-CH')} km`;
+                    percentage = (value / maxKMWalk) * 100;
+                } else if (metric === 'flight') {
+                    value = flightValue;
+                    label = `${value.toFixed(1)} h Flug`;
+                    percentage = (value / maxFlight) * 100;
+                }
+
+                // Update bar width and text
+                const bar = item.querySelector('.ranking-bar');
+                const barValue = item.querySelector('.bar-value');
+                bar.style.width = percentage + '%';
+                barValue.textContent = label;
+            });
+        }
+
+        // KidsLion Story Accordion Toggle
+        function toggleStory(element) {
+            element.classList.toggle('active');
+        }
     </script>
 </body>
 </html>

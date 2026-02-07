@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <!-- Weißer Schild Hintergrund -->
+  <rect width="120" height="160" fill="#FFFFFF" stroke="#000" stroke-width="2" rx="5"/>
+  
+  <!-- Roter Schrägbalken von oben-links zu unten-rechts -->
+  <polygon points="0,0 35,0 120,120 120,160 85,160 0,40" fill="#DC143C"/>
+  
+  <!-- 8 Rote Löwen (Kyburger Löwen) verteilt im Wappen -->
+  
+  <!-- Löwe 1 - Oben Mitte -->
+  <g transform="translate(60, 25)">
+    <ellipse cx="0" cy="0" rx="6" ry="8" fill="#DC143C"/>
+    <circle cx="0" cy="-6" r="5" fill="#DC143C"/>
+    <circle cx="-4" cy="-7" r="3" fill="#DC143C"/>
+    <circle cx="4" cy="-7" r="3" fill="#DC143C"/>
+    <rect x="-3" y="6" width="2" height="6" fill="#DC143C"/>
+    <rect x="1" y="6" width="2" height="6" fill="#DC143C"/>
+    <path d="M 5 2 L 10 0" stroke="#DC143C" stroke-width="1.5" fill="none"/>
+  </g>
+  
+  <!-- Löwe 2 - Oben rechts -->
+  <g transform="translate(95, 35)">
+    <ellipse cx="0" cy="0" rx="5" ry="6" fill="#DC143C"/>
+    <circle cx="0" cy="-5" r="4" fill="#DC143C"/>
+    <circle cx="-3" cy="-5" r="2.5" fill="#DC143C"/>
+    <circle cx="3" cy="-5" r="2.5" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 3 - Rechts oben -->
+  <g transform="translate(105, 60)">
+    <ellipse cx="0" cy="0" rx="5" ry="7" fill="#DC143C"/>
+    <circle cx="0" cy="-5" r="4" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 4 - Rechts Mitte -->
+  <g transform="translate(100, 95)">
+    <ellipse cx="0" cy="0" rx="6" ry="8" fill="#DC143C"/>
+    <circle cx="0" cy="-6" r="5" fill="#DC143C"/>
+    <circle cx="-4" cy="-7" r="3" fill="#DC143C"/>
+    <circle cx="4" cy="-7" r="3" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 5 - Unten rechts -->
+  <g transform="translate(90, 130)">
+    <ellipse cx="0" cy="0" rx="5" ry="6" fill="#DC143C"/>
+    <circle cx="0" cy="-4" r="4" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 6 - Unten Mitte-rechts -->
+  <g transform="translate(60, 140)">
+    <ellipse cx="0" cy="0" rx="5" ry="6" fill="#DC143C"/>
+    <circle cx="0" cy="-4" r="4" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 7 - Links Mitte -->
+  <g transform="translate(20, 75)">
+    <ellipse cx="0" cy="0" rx="5" ry="7" fill="#DC143C"/>
+    <circle cx="0" cy="-5" r="4" fill="#DC143C"/>
+    <circle cx="-3" cy="-5" r="2.5" fill="#DC143C"/>
+    <circle cx="3" cy="-5" r="2.5" fill="#DC143C"/>
+  </g>
+  
+  <!-- Löwe 8 - Links unten -->
+  <g transform="translate(25, 120)">
+    <ellipse cx="0" cy="0" rx="5" ry="6" fill="#DC143C"/>
+    <circle cx="0" cy="-4" r="4" fill="#DC143C"/>
+  </g>
+</svg>

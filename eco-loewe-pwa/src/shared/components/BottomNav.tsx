@@ -8,6 +8,14 @@ const icons = {
       <path d="M5 10v9a1 1 0 001 1h3v-5h6v5h3a1 1 0 001-1v-9" />
     </svg>
   ),
+  dashboard: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="8" height="8" rx="1" />
+      <rect x="13" y="3" width="8" height="8" rx="1" />
+      <rect x="3" y="13" width="8" height="8" rx="1" />
+      <rect x="13" y="13" width="8" height="8" rx="1" />
+    </svg>
+  ),
   stats: (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="12" width="4" height="8" rx="1" />
@@ -50,12 +58,13 @@ export default function BottomNav() {
         {icons.home}
         <span>Home</span>
       </NavLink>
-      <NavLink to="/stats" className={cls}>
-        {icons.stats}
-        <span>Stats</span>
+      <NavLink to="/dashboard" className={cls}>
+        {icons.dashboard}
+        <span>Profile</span>
       </NavLink>
       <NavLink to="/leaderboard" className={cls}>
         {icons.trophy}
+        <span>Rivals</span>
       </NavLink>
       <NavLink to="/shop" className={cls}>
         {icons.shop}
