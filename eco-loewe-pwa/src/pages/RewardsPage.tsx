@@ -363,7 +363,11 @@ function QuestCard({
         </div>
       </div>
       {quest.completed && !quest.claimed && (
-        <button className="rwClaimBtn" onClick={() => onClaim(quest.id)}>
+        <button
+          className="rwClaimBtn"
+          onClick={() => onClaim(quest.id)}
+          aria-label={`Quest-Belohnung für "${quest.title}" einlösen`}
+        >
           ✓
         </button>
       )}
