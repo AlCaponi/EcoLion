@@ -1,10 +1,13 @@
 import Card from "../shared/components/Card";
 
 const MOCK_QUARTIERS = [
-  { id: "seen", name: "Seen", co2SavedKg: 520, rank: 1, isMe: false },
-  { id: "hegi", name: "Hegi", co2SavedKg: 480, rank: 2, isMe: false },
-  { id: "toss", name: "Töss", co2SavedKg: 470, rank: 3, isMe: true },
-  { id: "oberi", name: "Oberwinterthur", co2SavedKg: 430, rank: 4, isMe: false },
+  { id: "k3", name: "Seen",            co2SavedKg: 520, rank: 1, isMe: false },
+  { id: "k1", name: "Stadt",           co2SavedKg: 495, rank: 2, isMe: false },
+  { id: "k4", name: "Töss",            co2SavedKg: 470, rank: 3, isMe: true },
+  { id: "k2", name: "Oberwinterthur",  co2SavedKg: 450, rank: 4, isMe: false },
+  { id: "k5", name: "Veltheim",        co2SavedKg: 420, rank: 5, isMe: false },
+  { id: "k7", name: "Mattenbach",      co2SavedKg: 390, rank: 6, isMe: false },
+  { id: "k6", name: "Wülflingen",      co2SavedKg: 350, rank: 7, isMe: false },
 ];
 
 export default function StatsPage() {
@@ -53,10 +56,13 @@ export default function StatsPage() {
             <rect x="8" y="8" width="304" height="164" rx="14" />
             {MOCK_QUARTIERS.map((q, idx) => {
               const points = [
-                { x: 70, y: 70 },
-                { x: 230, y: 75 },
-                { x: 90, y: 120 },
-                { x: 240, y: 125 },
+                { x: 160, y: 50 },   // Seen (north-east)
+                { x: 110, y: 90 },   // Stadt (center)
+                { x: 60,  y: 70 },   // Töss (west)
+                { x: 240, y: 60 },   // Oberwinterthur (east)
+                { x: 80,  y: 130 },  // Veltheim (south-west)
+                { x: 200, y: 130 },  // Mattenbach (south-east)
+                { x: 50,  y: 40 },   // Wülflingen (north-west)
               ];
               const p = points[idx] ?? { x: 160, y: 95 };
               return (

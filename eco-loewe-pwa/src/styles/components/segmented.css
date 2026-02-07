@@ -8,17 +8,25 @@
   border: 1px solid var(--border);
 }
 
+/* Full-width variant for mobile */
+.segmented.full {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+}
+
 .segmented button {
   appearance: none;
   border: none;
   background: transparent;
-  padding: 8px 14px;
+  padding: 10px 14px;
   border-radius: 10px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
   cursor: pointer;
   transition: background .12s ease, color .12s ease;
+  text-align: center;
 }
 
 .segmented button.active,
