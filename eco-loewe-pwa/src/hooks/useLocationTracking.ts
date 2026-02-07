@@ -10,7 +10,7 @@ export interface LocationPoint {
 interface UseLocationTrackingReturn {
   points: LocationPoint[];
   isTracking: boolean;
-  startTracking: () => void;
+  startTracking: (useMockData?: boolean) => void;
   stopTracking: () => LocationPoint[];
   clearPoints: () => void;
   error: string | null;
@@ -22,7 +22,21 @@ const TRACKING_CONFIG = {
   enableHighAccuracy: true, // Use GPS (not just WiFi/cell towers)
   maximumAge: 5000, // Don't use cached positions older than 5s
   timeout: 10000, // Give up on location request after 10s
+  mockIntervalMs: 2000, // Add mock point every 2 seconds
 };
+
+// Mock route: circular path around Winterthur city center
+const MOCK_ROUTE = [
+  { lat: 47.5000, lng: 8.7200 }, // Start point
+  { lat: 47.5010, lng: 8.7210 },
+  { lat: 47.5020, lng: 8.7220 },
+  { lat: 47.5030, lng: 8.7215 },
+  { lat: 47.5035, lng: 8.7205 },
+  { lat: 47.5030, lng: 8.7190 },
+  { lat: 47.5020, lng: 8.7185 },
+  { lat: 47.5010, lng: 8.7195 },
+  { lat: 47.5000, lng: 8.7200 }, // Back to start
+];
 
 export function useLocationTracking(): UseLocationTrackingReturn {
   const [points, setPoints] = useState<LocationPoint[]>([]);
@@ -71,14 +85,50 @@ export function useLocationTracking(): UseLocationTrackingReturn {
     setError(errorMessage);
   }, []);
 
-  const startTracking = useCallback(() => {
+  const startTracking = useCallback((useMockData = false) => {
+    setError(null);
+    setIsTracking(true);
+
+    // Mock mode: simulate GPS movement along a predefined route
+    if (useMockData) {
+      let mockIndex = 0;
+      
+      // Add first point immediately
+      const firstPoint: LocationPoint = {
+        lat: MOCK_ROUTE[0].lat,
+        lng: MOCK_ROUTE[0].lng,
+        timestamp: new Date().toISOString(),
+        accuracy: 10,
+      };
+      setPoints([firstPoint]);
+      console.log("🧪 Mock tracking started - simulating movement");
+
+      // Add subsequent points at intervals
+      intervalIdRef.current = window.setInterval(() => {
+        mockIndex++;
+        if (mockIndex >= MOCK_ROUTE.length) {
+          mockIndex = 0; // Loop back to start
+        }
+
+        const point: LocationPoint = {
+          lat: MOCK_ROUTE[mockIndex].lat,
+          lng: MOCK_ROUTE[mockIndex].lng,
+          timestamp: new Date().toISOString(),
+          accuracy: Math.random() * 20 + 5, // Random accuracy 5-25m
+        };
+
+        setPoints((prev) => [...prev, point]);
+        console.log(`📍 Mock point ${mockIndex + 1}/${MOCK_ROUTE.length}: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}`);
+      }, TRACKING_CONFIG.mockIntervalMs);
+
+      return;
+    }
+
+    // Real GPS tracking
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
       return;
     }
-
-    setError(null);
-    setIsTracking(true);
     
     // Get initial position immediately
     navigator.geolocation.getCurrentPosition(

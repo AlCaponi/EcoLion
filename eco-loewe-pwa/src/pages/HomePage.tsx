@@ -121,8 +121,11 @@ export default function HomePage() {
     setActiveActivity(type);
     setTimer(0);
     
-    // Start GPS tracking
-    startTracking();
+    // Check if we should use mock data (for testing)
+    const useMockData = new URLSearchParams(window.location.search).get('mock') === 'true';
+    
+    // Start GPS tracking (with optional mock mode)
+    startTracking(useMockData);
     
     try {
       const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
@@ -284,6 +287,23 @@ export default function HomePage() {
 
       <section className="activity-section" style={{ marginTop: "1rem" }}>
         <h2 className="sectionTitle">Aktivität starten</h2>
+        
+        {/* Mock mode indicator */}
+        {new URLSearchParams(window.location.search).get('mock') === 'true' && (
+          <div style={{ 
+            padding: "8px 12px", 
+            backgroundColor: "#fff3cd", 
+            border: "1px solid #ffc107",
+            borderRadius: "8px", 
+            marginBottom: "12px",
+            fontSize: "13px",
+            fontWeight: "600",
+            textAlign: "center"
+          }}>
+            🧪 Test-Modus: Simulierte GPS-Daten werden verwendet
+          </div>
+        )}
+        
         <div className="activity-grid">
           {ACTIVITIES.map((act) => (
             <button key={act.id} className="activity-btn" onClick={() => handleStart(act.id)}>
