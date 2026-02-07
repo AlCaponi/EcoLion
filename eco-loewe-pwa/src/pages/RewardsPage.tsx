@@ -260,16 +260,24 @@ export default function RewardsPage() {
       </header>
 
       {/* ── Tab bar ── */}
-      <div className="rwTabs">
+      <div className="rwTabs" role="tablist" aria-label="Belohnungen Navigation">
         <button
           className={`rwTab ${tab === "quests" ? "active" : ""}`}
           onClick={() => setTab("quests")}
+          role="tab"
+          aria-selected={tab === "quests"}
+          aria-controls="quests-panel"
+          id="quests-tab"
         >
           Quests
         </button>
         <button
           className={`rwTab ${tab === "rewards" ? "active" : ""}`}
           onClick={() => setTab("rewards")}
+          role="tab"
+          aria-selected={tab === "rewards"}
+          aria-controls="rewards-panel"
+          id="rewards-tab"
         >
           Meine Rewards
         </button>
@@ -277,7 +285,11 @@ export default function RewardsPage() {
 
       {/* ── Quests tab ── */}
       {tab === "quests" && (
-        <>
+        <div
+          id="quests-panel"
+          role="tabpanel"
+          aria-labelledby="quests-tab"
+        >
           {/* Daily */}
           <section className="rwSection">
             <h2 className="rwSectionTitle">📅 Tägliche Quests</h2>
@@ -320,12 +332,17 @@ export default function RewardsPage() {
               ))}
             </div>
           </section>
-        </>
+        </div>
       )}
 
       {/* ── My Rewards tab ── */}
       {tab === "rewards" && (
-        <section className="rwSection">
+        <div
+          id="rewards-panel"
+          role="tabpanel"
+          aria-labelledby="rewards-tab"
+        >
+          <section className="rwSection">
           {claimedRewards.length === 0 ? (
             <div className="rwEmpty">
               <span className="rwEmptyIcon">🎯</span>
@@ -341,7 +358,8 @@ export default function RewardsPage() {
               ))}
             </div>
           )}
-        </section>
+          </section>
+        </div>
       )}
     </div>
   );
