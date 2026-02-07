@@ -145,9 +145,6 @@ export default function HomePage() {
     // Stop GPS tracking and get collected points
     const routePoints = stopTracking();
     
-    // Clear points to prevent accumulation across activities
-    clearPoints();
-    
     if (currentActivityId) {
       try {
         await Api.stopActivity({ 
@@ -161,6 +158,10 @@ export default function HomePage() {
         console.error("Failed to stop activity", e);
       }
     }
+    
+    // Clear points after processing to prevent accumulation
+    clearPoints();
+    
     setActiveActivity(null);
     setCurrentActivityId(null);
     setTimer(0);
