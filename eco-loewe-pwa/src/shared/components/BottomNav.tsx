@@ -56,6 +56,7 @@ export default function BottomNav() {
       </NavLink>
       <NavLink to="/leaderboard" className={cls}>
         {icons.trophy}
+        <span>Leaderboard</span>
       </NavLink>
       <NavLink to="/shop" className={cls}>
         {icons.shop}
