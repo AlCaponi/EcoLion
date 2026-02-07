@@ -51,6 +51,7 @@ class ApiClient {
     const response = await this.rawRequest(path, options);
     
     // Handle auth errors (expired token)
+    // Handle auth errors (expired token)
     if (response.status === 401) {
         console.warn("Unauthorized request. Token might be invalid.");
         if (retryOnAuthFailure) {
@@ -67,6 +68,10 @@ class ApiClient {
         data = JSON.parse(text) as T;
     } catch {
         data = text as unknown as T;
+    }
+
+    if (!response.ok) {
+        throw new Error((data as any)?.error || `Request failed with status ${response.status}`);
     }
 
     return {

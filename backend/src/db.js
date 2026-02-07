@@ -595,15 +595,63 @@ export function createStore(dbPath) {
         "INSERT OR IGNORE INTO user_shop_ownership (user_id, item_id) VALUES (?, ?)",
       ).run(userId, itemId);
 
-      if (!dashboard.lion.accessories.includes(itemId)) {
-        dashboard.lion.accessories = [...dashboard.lion.accessories, itemId];
-      }
+      // Auto-equip on purchase? Maybe not, let user decide.
+      // But for now let's just add ownership.
+      
       dashboard.lion.coins = Math.max(0, dashboard.lion.coins - item.price_coins);
       upsertDashboardForUser(db, userId, dashboard);
 
       return { notFound: false, insufficientFunds: false };
     },
 
+    equipItem(userId, itemId) {
+      const itemInfo = db
+        .prepare("SELECT * FROM shop_items WHERE id = ?")
+        .get(itemId);
+
+      const ownership = db
+        .prepare("SELECT 1 FROM user_shop_ownership WHERE user_id = ? AND item_id = ?")
+        .get(userId, itemId);
+
+      if (!itemInfo || !ownership) {
+        return null; // Not owned or doesn't exist
+      }
+
+      const dashboard = this.getDashboard(userId);
+
+      // Filter out items of the same category from current accessories
+      // We need to check the category of each currently equipped item
+      const newAccessories = dashboard.lion.accessories.filter((accId) => {
+        const accDetails = db
+          .prepare("SELECT category FROM shop_items WHERE id = ?")
+          .get(accId);
+        // Keep item if it has a DIFFERENT category (or if category lookup fails, safe fallback)
+        return accDetails && accDetails.category !== itemInfo.category;
+      });
+
+      // Add the new item
+      newAccessories.push(itemId);
+
+      dashboard.lion.accessories = newAccessories;
+      upsertDashboardForUser(db, userId, dashboard);
+      return dashboard;
+    },
+
+    unequipItem(userId, itemId) {
+      const dashboard = this.getDashboard(userId);
+      if (dashboard.lion.accessories.includes(itemId)) {
+        dashboard.lion.accessories = dashboard.lion.accessories.filter(id => id !== itemId);
+        upsertDashboardForUser(db, userId, dashboard);
+      }
+      return dashboard;
+    },
+
+    addCoins(userId, amount) {
+      const dashboard = this.getDashboard(userId);
+      dashboard.lion.coins += amount;
+      upsertDashboardForUser(db, userId, dashboard);
+      return dashboard;
+    },
     listUsers() {
       const rows = db
         .prepare(

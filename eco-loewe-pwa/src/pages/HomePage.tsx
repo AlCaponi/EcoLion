@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import { Api } from "../shared/api/endpoints";
-import type { ActivityType } from "../shared/api/types";
+import type { ActivityType, UserDTO } from "../shared/api/types";
 
 import busIcon from "../assets/transport_types/bus_icon.png";
 import carIcon from "../assets/transport_types/car_icon.png";
@@ -55,6 +55,7 @@ export default function HomePage() {
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
+  const [user, setUser] = useState<UserDTO | null>(null);
   const [userStats, setUserStats] = useState({ level: 1, xp: 0 });
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
@@ -81,22 +82,18 @@ export default function HomePage() {
 
   const fetchDashboard = async () => {
     try {
-        const data = await Api.dashboard();
-        // Calculate level based on XP (simplified logic for now)
-        // In real app, backend might send level or we compute it
-        setUserStats({ 
-            level: Math.floor(data.sustainabilityScore / 100) + 1, 
-            xp: data.sustainabilityScore 
-        });
+      const data = await Api.dashboard();
+      setUser(data);
 
-        if (data.currentActivity) {
-            setActiveActivity(data.currentActivity.activityType);
-            setCurrentActivityId(data.currentActivity.activityId);
-            const elapsed = Math.floor((Date.now() - new Date(data.currentActivity.startTime).getTime()) / 1000);
-            setTimer(elapsed > 0 ? elapsed : 0);
-        }
+      if ((data as any).currentActivity) {
+        setActiveActivity((data as any).currentActivity.activityType);
+        setCurrentActivityId((data as any).currentActivity.activityId);
+        const elapsed = Math.floor((Date.now() - new Date((data as any).currentActivity.startTime).getTime()) / 1000);
+        setTimer(elapsed > 0 ? elapsed : 0);
+      }
     } catch (e) {
-        console.error("Failed to fetch dashboard", e);
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch dashboard", e);
     }
   };
 
@@ -116,28 +113,28 @@ export default function HomePage() {
 
   const handleStart = async (id: string) => {
     const type = id as ActivityType;
+    // Optimistic update
+    setActiveActivity(type);
+    setTimer(0);
     try {
       const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
-      if (!data || typeof data.activityId !== "number") {
-        console.error("Failed to start activity: invalid response payload", data);
-        return;
-      }
       setCurrentActivityId(data.activityId);
-      setActiveActivity(type);
-      setTimer(0);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error("Failed to start activity", e);
+      setActiveActivity(null); // Revert on failure
     }
   };
 
   const handleStop = async () => {
     if (currentActivityId) {
-        try {
-            await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
-            await fetchDashboard(); // Refresh stats
-        } catch (e) {
-            console.error("Failed to stop activity", e);
-        }
+      try {
+        await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
+        await fetchDashboard(); // Refresh stats
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to stop activity", e);
+      }
     }
     setActiveActivity(null);
     setCurrentActivityId(null);
@@ -239,36 +236,40 @@ export default function HomePage() {
 
   return (
     <div className="page homePage">
-      <Card className="hero-card hero-card-compact">
-        <div style={{ textAlign: "center", marginBottom: "0" }}>
-           <div className="sectionTitle">Dein Begleiter</div>
-        </div>
-        <MascotDisplay 
-            level={userStats.level} 
-            xp={userStats.xp}
-            style={{ padding: "0", gap: "0.25rem", marginBottom: "0" }}
-        />
+      <h1>Willkommen, Eco-Löwe! 🦁</h1>
+
+      <Card>
+        <div className="sectionTitle">Dein Löwe</div>
+        {user?.lion ? (
+          <MascotDisplay
+            level={Math.floor(user.sustainabilityScore / 100) + 1}
+            xp={user.sustainabilityScore}
+            accessories={user.lion.accessories}
+            movement="idle"
+          />
+        ) : (
+          <div className="lionPreview">
+            <div className="lionEmoji">🦁</div>
+            <div>Lade Löwe...</div>
+          </div>
+        )}
       </Card>
 
       <section className="activity-section" style={{ marginTop: "1rem" }}>
         <h2 className="sectionTitle">Aktivität starten</h2>
         <div className="activity-grid">
-            {ACTIVITIES.map((act) => (
-                <button 
-                    key={act.id} 
-                    className="activity-btn"
-                    onClick={() => handleStart(act.id)}
-                >
-                    <div className="act-icon">
-                      {act.iconSrc ? (
-                        <img src={act.iconSrc} alt={act.label} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-                      ) : (
-                        act.emoji
-                      )}
-                    </div>
-                    <div className="act-label">{act.label}</div>
-                </button>
-            ))}
+          {ACTIVITIES.map((act) => (
+            <button key={act.id} className="activity-btn" onClick={() => handleStart(act.id)}>
+              <div className="act-icon">
+                {act.iconSrc ? (
+                  <img src={act.iconSrc} alt={act.label} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : (
+                  act.emoji
+                )}
+              </div>
+              <div className="act-label">{act.label}</div>
+            </button>
+          ))}
         </div>
       </section>
     </div>

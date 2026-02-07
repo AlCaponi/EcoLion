@@ -44,7 +44,7 @@ describe("Shop API", () => {
 
     it("should only contain valid categories", async () => {
       const { data } = await client.get<ShopItemDTO[]>("/v1/shop/items");
-      const validCategories = ["hats", "outfits", "accessories", "decor"];
+      const validCategories = ["hats", "outfits", "accessories", "decor", "scarfs"];
 
       for (const item of data) {
         expect(validCategories).toContain(item.category);

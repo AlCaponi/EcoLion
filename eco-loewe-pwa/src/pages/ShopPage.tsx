@@ -1,95 +1,72 @@
-
 import { useEffect, useState } from "react";
 import Card from "../shared/components/Card";
 import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
-import type { UserDTO } from "../shared/api/types";
-
-const COIN_PACKAGES = [
-  { coins: 100, price: "CHF 4.90" },
-  { coins: 300, price: "CHF 12.90" },
-  { coins: 600, price: "CHF 24.90" },
-  { coins: 1200, price: "CHF 44.90" },
-];
-
-const MOCK_ITEMS = [
-  { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats" as const, emoji: "🧢" },
-  { id: "outfit-scarf", name: "Schal", priceCoins: 30, category: "outfits" as const, emoji: "🧣" },
-  { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 40, category: "accessories" as const, emoji: "😎" },
-  { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor" as const, emoji: "🪴" }
-];
+import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 
 export default function ShopPage() {
+  const [items, setItems] = useState<ShopItemDTO[]>([]);
   const [user, setUser] = useState<UserDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [showPayment, setShowPayment] = useState(false);
-  const [selectedCoins, setSelectedCoins] = useState<number | null>(null);
 
-  // Load user dashboard on mount
+  // Load user and shop items
   useEffect(() => {
     (async () => {
       try {
-        const userData = await Api.dashboard();
+        const [userData, shopItems] = await Promise.all([
+            Api.dashboard(),
+            Api.shopItems()
+        ]);
         setUser(userData);
+        setItems(shopItems);
       } catch (e) {
-        setMessage({ type: "error", text: "Fehler beim Laden der User-Daten" });
+        setMessage({ type: "error", text: "Fehler beim Laden der Shop-Daten" });
       }
     })();
   }, []);
 
-  // Buy coins and update backend
-  async function buyCoinsMock(amount: number) {
-    setLoading(true);
-    try {
-      // Rufe neuen Backend-Endpoint auf (statt Mock)
-      const result = await Api.buyCoins({
-        amount,
-        paymentMethod: "card",
-      });
-
-      // Update lokalen State mit neuer Balance vom Backend
-      if (user) {
-        setUser({
-          ...user,
-          lion: { ...user.lion, coins: result.newBalance },
-        });
-      }
-
-      setMessage({
-        type: "success",
-        text: `${amount} Coins hinzugefügt! 🎉 (ID: ${result.transactionId})`,
-      });
-      setShowPayment(false);
-      setSelectedCoins(null);
-    } catch (e) {
-      setMessage({ type: "error", text: "Zahlungsvorgang fehlgeschlagen" });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function buyItem(itemId: string, priceCoins: number) {
-    if (!user) return;
-
-    if (user.lion.coins < priceCoins) {
+  // Purchase item with coins
+  async function buyItem(itemId: string) {
+    if (!user || user.lion.coins < 10) {
       setMessage({ type: "error", text: "Nicht genug Coins!" });
       return;
     }
-
     setLoading(true);
     try {
-      // Kaufe Item über Backend
-      await Api.purchase({ itemId });
-      // Refreshe User-Daten nach Kauf
-      const updated = await Api.dashboard();
-      setUser(updated);
+      const updatedUser = await Api.purchase({ itemId });
+      setUser(updatedUser);
+      
+      // Update local items state to reflect ownership
+      setItems(prev => prev.map(item => 
+          item.id === itemId ? { ...item, owned: true } : item
+      ));
+
       setMessage({ type: "success", text: "Artikel gekauft! 🎉" });
     } catch (e) {
       setMessage({ type: "error", text: "Kauf fehlgeschlagen" });
     } finally {
       setLoading(false);
     }
+  }
+
+  // Equip/unequip item
+  async function toggleEquip(itemId: string, isEquipped: boolean) {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const updatedUser = isEquipped ? await Api.unequip(itemId) : await Api.equip({ itemId });
+      setUser(updatedUser);
+    } catch (e) {
+      setMessage({ type: "error", text: "Aktion fehlgeschlagen" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Get item price or button text
+  function canAfford(item: ShopItemDTO): boolean {
+    return user?.lion?.coins !== undefined ? user.lion.coins >= item.priceCoins : false;
   }
 
   return (
@@ -102,82 +79,97 @@ export default function ShopPage() {
         </Card>
       )}
 
-      {/* Coin Balance & Buy Coins */}
+      {/* Coin Balance */}
       <Card>
         <div className="row between">
           <div>
             <div className="label">Deine Coins</div>
             <div className="coinBalance">{user?.lion.coins ?? 0} 🪙</div>
           </div>
-          <PrimaryButton small onClick={() => setShowPayment(!showPayment)}>
-            Coins kaufen →
-          </PrimaryButton>
+          {/* Coin purchase removed as per decision */}
         </div>
-
-        {showPayment && (
-          <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
-            <div className="label">Coins kaufen mit Kreditkarte</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", margin: "10px 0" }}>
-              {COIN_PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.coins}
-                  style={{
-                    padding: "12px",
-                    border: selectedCoins === pkg.coins ? "2px solid var(--brand)" : "1px solid var(--border)",
-                    borderRadius: "10px",
-                    background: selectedCoins === pkg.coins ? "color-mix(in srgb, var(--brand) 15%, white 85%)" : "white",
-                    cursor: "pointer",
-                    textAlign: "center",
-                  }}
-                  onClick={() => setSelectedCoins(pkg.coins)}
-                  disabled={loading}
-                >
-                  <div style={{ fontSize: "16px", fontWeight: "900", color: "var(--brand)" }}>
-                    {pkg.coins} 🪙
-                  </div>
-                  <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
-                    {pkg.price}
-                  </div>
-                </button>
-              ))}
-            </div>
-            {selectedCoins && (
-              <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
-                <PrimaryButton small onClick={() => buyCoinsMock(selectedCoins)} disabled={loading}>
-                  {loading ? "Verarbeite..." : "Bezahlen"}
-                </PrimaryButton>
-                <PrimaryButton
-                  small
-                  onClick={() => setShowPayment(false)}
-                  style={{ background: "var(--muted)", color: "white" }}
-                >
-                  Abbrechen
-                </PrimaryButton>
-              </div>
-            )}
-          </div>
-        )}
       </Card>
 
-      {/* Items Grid */}
-      <div className="shopGrid">
-        {MOCK_ITEMS.map((item) => (
-          <Card key={item.id}>
-            <div className="shopItem">
-              <div className="shopItemIcon">{item.emoji}</div>
-              <div className="shopItemName">{item.name}</div>
-              <div className="shopItemPrice">{item.priceCoins} Coins</div>
-              <PrimaryButton
-                small
-                disabled={loading || !user || user.lion.coins < item.priceCoins}
-                onClick={() => buyItem(item.id, item.priceCoins)}
-              >
-                Kaufen
-              </PrimaryButton>
+      {/* Items Grid by Category */}
+      {(["hats", "scarfs"] as const).map((category) => {
+        const categoryItems = items.filter((item) => item.category === category);
+        if (categoryItems.length === 0) return null;
+
+        return (
+          <div key={category}>
+            <h2 style={{ fontSize: "16px", fontWeight: "900", margin: "16px 0 8px" }}>
+              {category === "hats"
+                ? "👒 Hüte"
+                : "🧣 Schals"}
+            </h2>
+
+            <div className="shopGrid">
+              {categoryItems.map((item) => {
+                  const isEquipped = user?.lion.accessories.includes(item.id) ?? false;
+                  
+                  // Check if another item of the same category is equipped
+                  // We look through all equipped IDs, find their item details in 'items', and check category
+                  const isCategoryOccupied = user?.lion.accessories.some(accId => {
+                      if (accId === item.id) return false; // Skip self
+                      const acc = items.find(i => i.id === accId);
+                      return acc?.category === item.category;
+                  });
+
+                  // Handle potential emoji assets gracefully (legacy items)
+                  const isImage = item.assetPath.startsWith("/") || item.assetPath.endsWith(".png");
+
+                  return (
+                    <Card key={item.id}>
+                    <div className="shopItem">
+                        <div className="shopItemIcon" style={{ padding: 0 }}>
+                            {isImage ? (
+                                <img src={item.assetPath} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                            ) : (
+                                <span style={{ fontSize: "3rem" }}>{item.assetPath}</span>
+                            )}
+                        </div>
+                        <div className="shopItemName">{item.name}</div>
+
+                        {item.owned ? (
+                        <div className="shopItemOwned">
+                            <div className="shopItemPrice">Im Besitz</div>
+                            <PrimaryButton
+                            small
+                            disabled={loading}
+                            onClick={() => toggleEquip(item.id, isEquipped)}
+                            style={{
+                                background: isEquipped ? "var(--muted)" : "var(--brand)",
+                                color: "white",
+                                border: isEquipped ? "1px solid var(--muted)" : "none"
+                            }}
+                            >
+                            {isEquipped 
+                                ? "Ausziehen" 
+                                : isCategoryOccupied 
+                                    ? "Wechseln" 
+                                    : "Anziehen"}
+                            </PrimaryButton>
+                        </div>
+                        ) : (
+                        <>
+                            <div className="shopItemPrice">{item.priceCoins} Coins</div>
+                            <PrimaryButton
+                            small
+                            disabled={loading || !canAfford(item)}
+                            onClick={() => buyItem(item.id)}
+                            >
+                            {canAfford(item) ? "Kaufen" : "Nicht genug"}
+                            </PrimaryButton>
+                        </>
+                        )}
+                    </div>
+                    </Card>
+                  );
+              })}
             </div>
-          </Card>
-        ))}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
-};
+}

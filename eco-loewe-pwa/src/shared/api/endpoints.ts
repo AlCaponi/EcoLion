@@ -4,8 +4,9 @@ import type {
   LeaderboardDTO,
   ShopItemDTO,
   PurchaseDTO,
+  EquipDTO,
+  FriendDTO,
   UserListEntryDTO,
-  UserSummaryDTO,
   AddFriendRequestDTO,
   AddFriendResponseDTO,
   AssetDTO,
@@ -16,17 +17,18 @@ import type {
   StopActivityRequestDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
-  BuyCoinDTO,
-  BuyCoinResponseDTO
 } from "./types";
 
 export const Api = {
   dashboard: () => apiRequest<UserDTO>("/v1/dashboard"),
   leaderboard: () => apiRequest<LeaderboardDTO>("/v1/leaderboard"),
   shopItems: () => apiRequest<ShopItemDTO[]>("/v1/shop/items"),
-  purchase: (payload: PurchaseDTO) => apiRequest<void>("/v1/shop/purchase", "POST", payload),
+  purchase: (payload: PurchaseDTO) => apiRequest<UserDTO>("/v1/shop/purchase", "POST", payload),
+  equip: (payload: EquipDTO) => apiRequest<UserDTO>("/v1/shop/equip", "POST", payload),
+  unequip: (itemId: string) => apiRequest<UserDTO>(`/v1/shop/unequip/${itemId}`, "POST"),
+  friends: () => apiRequest<FriendDTO[]>("/v1/friends"),
+  pokeFriend: (friendId: string) => apiRequest<void>(`/v1/friends/${friendId}/poke`, "POST"),
   users: () => apiRequest<UserListEntryDTO[]>("/v1/users"),
-  friends: () => apiRequest<UserSummaryDTO[]>("/v1/friends"),
   addFriend: (payload: AddFriendRequestDTO) =>
     apiRequest<AddFriendResponseDTO>("/v1/friends", "POST", payload),
   pokeUser: (userId: string) => apiRequest<void>(`/v1/users/${userId}/poke`, "POST"),
@@ -42,6 +44,4 @@ export const Api = {
     apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
   getActivity: (activityId: number) =>
     apiRequest<GetActivityResponseDTO>(`/v1/activity/${activityId}`),
-  buyCoins: (payload: BuyCoinDTO) => 
-    apiRequest<BuyCoinResponseDTO>("/v1/shop/buyCoins", "POST", payload),
 };

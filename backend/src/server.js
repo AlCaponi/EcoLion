@@ -177,33 +177,52 @@ app.post("/v1/shop/purchase", async (request, reply) => {
   if (result.notFound) {
     return reply.code(404).send({ error: "Item not found" });
   }
-  return { ok: true };
+  if (result.insufficientFunds) {
+    return reply.code(400).send({ error: "Insufficient funds" });
+  }
+  
+  // Return updated user data (dashboard)
+  return store.getDashboard(request.userId);
+});
+
+app.post("/v1/shop/equip", async (request, reply) => {
+  const itemId = request.body?.itemId;
+  if (typeof itemId !== "string" || !itemId.trim()) {
+    return reply.code(400).send({ error: "itemId is required" });
+  }
+
+  const dashboard = store.equipItem(request.userId, itemId);
+  if (!dashboard) {
+    return reply.code(400).send({ error: "Item not owned or found" });
+  }
+  return dashboard;
+});
+
+app.post("/v1/shop/unequip/:itemId", async (request, reply) => {
+  const itemId = request.params?.itemId;
+  if (typeof itemId !== "string" || !itemId.trim()) {
+    return reply.code(400).send({ error: "itemId is required" });
+  }
+
+  const dashboard = store.unequipItem(request.userId, itemId);
+  return dashboard;
 });
 
 app.post("/v1/shop/buyCoins", async (request, reply) => {
-  const { amount, paymentMethod } = request.body;
-  
-  // Validierung
-  if (typeof amount !== "number" || amount <= 0) {
-    return reply.code(400).send({ error: "Invalid amount" });
-  }
-  if (!["card", "paypal"].includes(paymentMethod)) {
-    return reply.code(400).send({ error: "Invalid payment method" });
+  const amount = request.body?.amount;
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return reply.code(400).send({ error: "Valid amount is required" });
   }
 
-  // Coins zu User hinzufügen
-  const dashboard = store.getDashboard(request.userId);
-  const transactionId = `TXN-${Date.now()}`;
-  
-  dashboard.lion.coins += amount;
-  store.updateDashboard(request.userId, dashboard);
-
+  const dashboard = store.addCoins(request.userId, amount);
   return {
-    transactionId,
+    transactionId: `txn-${Date.now()}`,
     coinsAdded: amount,
     newBalance: dashboard.lion.coins,
   };
 });
+
+
 
 app.get("/v1/users", async () => {
   return store.listUsers();
