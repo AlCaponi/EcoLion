@@ -138,6 +138,14 @@ docker compose --profile test run --rm api-tests npm run test:seed
 docker compose --profile test up --build
 ```
 
+## Testing Guidance
+
+After large or multi-file changes (especially backend + contract + frontend), run the full API test suite:
+
+```bash
+docker compose --profile test run --rm api-tests
+```
+
 ## Key DTOs
 
 ### UserDTO
@@ -147,12 +155,25 @@ The user endpoint returns a `sustainabilityScore` (abstract score, not raw CO2) 
 - `accessories` — flat array of equipped item IDs (e.g. `["hat-cap", "acc-sunglasses"]`)
 - `coins` — currency for buying new accessories
 
+### UserListEntryDTO (Users)
+`GET /v1/users` returns users with:
+- `displayName`
+- `streakDays` (from dashboard state)
+- `co2SavedKg` (sum of stopped activities)
+
+`POST /v1/users/:userId/poke` records a poke for a target user.
+
 ### AssetDTO
 Each visual accessory is backed by an `AssetDTO` loaded from the assets endpoint:
 - `GET /v1/assets/:id` → single `AssetDTO`
 - `GET /v1/assets?ids=a,b,c` → `AssetDTO[]`
 
 Categories: `"glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor"`
+
+### LeaderboardDTO (Users)
+The leaderboard endpoint now includes user entries derived from activity aggregates:
+- `GET /v1/leaderboard` → `users: { user: { id, displayName }, score, rank, isMe? }[]`
+- `score` is the total CO₂ saved across stopped activities per user.
 
 ## Project Structure
 

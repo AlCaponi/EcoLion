@@ -8,6 +8,7 @@ services:
     environment:
       - PORT=8080
       - DATABASE_PATH=/app/data/eco-loewe.db
+      - PURGE_DB_ON_START=${PURGE_DB_ON_START:-0}
     volumes:
       - ./backend/data:/app/data
     restart: unless-stopped
@@ -22,6 +23,8 @@ services:
     build:
       context: ./eco-loewe-pwa
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
     depends_on:
       backend:
         condition: service_healthy
@@ -44,5 +47,3 @@ services:
         condition: service_healthy
     volumes:
       - ./api-tests/src:/app/src
-    profiles:
-      - test

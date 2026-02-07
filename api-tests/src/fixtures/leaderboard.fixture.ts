@@ -11,10 +11,21 @@ export const leaderboard: LeaderboardDTO = {
     { id: "matt", name: "Mattenbach", co2SavedKg: 390, rank: 6 },
     { id: "velt", name: "Veltheim", co2SavedKg: 370, rank: 7 },
   ],
-  friends: [
-    { id: "p1", name: "Paul", co2SavedKg: 95, streakDays: 6 },
-    { id: "p2", name: "Alex", co2SavedKg: 80, streakDays: 4 },
-    { id: "p3", name: "Sarah", co2SavedKg: 70, streakDays: 7 },
-    { id: "p4", name: "Lisa", co2SavedKg: 62, streakDays: 3 },
+  users: [
+    {
+      user: { id: "u1", displayName: "Ada" },
+      score: 120.5,
+      rank: 1,
+    },
+    {
+      user: { id: "u2", displayName: "Linus" },
+      score: 98.2,
+      rank: 2,
+    },
+    {
+      user: { id: "u3", displayName: "Mina" },
+      score: 65.0,
+      rank: 3,
+    },
   ],
 };

@@ -4,7 +4,7 @@ import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { LeaderboardDTO, LeaderboardEntry, QuartierEntry } from "../shared/api/types";
 
-type Tab = "freunde" | "quartiere" | "stadt";
+type Tab = "quartiere" | "stadt";
 
 const MOCK: LeaderboardDTO = {
   streakDays: 8,
@@ -17,30 +17,23 @@ const MOCK: LeaderboardDTO = {
     { id: "k7", name: "Mattenbach",      co2SavedKg: 390, rank: 6 },
     { id: "k6", name: "Wülflingen",      co2SavedKg: 350, rank: 7 },
   ],
-  friends: [
-    { id: "p1", name: "Paul",  co2SavedKg: 95, rank: 1 },
-    { id: "p2", name: "Alex",  co2SavedKg: 80, rank: 2 },
-    { id: "me", name: "Du",    co2SavedKg: 74, rank: 3, isMe: true },
-    { id: "p3", name: "Sarah", co2SavedKg: 70, rank: 4 },
-    { id: "p4", name: "Lisa",  co2SavedKg: 62, rank: 5 },
-  ],
-  city: [
-    { id: "c1",  name: "MaxGreen",    co2SavedKg: 210, rank: 1 },
-    { id: "c2",  name: "EcoQueen",    co2SavedKg: 195, rank: 2 },
-    { id: "c3",  name: "BikeHero",    co2SavedKg: 180, rank: 3 },
-    { id: "c4",  name: "TrainLover",  co2SavedKg: 160, rank: 4 },
-    { id: "c5",  name: "WalkFan",     co2SavedKg: 145, rank: 5 },
+  users: [
+    { user: { id: "c1", displayName: "MaxGreen" }, score: 210, rank: 1 },
+    { user: { id: "c2", displayName: "EcoQueen" }, score: 195, rank: 2 },
+    { user: { id: "c3", displayName: "BikeHero" }, score: 180, rank: 3 },
+    { user: { id: "c4", displayName: "TrainLover" }, score: 160, rank: 4 },
+    { user: { id: "c5", displayName: "WalkFan" }, score: 145, rank: 5 },
     // gap — neighbors around the user
-    { id: "c41", name: "SolarSam",    co2SavedKg: 78,  rank: 41 },
-    { id: "c42", name: "GreenStep",   co2SavedKg: 76,  rank: 42 },
-    { id: "me",  name: "Du",          co2SavedKg: 74,  rank: 43, isMe: true },
-    { id: "c44", name: "GreenRookie", co2SavedKg: 71,  rank: 44 },
-    { id: "c45", name: "Newbie123",   co2SavedKg: 68,  rank: 45 },
+    { user: { id: "c41", displayName: "SolarSam" }, score: 78, rank: 41 },
+    { user: { id: "c42", displayName: "GreenStep" }, score: 76, rank: 42 },
+    { user: { id: "me", displayName: "Du" }, score: 74, rank: 43, isMe: true },
+    { user: { id: "c44", displayName: "GreenRookie" }, score: 71, rank: 44 },
+    { user: { id: "c45", displayName: "Newbie123" }, score: 68, rank: 45 },
   ],
 };
 
 /** Split entries into podium (top 3) and the rest, with gap logic for "me" */
-function splitPodiumAndList(entries: LeaderboardEntry[]) {
+function splitPodiumAndList(entries: LeaderboardEntry[] = []) {
   const sorted = [...entries].sort((a, b) => a.rank - b.rank);
   const podium = sorted.slice(0, 3);
   const rest = sorted.slice(3);
@@ -64,7 +57,7 @@ function splitPodiumAndList(entries: LeaderboardEntry[]) {
 
 export default function LeaderboardPage() {
   const [data, setData] = useState<LeaderboardDTO | null>(null);
-  const [tab, setTab] = useState<Tab>("freunde");
+  const [tab, setTab] = useState<Tab>("stadt");
   const [poking, setPoking] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,28 +71,37 @@ export default function LeaderboardPage() {
     })();
   }, []);
 
+  const userEntries = useMemo<LeaderboardEntry[]>(() => {
+    if (!data) return [];
+    const users = Array.isArray(data.users) ? data.users : [];
+    return users.map((entry) => ({
+      id: entry.user.id,
+      name: entry.user.displayName,
+      co2SavedKg: entry.score,
+      rank: entry.rank,
+      isMe: entry.isMe,
+    }));
+  }, [data]);
+
   const { podium, list } = useMemo(() => {
     if (!data) return { podium: [], list: [] };
     const entries =
       tab === "quartiere"
-        ? (data.quartiers as LeaderboardEntry[])
-        : tab === "stadt"
-          ? data.city
-          : data.friends;
+        ? ((Array.isArray(data.quartiers) ? data.quartiers : []) as LeaderboardEntry[])
+        : userEntries;
     return splitPodiumAndList(entries);
-  }, [data, tab]);
+  }, [data, tab, userEntries]);
 
   const myEntry = useMemo(() => {
     if (!data) return null;
-    const entries =
-      tab === "quartiere" ? data.quartiers : tab === "stadt" ? data.city : data.friends;
+    const entries = tab === "quartiere" ? (Array.isArray(data.quartiers) ? data.quartiers : []) : userEntries;
     return (entries as LeaderboardEntry[]).find((e) => e.isMe) ?? null;
-  }, [data, tab]);
+  }, [data, tab, userEntries]);
 
-  async function poke(friendId: string) {
+  async function poke(userId: string) {
     try {
-      setPoking(friendId);
-      await Api.pokeFriend(friendId);
+      setPoking(userId);
+      await Api.pokeUser(userId);
     } catch {
       /* ignore in mock mode */
     } finally {
@@ -128,9 +130,8 @@ export default function LeaderboardPage() {
       {/* ── Tab bar ── */}
       <div className="segmented full">
         {([
-          ["freunde", "Freunde"],
-          ["quartiere", "Quartiere"],
           ["stadt", "Stadt"],
+          ["quartiere", "Quartiere"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -187,7 +188,7 @@ export default function LeaderboardPage() {
                 return <div key={`gap-${i}`} className="rankGap">···</div>;
               }
               const isMe = entry.isMe ?? false;
-              const showPoke = tab === "freunde" && !isMe;
+              const showPoke = tab === "stadt" && !isMe;
 
               return (
                 <div key={entry.id} className={`rankRow${isMe ? " rankRowMe" : ""}`}>

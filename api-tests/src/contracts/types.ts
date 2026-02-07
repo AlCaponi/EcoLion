@@ -14,8 +14,13 @@ export interface UserDTO {
   lion: {
     mood: "sad" | "neutral" | "happy";
     activityMode: "sleeping" | "idle" | "walking" | "riding";
-    accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
+    accessories: string[];
     coins: number;
+  };
+  currentActivity?: {
+    activityId: number;
+    activityType: ActivityType;
+    startTime: string;
   };
 }
 
@@ -33,12 +38,19 @@ export interface LeaderboardDTO {
     co2SavedKg: number;
     rank: number;
   }>;
-  friends: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    streakDays: number;
-  }>;
+  users: UserScoreEntryDTO[];
+}
+
+export interface UserSummaryDTO {
+  id: string;
+  displayName: string;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
+  rank: number;
+  isMe?: boolean;
 }
 
 export interface ShopItemDTO {
@@ -54,9 +66,9 @@ export interface PurchaseDTO {
   itemId: string;
 }
 
-export interface FriendDTO {
+export interface UserListEntryDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }
@@ -72,6 +84,18 @@ export interface StartActivityRequestDTO {
 export interface StartActivityResponseDTO {
   activityId: number;
   state: ActivityState;
+}
+
+export interface ActivityListItemDTO {
+  activityId: number;
+  activityType: ActivityType;
+  state: ActivityState;
+  startTime: string;
+  stopTime?: string;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
 }
 
 export interface StopActivityRequestDTO {

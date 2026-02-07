@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+// Contract types shared between frontend and backend.
+//
+// This IS the contract. If other frontend or backend type definitions differ
+// from this file, that's a bug that needs resolution.
+// ---------------------------------------------------------------------------
+
 export type MobilityMode = "walk" | "pt" | "car";
 
 export interface UserDTO {
@@ -7,8 +14,13 @@ export interface UserDTO {
   lion: {
     mood: "sad" | "neutral" | "happy";
     activityMode: "sleeping" | "idle" | "walking" | "riding";
-    accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
+    accessories: string[];
     coins: number;
+  };
+  currentActivity?: {
+    activityId: number;
+    activityType: ActivityType;
+    startTime: string;
   };
 }
 
@@ -23,22 +35,28 @@ export interface LeaderboardEntry {
   name: string;
   co2SavedKg: number;
   rank: number;
+  streakDays?: number;
   isMe?: boolean;
 }
 
-export interface QuartierEntry {
+export type QuartierEntry = LeaderboardEntry;
+
+export interface UserSummaryDTO {
   id: string;
-  name: string;
-  co2SavedKg: number;
+  displayName: string;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
   rank: number;
-  isMe?: boolean;           // the user's own quartier
+  isMe?: boolean;
 }
 
 export interface LeaderboardDTO {
   streakDays: number;
   quartiers: QuartierEntry[];
-  friends: LeaderboardEntry[];
-  city: LeaderboardEntry[];  // city-wide ranking (all users)
+  users: UserScoreEntryDTO[];
 }
 
 export interface ShopItemDTO {
@@ -47,16 +65,16 @@ export interface ShopItemDTO {
   priceCoins: number;
   category: "hats" | "outfits" | "accessories" | "decor";
   owned: boolean;
-  assetPath: string; // e.g. "/assets/shop/hat-cap.png"
+  assetPath: string;
 }
 
 export interface PurchaseDTO {
   itemId: string;
 }
 
-export interface FriendDTO {
+export interface UserListEntryDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }
@@ -111,6 +129,8 @@ export interface RewardsPageDTO {
   quests: QuestDTO[];
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
+}
+
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
@@ -122,6 +142,18 @@ export interface StartActivityRequestDTO {
 export interface StartActivityResponseDTO {
   activityId: number;
   state: ActivityState;
+}
+
+export interface ActivityListItemDTO {
+  activityId: number;
+  activityType: ActivityType;
+  state: ActivityState;
+  startTime: string;
+  stopTime?: string;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
 }
 
 export interface StopActivityRequestDTO {
