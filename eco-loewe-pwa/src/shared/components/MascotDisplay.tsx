@@ -37,6 +37,7 @@ const ACCESSORY_IMAGES: Record<string, string> = {
   "hat-birthday": "/assets/articles/hats/birthday_hat/birthday_hat.png",
   "hat-detective": "/assets/articles/hats/detective_hat/DetectiveHat.png",
   "hat-cap": "/assets/articles/hats/cap/Cap.png",
+  "hat-fedora": "/assets/articles/hats/fedora/fedora_hat.png",
   "outfit-scarf": "/assets/articles/scarfs/FC_Winterthur_scarf/scarf.png",
   // Add other mappings as needed
 };

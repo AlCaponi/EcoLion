@@ -490,19 +490,35 @@ export function createStore(dbPath) {
     },
 
     equipItem(userId, itemId) {
+      const itemInfo = db
+        .prepare("SELECT * FROM shop_items WHERE id = ?")
+        .get(itemId);
+
       const ownership = db
         .prepare("SELECT 1 FROM user_shop_ownership WHERE user_id = ? AND item_id = ?")
         .get(userId, itemId);
 
-      if (!ownership) {
-        return null; // Not owned
+      if (!itemInfo || !ownership) {
+        return null; // Not owned or doesn't exist
       }
 
       const dashboard = this.getDashboard(userId);
-      if (!dashboard.lion.accessories.includes(itemId)) {
-        dashboard.lion.accessories.push(itemId);
-        upsertDashboardForUser(db, userId, dashboard);
-      }
+
+      // Filter out items of the same category from current accessories
+      // We need to check the category of each currently equipped item
+      const newAccessories = dashboard.lion.accessories.filter((accId) => {
+        const accDetails = db
+          .prepare("SELECT category FROM shop_items WHERE id = ?")
+          .get(accId);
+        // Keep item if it has a DIFFERENT category (or if category lookup fails, safe fallback)
+        return accDetails && accDetails.category !== itemInfo.category;
+      });
+
+      // Add the new item
+      newAccessories.push(itemId);
+
+      dashboard.lion.accessories = newAccessories;
+      upsertDashboardForUser(db, userId, dashboard);
       return dashboard;
     },
 

@@ -47,9 +47,14 @@ class ApiClient {
     const response = await this.rawRequest(path, options);
     
     // Handle auth errors (expired token)
+    // Handle auth errors (expired token)
     if (response.status === 401) {
-        // Potential logic to refresh token or logout
-        console.warn("Unauthorized request. Token might be invalid.");
+        console.warn("Unauthorized request. Token invalid, clearing and retrying...");
+        this.authToken = null;
+        localStorage.removeItem("eco_lion_auth_token");
+        
+        await this.ensureAuth();
+        response = await this.rawRequest(path, options); // Retry
     }
 
     const text = await response.text();

@@ -173,7 +173,7 @@ export default function ShopPage() {
       </Card>
 
       {/* Items Grid by Category */}
-      {(["hats", "outfits", "accessories", "decor"] as const).map((category) => {
+      {(["hats", "scarfs"] as const).map((category) => {
         const categoryItems = items.filter((item) => item.category === category);
         if (categoryItems.length === 0) return null;
 
@@ -182,23 +182,28 @@ export default function ShopPage() {
             <h2 style={{ fontSize: "16px", fontWeight: "900", margin: "16px 0 8px" }}>
               {category === "hats"
                 ? "👒 Hüte"
-                : category === "outfits"
-                  ? "👔 Outfits"
-                  : category === "accessories"
-                    ? "✨ Accessoires"
-                    : "🎨 Dekor"}
+                : "🧣 Schals"}
             </h2>
 
             <div className="shopGrid">
               {categoryItems.map((item) => {
                   const isEquipped = user?.lion.accessories.includes(item.id) ?? false;
+                  
+                  // Check if another item of the same category is equipped
+                  // We look through all equipped IDs, find their item details in 'items', and check category
+                  const isCategoryOccupied = user?.lion.accessories.some(accId => {
+                      if (accId === item.id) return false; // Skip self
+                      const acc = items.find(i => i.id === accId);
+                      return acc?.category === item.category;
+                  });
+
                   // Handle potential emoji assets gracefully (legacy items)
                   const isImage = item.assetPath.startsWith("/") || item.assetPath.endsWith(".png");
 
                   return (
                     <Card key={item.id}>
                     <div className="shopItem">
-                        <div className="shopItemIcon">
+                        <div className="shopItemIcon" style={{ padding: 0 }}>
                             {isImage ? (
                                 <img src={item.assetPath} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                             ) : (
@@ -215,10 +220,16 @@ export default function ShopPage() {
                             disabled={loading}
                             onClick={() => toggleEquip(item.id, isEquipped)}
                             style={{
-                                background: isEquipped ? "var(--brand)" : "var(--muted)",
+                                background: isEquipped ? "var(--muted)" : "var(--brand)",
+                                color: "white",
+                                border: isEquipped ? "1px solid var(--muted)" : "none"
                             }}
                             >
-                            {isEquipped ? "Ausziehen" : "Anziehen"}
+                            {isEquipped 
+                                ? "Ausziehen" 
+                                : isCategoryOccupied 
+                                    ? "Wechseln" 
+                                    : "Anziehen"}
                             </PrimaryButton>
                         </div>
                         ) : (
@@ -229,7 +240,7 @@ export default function ShopPage() {
                             disabled={loading || !canAfford(item)}
                             onClick={() => buyItem(item.id)}
                             >
-                            Kaufen
+                            {canAfford(item) ? "Kaufen" : "Nicht genug"}
                             </PrimaryButton>
                         </>
                         )}
