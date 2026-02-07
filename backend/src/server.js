@@ -2,13 +2,12 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import crypto from "node:crypto";
 import { createStore } from "./db.js";
-import OpenAI from "openai";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? "0.0.0.0";
 const DATABASE_PATH = process.env.DATABASE_PATH ?? "/app/data/eco-loewe.db";
 const AUTH_SESSION_TTL_MS = 10 * 60 * 1000;
-const WEBAUTHN_RP_ID = process.env.WEBAUTHN_RP_ID ?? "localhost";
+const WEBAUTHN_RP_ID = process.env.WEBAUTHN_RP_ID?.trim() || null;
 const WEBAUTHN_RP_NAME = process.env.WEBAUTHN_RP_NAME ?? "Eco-Loewe";
 const SUPPORTED_WEBAUTHN_ALGORITHMS = new Set([-7, -257]);
 
@@ -29,19 +28,84 @@ function isPublicPath(pathname) {
 const store = createStore(DATABASE_PATH);
 const app = Fastify({ logger: true });
 
-const ALLOWED_ORIGINS = new Set([
+const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "http://localhost:8080",
   "https://ecolion.d00.ch",
   "https://ecolionapi.d00.ch",
-]);
-const WEBAUTHN_ALLOWED_ORIGINS = new Set(
-  String(process.env.WEBAUTHN_ALLOWED_ORIGINS ?? Array.from(ALLOWED_ORIGINS).join(","))
+];
+
+function normalizeOrigin(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return null;
+  }
+}
+
+function parseOriginList(value) {
+  const origins = new Set();
+  for (const entry of String(value)
     .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean),
+    .map((item) => item.trim())
+    .filter(Boolean)) {
+    const normalized = normalizeOrigin(entry);
+    origins.add(normalized ?? entry);
+  }
+  return origins;
+}
+
+function getHostnameFromOrigin(origin) {
+  const normalized = normalizeOrigin(origin);
+  if (!normalized) {
+    return null;
+  }
+  try {
+    return new URL(normalized).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function isLoopbackHost(hostname) {
+  return (
+    hostname === "localhost" ||
+    hostname === "::1" ||
+    hostname === "[::1]" ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("127.") ||
+    hostname.endsWith(".localhost")
+  );
+}
+
+const ALLOWED_ORIGINS = parseOriginList(
+  process.env.ALLOWED_ORIGINS ?? DEFAULT_ALLOWED_ORIGINS.join(","),
 );
-const EXPECTED_RP_ID_HASH = crypto.createHash("sha256").update(WEBAUTHN_RP_ID).digest();
+const WEBAUTHN_ALLOWED_ORIGINS = parseOriginList(
+  process.env.WEBAUTHN_ALLOWED_ORIGINS ?? Array.from(ALLOWED_ORIGINS).join(","),
+);
+
+function defaultWebAuthnRpId() {
+  if (WEBAUTHN_RP_ID) {
+    return WEBAUTHN_RP_ID;
+  }
+
+  for (const origin of WEBAUTHN_ALLOWED_ORIGINS) {
+    const hostname = getHostnameFromOrigin(origin);
+    if (!hostname || isLoopbackHost(hostname)) {
+      continue;
+    }
+    return hostname;
+  }
+
+  return "localhost";
+}
+
+const DEFAULT_WEBAUTHN_RP_ID = defaultWebAuthnRpId();
 
 function isObject(value) {
   return value !== null && typeof value === "object";
@@ -118,21 +182,38 @@ function verifyWebAuthnClientData({ clientDataJSON, expectedType, expectedChalle
   if (!verifyChallenge(clientData.parsed.challenge, expectedChallenge)) {
     throw new Error("Invalid challenge");
   }
-  if (!WEBAUTHN_ALLOWED_ORIGINS.has(clientData.parsed.origin)) {
+  const normalizedOrigin = normalizeOrigin(clientData.parsed.origin);
+  if (!normalizedOrigin || !WEBAUTHN_ALLOWED_ORIGINS.has(normalizedOrigin)) {
     throw new Error("Invalid origin");
   }
   return clientData;
 }
 
-function verifyRpIdHash(authenticatorData) {
-  return buffersEqual(authenticatorData.rpIdHash, EXPECTED_RP_ID_HASH);
+function resolveRpId(origin) {
+  if (WEBAUTHN_RP_ID) {
+    return WEBAUTHN_RP_ID;
+  }
+
+  const hostname = getHostnameFromOrigin(origin);
+  if (!hostname) {
+    return DEFAULT_WEBAUTHN_RP_ID;
+  }
+  if (isLoopbackHost(hostname)) {
+    return "localhost";
+  }
+  return hostname;
 }
 
-function buildRegistrationOptions(challenge, displayName, userHandle) {
+function verifyRpIdHash(authenticatorData, rpId) {
+  const expectedRpIdHash = crypto.createHash("sha256").update(rpId).digest();
+  return buffersEqual(authenticatorData.rpIdHash, expectedRpIdHash);
+}
+
+function buildRegistrationOptions(challenge, displayName, userHandle, rpId) {
   return {
     challenge,
     rp: {
-      id: WEBAUTHN_RP_ID,
+      id: rpId,
       name: WEBAUTHN_RP_NAME,
     },
     user: {
@@ -154,10 +235,10 @@ function buildRegistrationOptions(challenge, displayName, userHandle) {
   };
 }
 
-function buildAuthenticationOptions(challenge) {
+function buildAuthenticationOptions(challenge, rpId) {
   return {
     challenge,
-    rpId: WEBAUTHN_RP_ID,
+    rpId,
     timeout: 60_000,
     userVerification: "preferred",
   };
@@ -172,7 +253,8 @@ function getVerifyAlgorithm(coseAlgorithm) {
 
 await app.register(cors, {
   origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.has(origin)) {
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (!origin || (normalizedOrigin && ALLOWED_ORIGINS.has(normalizedOrigin))) {
       cb(null, true);
       return;
     }
@@ -229,17 +311,19 @@ app.post("/v1/auth/register/begin", async (request, reply) => {
 
   const normalizedDisplayName = displayName.trim();
   const userHandle = crypto.randomBytes(32).toString("base64url");
+  const rpId = resolveRpId(request.headers.origin);
   const { sessionId, challenge } = store.createAuthSession({
     kind: "register",
     displayName: normalizedDisplayName,
     metadata: {
       userHandle,
+      rpId,
     },
   });
   return {
     sessionId,
     challenge,
-    publicKey: buildRegistrationOptions(challenge, normalizedDisplayName, userHandle),
+    publicKey: buildRegistrationOptions(challenge, normalizedDisplayName, userHandle, rpId),
   };
 });
 
@@ -296,7 +380,8 @@ app.post("/v1/auth/register/finish", async (request, reply) => {
       expectedChallenge: session.challenge,
     });
     const authenticatorData = parseAuthenticatorData(response.authenticatorData);
-    if (!verifyRpIdHash(authenticatorData)) {
+    const rpId = session.metadata?.rpId || DEFAULT_WEBAUTHN_RP_ID;
+    if (!verifyRpIdHash(authenticatorData, rpId)) {
       return reply.code(400).send({ error: "Invalid rpId hash" });
     }
     if (!authenticatorData.userPresent) {
@@ -336,17 +421,19 @@ app.post("/v1/auth/login/begin", async (request, reply) => {
     return reply.code(404).send({ error: "User not found" });
   }
 
+  const rpId = resolveRpId(request.headers.origin);
   const { sessionId, challenge } = store.createAuthSession({
     kind: "login",
     userId: typeof requestedUserId === "string" ? requestedUserId : null,
     metadata: {
       legacy: typeof requestedUserId === "string",
+      rpId,
     },
   });
   return {
     sessionId,
     challenge,
-    publicKey: buildAuthenticationOptions(challenge),
+    publicKey: buildAuthenticationOptions(challenge, rpId),
   };
 });
 
@@ -414,7 +501,8 @@ app.post("/v1/auth/login/finish", async (request, reply) => {
       expectedChallenge: session.challenge,
     });
     const authenticatorData = parseAuthenticatorData(response.authenticatorData);
-    if (!verifyRpIdHash(authenticatorData)) {
+    const rpId = session.metadata?.rpId || DEFAULT_WEBAUTHN_RP_ID;
+    if (!verifyRpIdHash(authenticatorData, rpId)) {
       return reply.code(400).send({ error: "Invalid rpId hash" });
     }
     if (!authenticatorData.userPresent) {
@@ -659,35 +747,6 @@ app.post("/v1/admin/reset", async () => {
 app.post("/v1/admin/seed", async (request) => {
   store.seedFromPayload(request.body ?? {});
   return { ok: true };
-});
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-app.post("/v1/chat", async (request, reply) => {
-  const { message } = request.body;
-  if (!message || typeof message !== "string") {
-    return reply.code(400).send({ error: "Message required" });
-  }
-
-  const allowed = store.checkAndIncrementQuota(request.userId);
-  if (!allowed) {
-    return reply.code(429).send({ error: "Daily quota exceeded (50 messages/day)" });
-  }
-
-  try {
-    const completion = await openai.chat.completions.create({
-      messages: [
-        { role: "system", content: "You are EcoLion, a helpful, encouraging, and eco-conscious assistant suitable for all ages. You help users clear their doubts about sustainability." },
-        { role: "user", content: message }
-      ],
-      model: "gpt-3.5-turbo", // Use 3.5 turbo to save costs/latency
-    });
-    const replyContent = completion.choices[0]?.message?.content || "I'm having trouble thinking right now.";
-    return { reply: replyContent };
-  } catch (err) {
-    request.log.error({ err }, "OpenAI API error");
-    return reply.code(502).send({ error: "Failed to fetch response from AI" });
-  }
 });
 
 app.setErrorHandler((error, _request, reply) => {

@@ -11,6 +11,9 @@ function errorMessage(error: unknown): string {
   if (error instanceof ApiRequestError) {
     return error.message;
   }
+  if (error instanceof DOMException && error.name === "SecurityError") {
+    return "Passkey setup failed due to browser security checks. Ensure the site uses HTTPS and backend WEBAUTHN_RP_ID matches this domain.";
+  }
   if (error instanceof Error && error.message) {
     return error.message;
   }
