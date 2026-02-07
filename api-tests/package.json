@@ -1,0 +1,19 @@
+{
+  "name": "eco-loewe-api-tests",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:seed": "vitest run --testPathPattern seed",
+    "test:auth": "vitest run --testPathPattern auth",
+    "test:contracts": "vitest run --testPathPattern '(dashboard|leaderboard|shop|friends)'"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "~5.9.3",
+    "vitest": "^3.1.0",
+    "zod": "^3.24.0"
+  }
+}

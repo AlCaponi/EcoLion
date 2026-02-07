@@ -11,7 +11,7 @@ log() {
 
 cd "$REPO_DIR"
 
-git fetch origin "$BRANCH" 2>> "$LOG_FILE"
+git fetch origin "$BRANCH" > /dev/null 2>&1
 
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse "origin/$BRANCH")

@@ -10,3 +10,14 @@ services:
     volumes:
       - ./eco-loewe-pwa/src:/app/src
     restart: unless-stopped
+
+  api-tests:
+    build:
+      context: ./api-tests
+      dockerfile: Dockerfile
+    environment:
+      - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
+    volumes:
+      - ./api-tests/src:/app/src
+    profiles:
+      - test
