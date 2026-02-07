@@ -8,7 +8,7 @@ export default defineConfig({
     hookTimeout: 30_000,
     include: ["src/tests/**/*.test.ts"],
     env: {
-      API_BASE_URL: "http://localhost:8080",
+      API_BASE_URL: process.env.API_BASE_URL ?? "http://localhost:8080",
     },
   },
 });
