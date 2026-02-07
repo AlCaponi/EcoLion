@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
-import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { ActivityType } from "../shared/api/types";
 
@@ -134,16 +133,15 @@ export default function HomePage() {
     const activity = ACTIVITIES.find((a) => a.id === activeActivity);
     return (
       <div className="page homePage recording-mode">
-        <div className="recording-header">
-            <h1>Aufzeichnung läuft...</h1>
-            <div className="recording-label">{activity?.label}</div>
+        <div className="recording-header" style={{ marginBottom: "0.5rem", padding: "0.5rem 1rem" }}>
+            <div className="recording-label" style={{ fontSize: "0.9rem", fontWeight: "500" }}>{activity?.label}</div>
         </div>
         
         <MascotDisplay 
             movement={activeActivity} 
             level={userStats.level} 
             xp={userStats.xp} 
-            style={{ marginBottom: "1rem", padding: "0.5rem" }}
+            style={{ marginBottom: "0.5rem", padding: "0" }}
         />
 
         {/* Live Map */}
@@ -166,13 +164,59 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="recording-actions" style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
-            <div className="recording-timer" style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-                {formatTime(timer)}
+        {/* Slider Control - SBB Easy Ride Style */}
+        <div style={{ padding: "0 1rem", width: "100%", maxWidth: "600px", margin: "0 auto" }}>
+          <div style={{ 
+            position: "relative",
+            width: "100%",
+            height: "60px",
+            backgroundColor: "#f0f0f0",
+            borderRadius: "30px",
+            display: "flex",
+            alignItems: "center",
+            padding: "0 8px",
+            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
+          }}>
+            {/* Timer Display in Slider Track */}
+            <div style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+              color: "#666",
+              pointerEvents: "none",
+              zIndex: 1
+            }}>
+              {formatTime(timer)}
             </div>
-            <PrimaryButton onClick={handleStop} className="stop-btn">
-                Stop
-            </PrimaryButton>
+
+            {/* Slider Handle with STOP text */}
+            <button
+              onClick={handleStop}
+              style={{
+                position: "absolute",
+                right: "4px",
+                width: "120px",
+                height: "52px",
+                backgroundColor: "#e74c3c",
+                color: "white",
+                border: "none",
+                borderRadius: "26px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.2s",
+                zIndex: 2
+              }}
+              onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+              onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              STOP
+            </button>
+          </div>
         </div>
       </div>
     );
