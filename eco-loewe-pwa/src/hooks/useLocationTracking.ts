@@ -86,6 +86,17 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   }, []);
 
   const startTracking = useCallback((useMockData = false) => {
+    // Clear any existing watchers/intervals to prevent duplicates
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
+
     setError(null);
     setIsTracking(true);
 
