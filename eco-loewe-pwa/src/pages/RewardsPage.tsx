@@ -232,7 +232,7 @@ export default function RewardsPage() {
   const claimedRewards = rewards.filter((r) => r.claimed);
 
   return (
-    <div className="rewardsPage">
+    <div className="page rewardsPage">
       {/* ── Header ── */}
       <header className="rwHeader">
         <h1>🎁 Belohnungen</h1>

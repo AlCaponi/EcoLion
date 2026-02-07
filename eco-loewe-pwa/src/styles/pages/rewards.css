@@ -1,8 +1,6 @@
 /* ── Rewards Page ──────────────────────────────── */
 .rewardsPage {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  /* Layout provided by .page class */
 }
 
 /* ── Header ── */
