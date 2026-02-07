@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Contract types – copied from eco-loewe-pwa/src/shared/api/types.ts
+// Contract types shared between frontend and backend.
 //
-// This IS the contract. If this file differs from the frontend types,
-// that's a bug that needs resolution.
+// This IS the contract. If other frontend or backend type definitions differ
+// from this file, that's a bug that needs resolution.
 // ---------------------------------------------------------------------------
 
 export type MobilityMode = "walk" | "pt" | "car";
