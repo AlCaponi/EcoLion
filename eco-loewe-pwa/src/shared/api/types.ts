@@ -263,6 +263,17 @@ export interface RewardsPageDTO {
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
+export interface LocationPoint {
+  lat: number;
+  lng: number;
+  timestamp: string;
+  accuracy?: number;
+}
+
+export interface GPXData {
+  points: LocationPoint[];
+}
+
 export interface StartActivityRequestDTO {
   activityType: ActivityType;
   startTime: string; // ISO timestamp
@@ -288,7 +299,7 @@ export interface ActivityListItemDTO {
 export interface StopActivityRequestDTO {
   activityId: number;
   stopTime: string; // ISO timestamp
-  gpx?: unknown; // optional tracking data
+  gpx?: GPXData; // optional GPS route tracking data
   proofs?: object[]; // optional activity proofs like QR scans, pictures etc.
 }
 
@@ -299,7 +310,7 @@ export interface StopActivityResponseDTO {
   distanceMeters?: number;
   xpEarned: number;
   co2SavedKg: number;
-  gpx?: unknown;
+  gpx?: GPXData;
   proofs?: object[];
 }
 
@@ -310,7 +321,7 @@ export interface GetActivityResponseDTO {
   distanceMeters?: number;
   xpEarned: number;
   co2SavedKg: number;
-  gpx?: unknown;
+  gpx?: GPXData;
   proofs?: object[];
 }
 
