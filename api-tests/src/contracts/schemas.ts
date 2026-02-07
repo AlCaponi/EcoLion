@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const DashboardSchema = z.object({
+export const UserSchema = z.object({
   sustainabilityScore: z.number().nonnegative(),
   streakDays: z.number().int().nonnegative(),
   today: z.object({
@@ -56,4 +56,46 @@ export const FriendSchema = z.object({
   name: z.string().min(1),
   streakDays: z.number().int().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
+});
+
+const ActivityTypeEnum = z.enum(["walk", "bike", "transit", "drive", "wfh", "pool"]);
+const ActivityStateEnum = z.enum(["running", "paused", "stopped"]);
+
+export const StartActivityRequestSchema = z.object({
+  activityType: ActivityTypeEnum,
+  startTime: z.string().datetime(),
+});
+
+export const StartActivityResponseSchema = z.object({
+  activityId: z.number().int().positive(),
+  state: ActivityStateEnum,
+});
+
+export const StopActivityRequestSchema = z.object({
+  activityId: z.number().int().positive(),
+  stopTime: z.string().datetime(),
+  gpx: z.unknown().optional(),
+  proofs: z.array(z.object({}).passthrough()).optional(),
+});
+
+export const StopActivityResponseSchema = z.object({
+  activityId: z.number().int().positive(),
+  state: ActivityStateEnum,
+  durationSeconds: z.number().nonnegative(),
+  distanceMeters: z.number().nonnegative().optional(),
+  xpEarned: z.number().nonnegative(),
+  co2SavedKg: z.number().nonnegative(),
+  gpx: z.unknown().optional(),
+  proofs: z.array(z.object({}).passthrough()).optional(),
+});
+
+export const GetActivityResponseSchema = z.object({
+  activityId: z.number().int().positive(),
+  state: ActivityStateEnum,
+  durationSeconds: z.number().nonnegative(),
+  distanceMeters: z.number().nonnegative().optional(),
+  xpEarned: z.number().nonnegative(),
+  co2SavedKg: z.number().nonnegative(),
+  gpx: z.unknown().optional(),
+  proofs: z.array(z.object({}).passthrough()).optional(),
 });
