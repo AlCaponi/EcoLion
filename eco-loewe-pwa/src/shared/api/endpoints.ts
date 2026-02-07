@@ -5,7 +5,8 @@ import type {
   ShopItemDTO,
   PurchaseDTO,
   FriendDTO,
-  AssetDTO
+  AssetDTO,
+  RewardsPageDTO
 } from "./types";
 
 export const Api = {
@@ -17,4 +18,7 @@ export const Api = {
   pokeFriend: (friendId: string) => apiRequest<void>(`/v1/friends/${friendId}/poke`, "POST"),
   asset: (id: string) => apiRequest<AssetDTO>(`/v1/assets/${id}`),
   assets: (ids: string[]) => apiRequest<AssetDTO[]>(`/v1/assets?ids=${ids.join(",")}`),
+  rewards: () => apiRequest<RewardsPageDTO>("/v1/rewards"),
+  claimQuest: (questId: string) => apiRequest<void>(`/v1/rewards/quests/${questId}/claim`, "POST"),
+  claimMilestone: (milestoneId: string) => apiRequest<void>(`/v1/rewards/milestones/${milestoneId}/claim`, "POST"),
 };
