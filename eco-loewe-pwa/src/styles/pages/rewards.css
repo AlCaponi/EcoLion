@@ -341,3 +341,39 @@
   color: var(--muted);
   margin: 0;
 }
+
+/* --- QR (demo) --- */
+.rwQrBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.rwQrGrid {
+  width: 132px;
+  height: 132px;
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  grid-template-rows: repeat(21, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1px;
+  background: #fff;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.rwQrDot {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: block;
+}
+.rwQrDot.on {
+  background: #111;
+}
+.rwQrLabel {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+}
