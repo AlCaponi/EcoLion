@@ -50,9 +50,11 @@ function FitBoundsToFeatures() {
       const isMobile = window.innerWidth < 768;
       const padding = isMobile ? [20, 20] : [50, 50];
       
+      // Use paddingTopLeft and paddingBottomRight for proper constraint handling
       map.fitBounds(bounds, {
-        padding: padding as [number, number],
-        maxZoom: isMobile ? 12 : 13, // Less zoom on mobile, more on desktop
+        paddingTopLeft: padding as [number, number],
+        paddingBottomRight: padding as [number, number],
+        maxZoom: isMobile ? 12 : 13,
         animate: false
       });
     }
