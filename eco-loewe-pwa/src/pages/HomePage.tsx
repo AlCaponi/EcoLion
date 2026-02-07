@@ -130,12 +130,11 @@ export default function HomePage() {
   };
 
   if (activeActivity) {
-    const activity = ACTIVITIES.find((a) => a.id === activeActivity);
     return (
       <div className="page homePage recording-mode">
         <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "0" }}>
           {/* Compact Mascot Display with Custom Activity Animation */}
-          <div style={{ marginTop: "0.5rem", marginBottom: "0.25rem" }}>
+          <div style={{ marginTop: "-0.5rem", marginBottom: "0.5rem" }}>
             <MascotDisplay 
               movement={activeActivity} 
               level={userStats.level} 
@@ -143,19 +142,9 @@ export default function HomePage() {
               compact={true}
             />
           </div>
-          
-          {/* Activity Label Below Lion */}
-          <div style={{ 
-            fontSize: "0.95rem", 
-            fontWeight: "600", 
-            marginBottom: "0.75rem",
-            color: "#333"
-          }}>
-            {activity?.label}
-          </div>
         </div>
 
-        {/* Live Map */}
+        {/* Live Map - Simple SBB-style color scheme */}
         {userLocation && (
           <div style={{ height: "220px", width: "100%", marginBottom: "1rem", borderRadius: "12px", overflow: "hidden" }}>
             <MapContainer
@@ -165,8 +154,8 @@ export default function HomePage() {
               zoomControl={false}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
               <Marker position={userLocation}>
                 <Popup>Your location</Popup>
