@@ -212,7 +212,7 @@ export default function LeaderboardPage() {
         {([
           ["stadt", "Stadt"],
           ["quartiere", "Quartiere"],
-          ["freund", "Freund"],
+          ["freund", "Freunde"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}

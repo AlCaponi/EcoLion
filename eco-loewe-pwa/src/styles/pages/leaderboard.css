@@ -3,6 +3,11 @@
 .lbHeader h1 { margin: 0; font-size: 24px; }
 .lbSubtitle { color: var(--muted); font-weight: 600; font-size: 13px; margin: 2px 0 0; }
 
+/* TEMP: Hide leaderboard card section. Remove when re-enabling. */
+section.card:nth-child(3) {
+  display: none;
+}
+
 /* ── Friend add ── */
 .friendAdd {
   display: flex;
