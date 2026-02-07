@@ -67,7 +67,7 @@ export interface ShopItemDTO {
   id: string;
   name: string;
   priceCoins: number;
-  category: "hats" | "outfits" | "accessories" | "decor";
+  category: "hats" | "outfits" | "accessories" | "decor" | "scarfs";
   owned: boolean;
   assetPath: string;
 }

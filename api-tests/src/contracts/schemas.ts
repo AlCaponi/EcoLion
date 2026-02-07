@@ -60,7 +60,7 @@ export const ShopItemSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   priceCoins: z.number().int().positive(),
-  category: z.enum(["hats", "outfits", "accessories", "decor"]),
+  category: z.enum(["hats", "outfits", "accessories", "decor", "scarfs"]),
   owned: z.boolean(),
   assetPath: z.string().startsWith("/"),
 });

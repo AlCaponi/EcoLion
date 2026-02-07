@@ -213,3 +213,10 @@ export interface BuyCoinResponseDTO {
   coinsAdded: number;
   newBalance: number;
 }
+
+export interface UserListEntryDTO {
+  id: string;
+  displayName: string;
+  streakDays: number;
+  co2SavedKg: number;
+}
