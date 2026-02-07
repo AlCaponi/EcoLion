@@ -218,22 +218,27 @@ export default function RewardsPage() {
   /* Claim a milestone → unlock its reward */
   const claimMilestone = (id: string, rewardId: string) => {
     // Use functional updates with rewardId passed in to avoid stale state
+    let shouldUpdateReward = false;
+    
     setMilestones((prev) => {
       const ms = prev.find((m) => m.id === id);
       // Only allow claiming if the milestone exists, is completed, and not already claimed
       if (!ms || ms.claimed || !ms.completed) {
         return prev;
       }
+      shouldUpdateReward = true;
       return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
     });
     
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === rewardId
-          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-          : r
-      )
-    );
+    if (shouldUpdateReward) {
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === rewardId
+            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+            : r
+        )
+      );
+    }
   };
 
   /* Derived */
