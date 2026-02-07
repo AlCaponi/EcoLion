@@ -104,8 +104,9 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "1rem",
-    padding: "1rem",
+    gap: "0.5rem",
+    padding: "0.5rem 1rem",
+    marginBottom: "0",
   },
   visualWrapper: {
     position: "relative",
