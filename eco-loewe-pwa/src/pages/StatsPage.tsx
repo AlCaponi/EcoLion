@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import kreiseData from "../assets/winterthur_kreise.json";
 import Card from "../shared/components/Card";
@@ -35,6 +35,31 @@ const ACTIVITY_LABELS: Record<ActivityType, { label: string; emoji: string }> = 
   wfh: { label: "Home Office", emoji: "🏠" },
   pool: { label: "Pooling", emoji: "🤝" },
 };
+
+// Component to fit map bounds to GeoJSON features
+function FitBoundsToFeatures() {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (kreiseData && kreiseData.features) {
+      // Create a temporary layer to get bounds
+      const geoJsonLayer = (window as any).L.geoJSON(kreiseData);
+      const bounds = geoJsonLayer.getBounds();
+      
+      // Fit with responsive padding based on screen size
+      const isMobile = window.innerWidth < 768;
+      const padding = isMobile ? [20, 20] : [50, 50];
+      
+      map.fitBounds(bounds, {
+        padding: padding as [number, number],
+        maxZoom: isMobile ? 12 : 13, // Less zoom on mobile, more on desktop
+        animate: false
+      });
+    }
+  }, [map]);
+  
+  return null;
+}
 
 function formatDuration(seconds: number) {
   if (!Number.isFinite(seconds) || seconds <= 0) return "0 min";
@@ -179,6 +204,7 @@ export default function StatsPage() {
             style={{ height: "100%", width: "100%" }}
             attributionControl={true}
           >
+            <FitBoundsToFeatures />
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
