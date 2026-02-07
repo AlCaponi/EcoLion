@@ -133,19 +133,14 @@ export default function HomePage() {
     const activity = ACTIVITIES.find((a) => a.id === activeActivity);
     return (
       <div className="page homePage recording-mode">
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {/* Compact Mascot Display */}
-          <div style={{ 
-            width: "180px", 
-            height: "180px", 
-            position: "relative",
-            marginTop: "0.5rem",
-            marginBottom: "0.25rem"
-          }}>
-            <img 
-              src={ACTIVITIES.find((a) => a.id === activeActivity)?.iconSrc} 
-              alt={activity?.label} 
-              style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "0" }}>
+          {/* Compact Mascot Display with Custom Activity Animation */}
+          <div style={{ marginTop: "0.5rem", marginBottom: "0.25rem" }}>
+            <MascotDisplay 
+              movement={activeActivity} 
+              level={userStats.level} 
+              xp={userStats.xp} 
+              compact={true}
             />
           </div>
           
