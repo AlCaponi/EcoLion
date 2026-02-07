@@ -139,6 +139,10 @@ export interface RewardsPageDTO {
   milestones: MilestoneDTO[];
   rewards: RewardDTO[];
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 667bb2e (fix(api): syntax corrections in types and endpoints)
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
