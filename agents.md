@@ -147,6 +147,14 @@ The user endpoint returns a `sustainabilityScore` (abstract score, not raw CO2) 
 - `accessories` — flat array of equipped item IDs (e.g. `["hat-cap", "acc-sunglasses"]`)
 - `coins` — currency for buying new accessories
 
+### UserListEntryDTO (Users)
+`GET /v1/users` returns users with:
+- `displayName`
+- `streakDays` (from dashboard state)
+- `co2SavedKg` (sum of stopped activities)
+
+`POST /v1/users/:userId/poke` records a poke for a target user.
+
 ### AssetDTO
 Each visual accessory is backed by an `AssetDTO` loaded from the assets endpoint:
 - `GET /v1/assets/:id` → single `AssetDTO`

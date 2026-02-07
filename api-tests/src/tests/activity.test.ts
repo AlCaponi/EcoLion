@@ -196,3 +196,32 @@ describe("GET /v1/activity/:activityId", () => {
     expect(status).toBe(404);
   });
 });
+
+describe("Activity user scoping", () => {
+  it("should restrict activities to the owning user", async () => {
+    const ownerCtx = await createTestContext("ActivityOwnerUser");
+    const otherCtx = await createTestContext("ActivityOtherUser");
+
+    const { data: started } = await ownerCtx.client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T15:00:00Z" },
+    );
+
+    const { status: otherGetStatus } = await otherCtx.client.get(
+      `/v1/activity/${started.activityId}`,
+    );
+    expect(otherGetStatus).toBe(404);
+
+    const { status: otherStopStatus } = await otherCtx.client.post(
+      "/v1/activity/stop",
+      { activityId: started.activityId, stopTime: "2023-10-27T15:10:00Z" },
+    );
+    expect(otherStopStatus).toBe(404);
+
+    const { status: ownerStopStatus } = await ownerCtx.client.post(
+      "/v1/activity/stop",
+      { activityId: started.activityId, stopTime: "2023-10-27T15:10:00Z" },
+    );
+    expect(ownerStopStatus).toBe(200);
+  });
+});
