@@ -217,25 +217,29 @@ export default function RewardsPage() {
 
   /* Claim a milestone → unlock its reward */
   const claimMilestone = (id: string) => {
-    // Use functional update to derive rewardId from current state
+    // Use functional update to extract rewardId from current state
+    let rewardId: string | undefined;
     setMilestones((prev) => {
       const ms = prev.find((m) => m.id === id);
       // Only allow claiming if the milestone exists, is completed, and not already claimed
       if (!ms || ms.claimed || !ms.completed) {
         return prev;
       }
-      
-      // Update rewards based on the rewardId from current milestone state
-      setRewards((prevRewards) =>
-        prevRewards.map((r) =>
-          r.id === ms.rewardId
+      // Capture rewardId for use in the rewards update
+      rewardId = ms.rewardId;
+      return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
+    });
+    
+    // Update rewards if we successfully claimed a milestone
+    if (rewardId) {
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === rewardId
             ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
             : r
         )
       );
-      
-      return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
-    });
+    }
   };
 
   /* Derived */
