@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useMemo } from "react";
 // Import the default lion image
 import idleParams from "../../assets/mascot/idle.png";
 import bikingDisplay from "../../assets/mascot/biking.png";
@@ -9,6 +10,14 @@ import publicTransportDisplay from "../../assets/mascot/public_transport.png";
 import walkingDisplay from "../../assets/mascot/walking.png";
 
 type Movement = "idle" | "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
+
+const MOTIVATIONAL_MESSAGES = [
+  "Let's go green today! 🌿",
+  "It's nice weather today, perfect for biking! 🚴",
+  "Every step counts towards a better planet! 🌍",
+  "Ready to make a difference? Let's move! 💚",
+  "Your eco-journey starts now! 🦁✨",
+];
 
 interface MascotDisplayProps {
   movement?: Movement;
@@ -36,6 +45,11 @@ export default function MascotDisplay({
   style,
 }: MascotDisplayProps) {
   const imageSrc = MOVEMENT_IMAGES[movement] || idleParams;
+  
+  // Pick a random motivational message (stays the same for component lifetime)
+  const motivationalMessage = useMemo(() => {
+    return MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
+  }, []);
 
   return (
     <div className={`mascot-container ${className}`} style={{ ...styles.container, ...style }}>
@@ -49,7 +63,7 @@ export default function MascotDisplay({
         
         {/* Simple speech bubble for "Duolingo" feel */}
         <div style={styles.speechBubble}>
-          Let's go green today! 🌿
+          {motivationalMessage}
         </div>
       </div>
 
