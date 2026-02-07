@@ -43,6 +43,17 @@ export const LeaderboardSchema = z.object({
       isMe: z.boolean().optional(),
     }),
   ),
+  friends: z.array(
+    z.object({
+      user: z.object({
+        id: z.string().min(1),
+        displayName: z.string().min(1),
+      }),
+      score: z.number().nonnegative(),
+      rank: z.number().int().positive(),
+      isMe: z.boolean().optional(),
+    }),
+  ),
 });
 
 export const ShopItemSchema = z.object({
@@ -59,6 +70,20 @@ export const UserListEntrySchema = z.object({
   displayName: z.string().min(1),
   streakDays: z.number().int().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
+});
+
+export const FriendSummarySchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().min(1),
+});
+
+export const AddFriendRequestSchema = z.object({
+  userId: z.string().min(1),
+});
+
+export const AddFriendResponseSchema = z.object({
+  ok: z.literal(true),
+  friend: FriendSummarySchema,
 });
 
 const ActivityTypeEnum = z.enum(["walk", "bike", "transit", "drive", "wfh", "pool"]);

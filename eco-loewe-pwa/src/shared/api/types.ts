@@ -46,6 +46,15 @@ export interface UserSummaryDTO {
   displayName: string;
 }
 
+export interface AddFriendRequestDTO {
+  userId: string;
+}
+
+export interface AddFriendResponseDTO {
+  ok: true;
+  friend: UserSummaryDTO;
+}
+
 export interface UserScoreEntryDTO {
   user: UserSummaryDTO;
   score: number;
@@ -57,6 +66,7 @@ export interface LeaderboardDTO {
   streakDays: number;
   quartiers: QuartierEntry[];
   users: UserScoreEntryDTO[];
+  friends: UserScoreEntryDTO[];
 }
 
 export interface ShopItemDTO {
