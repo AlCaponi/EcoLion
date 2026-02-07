@@ -126,3 +126,13 @@
 .recording-icon { font-size: 64px; margin: 1rem 0; }
 .recording-label { font-size: 24px; font-weight: 800; }
 .recording-timer { font-size: 48px; font-family: monospace; font-weight: 700; margin-bottom: 3rem; }
+
+/* Map container - ensure it stays behind navigation */
+.map-container {
+  position: relative;
+  z-index: 1;
+}
+
+.map-container .leaflet-container {
+  z-index: 1;
+}
