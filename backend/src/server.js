@@ -268,6 +268,10 @@ app.get("/v1/activity/:activityId", async (request, reply) => {
   return activity;
 });
 
+app.get("/v1/activities", async (request) => {
+  return store.listActivities(request.userId);
+});
+
 app.post("/v1/admin/reset", async () => {
   store.resetReferenceData();
   return { ok: true };

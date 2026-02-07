@@ -241,7 +241,10 @@ function estimateCo2SavedKg(activityType, distanceMeters) {
 function mapActivityRow(row) {
   return {
     activityId: row.id,
+    activityType: row.activity_type,
     state: row.state,
+    startTime: row.start_time,
+    stopTime: row.stop_time ?? undefined,
     durationSeconds: row.duration_seconds ?? 0,
     distanceMeters:
       typeof row.distance_meters === "number" ? row.distance_meters : undefined,
@@ -687,6 +690,40 @@ export function createStore(dbPath) {
         .prepare("SELECT * FROM activities WHERE id = ? AND user_id = ?")
         .get(activityId, userId);
       return row ? mapActivityRow(row) : null;
+    },
+
+    listActivities(userId) {
+      const rows = db
+        .prepare(
+          `
+            SELECT
+              id,
+              activity_type,
+              state,
+              start_time,
+              stop_time,
+              duration_seconds,
+              distance_meters,
+              xp_earned,
+              co2_saved_kg
+            FROM activities
+            WHERE user_id = ?
+            ORDER BY start_time DESC
+          `,
+        )
+        .all(userId);
+      return rows.map((row) => ({
+        activityId: row.id,
+        activityType: row.activity_type,
+        state: row.state,
+        startTime: row.start_time,
+        stopTime: row.stop_time ?? undefined,
+        durationSeconds: row.duration_seconds ?? 0,
+        distanceMeters:
+          typeof row.distance_meters === "number" ? row.distance_meters : undefined,
+        xpEarned: row.xp_earned ?? 0,
+        co2SavedKg: row.co2_saved_kg ?? 0,
+      }));
     },
 
     resetReferenceData() {

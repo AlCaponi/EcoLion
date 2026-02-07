@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import kreiseData from "../assets/winterthur_kreise.json";
 import Card from "../shared/components/Card";
+import { Api } from "../shared/api/endpoints";
+import type { ActivityListItemDTO, ActivityType } from "../shared/api/types";
 
 
 const KREIS_NAMES: Record<number, string> = {
@@ -24,9 +27,29 @@ const KREIS_CO2: Record<number, number> = {
   7: 1540,
 };
 
+const ACTIVITY_LABELS: Record<ActivityType, { label: string; emoji: string }> = {
+  walk: { label: "Zu Fuß", emoji: "🚶" },
+  bike: { label: "Velo", emoji: "🚲" },
+  transit: { label: "ÖV", emoji: "🚌" },
+  drive: { label: "Auto", emoji: "🚗" },
+  wfh: { label: "Home Office", emoji: "🏠" },
+  pool: { label: "Pooling", emoji: "🤝" },
+};
+
+function formatDuration(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0 min";
+  const mins = Math.floor(seconds / 60);
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return hrs > 0 ? `${hrs} h ${remMins} min` : `${mins} min`;
+}
+
 export default function StatsPage() {
   // Center of Winterthur
   const center: [number, number] = [47.5, 8.72];
+  const [activities, setActivities] = useState<ActivityListItemDTO[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [activitiesError, setActivitiesError] = useState<string | null>(null);
 
   // Colors based on CO2 savings (simple thresholding or scale)
   const getColor = (co2: number) => {
@@ -67,6 +90,32 @@ export default function StatsPage() {
       }
     );
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const data = await Api.activities();
+        if (isMounted) {
+          setActivities(data ?? []);
+        }
+      } catch (error) {
+        console.error("Failed to load activities", error);
+        if (isMounted) {
+          setActivitiesError("Aktivitäten konnten nicht geladen werden.");
+        }
+      } finally {
+        if (isMounted) {
+          setActivitiesLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="page statsPage">
@@ -144,6 +193,49 @@ export default function StatsPage() {
         <div className="quartierHighlight" style={{ marginTop: "1rem" }}>
           Du bist im Quartier <strong>Töss</strong> aktiv!
         </div>
+      </Card>
+
+      <Card>
+        <div className="sectionTitle">Aktivitätsverlauf</div>
+        {activitiesLoading ? (
+          <div className="activityEmpty">Lade Aktivitäten…</div>
+        ) : activitiesError ? (
+          <div className="activityEmpty">{activitiesError}</div>
+        ) : activities.length === 0 ? (
+          <div className="activityEmpty">Noch keine Aktivitäten erfasst.</div>
+        ) : (
+          <div className="activityList">
+            {activities.map((activity) => {
+              const meta = ACTIVITY_LABELS[activity.activityType];
+              const dateLabel = new Date(activity.startTime).toLocaleString("de-CH", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              const durationLabel = formatDuration(activity.durationSeconds);
+              const statusLabel = activity.state === "running" ? "Läuft" : "Beendet";
+              return (
+                <div
+                  key={activity.activityId}
+                  className={`activityRow${activity.state === "running" ? " activityRowRunning" : ""}`}
+                >
+                  <div className="activityIcon">{meta.emoji}</div>
+                  <div className="activityInfo">
+                    <div className="activityTitle">{meta.label}</div>
+                    <div className="activityMeta">
+                      {dateLabel} · {durationLabel} · {statusLabel}
+                    </div>
+                  </div>
+                  <div className="activityMetric">
+                    {activity.co2SavedKg.toFixed(2)} kg
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
       {/* Add padding to bottom to account for nav */}

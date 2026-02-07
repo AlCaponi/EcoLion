@@ -86,6 +86,18 @@ export interface StartActivityResponseDTO {
   state: ActivityState;
 }
 
+export interface ActivityListItemDTO {
+  activityId: number;
+  activityType: ActivityType;
+  state: ActivityState;
+  startTime: string;
+  stopTime?: string;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
+}
+
 export interface StopActivityRequestDTO {
   activityId: number;
   stopTime: string; // ISO timestamp

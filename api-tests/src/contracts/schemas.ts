@@ -81,6 +81,18 @@ export const StopActivityRequestSchema = z.object({
   proofs: z.array(z.object({}).passthrough()).optional(),
 });
 
+export const ActivityListItemSchema = z.object({
+  activityId: z.number().int().positive(),
+  activityType: ActivityTypeEnum,
+  state: ActivityStateEnum,
+  startTime: z.string().datetime(),
+  stopTime: z.string().datetime().optional(),
+  durationSeconds: z.number().nonnegative(),
+  distanceMeters: z.number().nonnegative().optional(),
+  xpEarned: z.number().nonnegative(),
+  co2SavedKg: z.number().nonnegative(),
+});
+
 export const StopActivityResponseSchema = z.object({
   activityId: z.number().int().positive(),
   state: ActivityStateEnum,
