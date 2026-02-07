@@ -42,6 +42,9 @@ app.addContentTypeParser(
 );
 
 app.addHook("preHandler", async (request, reply) => {
+  if (request.method === "OPTIONS") {
+    return;
+  }
   const pathname = (request.raw.url ?? "").split("?")[0] ?? "";
   if (!pathname.startsWith("/v1/") || isPublicPath(pathname)) {
     return;
