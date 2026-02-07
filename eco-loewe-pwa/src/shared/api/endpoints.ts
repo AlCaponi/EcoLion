@@ -5,7 +5,12 @@ import type {
   ShopItemDTO,
   PurchaseDTO,
   FriendDTO,
-  AssetDTO
+  AssetDTO,
+  StartActivityRequestDTO,
+  StartActivityResponseDTO,
+  StopActivityRequestDTO,
+  StopActivityResponseDTO,
+  GetActivityResponseDTO,
 } from "./types";
 
 export const Api = {
@@ -17,4 +22,10 @@ export const Api = {
   pokeFriend: (friendId: string) => apiRequest<void>(`/v1/friends/${friendId}/poke`, "POST"),
   asset: (id: string) => apiRequest<AssetDTO>(`/v1/assets/${id}`),
   assets: (ids: string[]) => apiRequest<AssetDTO[]>(`/v1/assets?ids=${ids.join(",")}`),
+  startActivity: (payload: StartActivityRequestDTO) =>
+    apiRequest<StartActivityResponseDTO>("/v1/activity/start", "POST", payload),
+  stopActivity: (payload: StopActivityRequestDTO) =>
+    apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
+  getActivity: (activityId: number) =>
+    apiRequest<GetActivityResponseDTO>(`/v1/activity/${activityId}`),
 };
