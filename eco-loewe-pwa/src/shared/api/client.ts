@@ -72,10 +72,13 @@ class ApiClient {
   }
 
   async post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { 
-        method: "POST", 
-        body: JSON.stringify(body),
-    });
+    const options: RequestInit = { method: "POST" };
+
+    if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+
+    return this.request<T>(path, options);
   }
 
   async ensureAuth(): Promise<void> {
