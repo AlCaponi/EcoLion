@@ -368,6 +368,15 @@ export function createStore(dbPath) {
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY(target_user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS friends (
+      user_id TEXT NOT NULL,
+      friend_user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (user_id, friend_user_id),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(friend_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   const pokeColumns = db.prepare("PRAGMA table_info(pokes)").all();
@@ -510,11 +519,41 @@ export function createStore(dbPath) {
         rank: index + 1,
         isMe: userId ? row.id === userId : undefined,
       }));
+      const friendIds = userId
+        ? db
+            .prepare(
+              "SELECT friend_user_id AS friendId FROM friends WHERE user_id = ?",
+            )
+            .all(userId)
+            .map((row) => row.friendId)
+        : [];
+      const friendSet = new Set(friendIds);
+      if (userId) {
+        friendSet.add(userId);
+      }
+      if (friendSet.size < 3) {
+        for (const row of userRows) {
+          if (friendSet.size >= 3) break;
+          if (!friendSet.has(row.id)) {
+            friendSet.add(row.id);
+          }
+        }
+      }
+      const friends = userRows
+        .filter((row) => friendSet.has(row.id))
+        .map((row) => ({
+          user: { id: row.id, displayName: row.displayName },
+          score: Number(Number(row.score ?? 0).toFixed(3)),
+          isMe: userId ? row.id === userId : undefined,
+        }))
+        .sort((a, b) => b.score - a.score || a.user.displayName.localeCompare(b.user.displayName))
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
       return {
         streakDays: defaultDashboard.streakDays ?? 0,
         quartiers,
         users,
+        friends,
       };
     },
 
@@ -590,6 +629,53 @@ export function createStore(dbPath) {
         streakDays: Number(row.streakDays ?? 0),
         co2SavedKg: Number(Number(row.co2SavedKg ?? 0).toFixed(3)),
       }));
+    },
+
+    listFriends(userId) {
+      const rows = db
+        .prepare(
+          `
+            SELECT u.id, u.display_name AS displayName
+            FROM friends f
+            JOIN users u
+              ON u.id = f.friend_user_id
+            WHERE f.user_id = ?
+            ORDER BY displayName ASC
+          `,
+        )
+        .all(userId);
+      return rows.map((row) => ({ id: row.id, displayName: row.displayName }));
+    },
+
+    addFriendById(userId, friendUserId) {
+      const friendId = typeof friendUserId === "string" ? friendUserId.trim() : "";
+      if (!friendId) {
+        return { status: "invalid" };
+      }
+      if (friendId === userId) {
+        return { status: "self" };
+      }
+      const friend = db
+        .prepare(
+          `
+            SELECT id, display_name AS displayName
+            FROM users
+            WHERE id = ?
+          `,
+        )
+        .get(friendId);
+      if (!friend) {
+        return { status: "not_found" };
+      }
+      const result = db
+        .prepare(
+          "INSERT OR IGNORE INTO friends (user_id, friend_user_id, created_at) VALUES (?, ?, ?)",
+        )
+        .run(userId, friend.id, nowIso());
+      if (result.changes === 0) {
+        return { status: "duplicate", friend };
+      }
+      return { status: "ok", friend };
     },
 
     pokeUser(userId, targetUserId) {

@@ -28,4 +28,11 @@ export const leaderboard: LeaderboardDTO = {
       rank: 3,
     },
   ],
+  friends: [
+    {
+      user: { id: "u2", displayName: "Linus" },
+      score: 98.2,
+      rank: 1,
+    },
+  ],
 };

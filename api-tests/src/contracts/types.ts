@@ -39,11 +39,21 @@ export interface LeaderboardDTO {
     rank: number;
   }>;
   users: UserScoreEntryDTO[];
+  friends: UserScoreEntryDTO[];
 }
 
 export interface UserSummaryDTO {
   id: string;
   displayName: string;
+}
+
+export interface AddFriendRequestDTO {
+  userId: string;
+}
+
+export interface AddFriendResponseDTO {
+  ok: true;
+  friend: UserSummaryDTO;
 }
 
 export interface UserScoreEntryDTO {
