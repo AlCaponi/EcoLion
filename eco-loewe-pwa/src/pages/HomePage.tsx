@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import Card from "../shared/components/Card";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
@@ -23,16 +26,22 @@ const ACTIVITIES = [
   { id: "wfh", label: "Home Office", iconSrc: homeOfficeIcon, emoji: "🏠" },
   { id: "pool", label: "Pooling", iconSrc: carPoolingIcon, emoji: "🤝" },
 ];
+<<<<<<< HEAD
 >>>>>>> 9f88386 (Syntax fixes)
 =======
 >>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
+=======
+>>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
 
 const STREAK_DAYS = 8;
 
 export default function HomePage() {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
@@ -130,9 +139,12 @@ export default function HomePage() {
     );
   }
 
+<<<<<<< HEAD
 >>>>>>> 9f88386 (Syntax fixes)
 =======
 >>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
+=======
+>>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
   return (
     <div className="page homePage">
       <h1>Willkommen, Eco-Löwe! 🦁</h1>
@@ -226,14 +238,21 @@ export default function HomePage() {
 
       <Card>
         <div className="sectionTitle">Dein Löwe</div>
-        <div className="lionPreview">
-          <div className="lionEmoji">🦁</div>
-          <div>
-            <div className="lionMood">Stimmung: 😊 Happy</div>
-            <div className="lionLevel">Level 5 · 120 XP · 85 Coins</div>
-          </div>
-        </div>
+        {user ? (
+          <MascotDisplay 
+            level={Math.floor(user.sustainabilityScore / 100) + 1}
+            xp={user.sustainabilityScore}
+            accessories={user.lion.accessories}
+            movement="idle"
+          />
+        ) : (
+           <div className="lionPreview">
+              <div className="lionEmoji">🦁</div>
+              <div>Lade Löwe...</div>
+           </div>
+        )}
       </Card>
+<<<<<<< HEAD
 =======
         <div className="lionPreview">
           <div className="lionEmoji">🦁</div>
@@ -244,6 +263,30 @@ export default function HomePage() {
         </div>
       </Card>
 >>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
+=======
+
+      <section className="activity-section">
+        <h2 className="sectionTitle">Aktivität starten</h2>
+        <div className="activity-grid">
+            {ACTIVITIES.map((act) => (
+                <button 
+                    key={act.id} 
+                    className="activity-btn"
+                    onClick={() => handleStart(act.id)}
+                >
+                    <div className="act-icon">
+                      {act.iconSrc ? (
+                        <img src={act.iconSrc} alt={act.label} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      ) : (
+                        act.emoji
+                      )}
+                    </div>
+                    <div className="act-label">{act.label}</div>
+                </button>
+            ))}
+        </div>
+      </section>
+>>>>>>> fd30df2 (feat: Add HomePage component to display user dashboard, manage activity tracking, and show mascot.)
     </div>
   );
 }
