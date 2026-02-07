@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
@@ -11,6 +13,20 @@ import carPoolingIcon from "../assets/transport_types/carPooling_icon.png";
 import homeOfficeIcon from "../assets/transport_types/homeOffice_icon.png";
 import walkingIcon from "../assets/transport_types/walking_icon.png";
 import bikingIcon from "../assets/transport_types/biking_icon.png";
+
+// Fix Leaflet default marker icon issue with webpack
+import L from "leaflet";
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const ACTIVITIES = [
   { id: "walk", label: "Gehen", iconSrc: walkingIcon, emoji: "🚶" },
@@ -26,9 +42,27 @@ export default function HomePage() {
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
   const [userStats, setUserStats] = useState({ level: 1, xp: 0 });
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     fetchDashboard();
+    
+    // Get user's GPS location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.warn("Could not get location:", error);
+          // Fallback to Winterthur center
+          setUserLocation([47.5, 8.72]);
+        }
+      );
+    } else {
+      // Fallback to Winterthur center
+      setUserLocation([47.5, 8.72]);
+    }
   }, []);
 
   const fetchDashboard = async () => {
@@ -109,16 +143,35 @@ export default function HomePage() {
             movement={activeActivity} 
             level={userStats.level} 
             xp={userStats.xp} 
-            style={{ marginBottom: "2rem" }}
+            style={{ marginBottom: "1rem", padding: "0.5rem" }}
         />
 
-        <div className="recording-timer">
-            {formatTime(timer)}
-        </div>
+        {/* Live Map */}
+        {userLocation && (
+          <div style={{ height: "220px", width: "100%", marginBottom: "1rem", borderRadius: "12px", overflow: "hidden" }}>
+            <MapContainer
+              center={userLocation}
+              zoom={15}
+              style={{ height: "100%", width: "100%" }}
+              zoomControl={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={userLocation}>
+                <Popup>Your location</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        )}
 
-        <div className="recording-actions">
+        <div className="recording-actions" style={{ display: "flex", alignItems: "center", gap: "1rem", justifyContent: "center" }}>
+            <div className="recording-timer" style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+                {formatTime(timer)}
+            </div>
             <PrimaryButton onClick={handleStop} className="stop-btn">
-                Beenden & Speichern
+                Stop
             </PrimaryButton>
         </div>
       </div>
