@@ -4,6 +4,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRANCH="main"
 LOG_FILE="$REPO_DIR/deploy.log"
+VITE_API_BASE_URL="https://api.ecolion.d00.ch"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"
