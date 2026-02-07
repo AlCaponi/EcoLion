@@ -239,17 +239,18 @@ export default function HomePage() {
 
   return (
     <div className="page homePage">
-      <Card className="hero-card">
-        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+      <Card className="hero-card hero-card-compact">
+        <div style={{ textAlign: "center", marginBottom: "0" }}>
            <div className="sectionTitle">Dein Begleiter</div>
         </div>
         <MascotDisplay 
             level={userStats.level} 
-            xp={userStats.xp} 
+            xp={userStats.xp}
+            style={{ padding: "0", gap: "0.25rem", marginBottom: "0" }}
         />
       </Card>
 
-      <section className="activity-section">
+      <section className="activity-section" style={{ marginTop: "1rem" }}>
         <h2 className="sectionTitle">Aktivität starten</h2>
         <div className="activity-grid">
             {ACTIVITIES.map((act) => (

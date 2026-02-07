@@ -1,6 +1,11 @@
 /* ── Home page ─────────────────────────────────── */
 .homePage h1 { margin: 6px 0 10px; }
 
+/* Compact hero card for mobile */
+.hero-card-compact {
+  padding: 0.75rem !important;
+}
+
 .heroValue { font-size: 22px; font-weight: 800; }
 
 /* streak bar (shared visual) */
@@ -43,10 +48,16 @@
 
 .activity-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, auto);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-top: 16px;
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 768px) {
+  .activity-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .activity-btn {
@@ -59,6 +70,7 @@
   border-radius: 16px;
   padding: 16px 8px;
   aspect-ratio: 1;
+  max-width: 45vw;
   transition: transform 0.1s, background 0.2s;
   cursor: pointer;
 }
@@ -68,8 +80,17 @@
   background: var(--surface-2);
 }
 
-.act-icon { font-size: 32px; margin-bottom: 8px; }
-.act-label { font-weight: 700; font-size: 13px; text-align: center; line-height: 1.2; }
+.act-icon { 
+  font-size: 32px; 
+  margin-bottom: 8px; 
+}
+
+.act-label { 
+  font-weight: 700; 
+  font-size: 13px; 
+  text-align: center; 
+  line-height: 1.2; 
+}
 
 /* Recording Mode override */
 .recording-mode {
