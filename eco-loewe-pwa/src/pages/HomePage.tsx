@@ -73,10 +73,14 @@ export default function HomePage() {
     setActiveActivity(type);
     setTimer(0);
     try {
-        const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
-        setCurrentActivityId(data.activityId);
+      const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
+      setCurrentActivityId(data.activityId);
     } catch (e) {
-        console.error("Failed to start activity", e);
+      console.error("Failed to start activity", e);
+      // Revert UI state if the activity could not be started on the server
+      setActiveActivity(null);
+      setCurrentActivityId(null);
+      setTimer(0);
     }
   };
 
