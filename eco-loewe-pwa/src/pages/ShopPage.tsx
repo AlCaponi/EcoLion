@@ -6,12 +6,23 @@ import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 
 // Mock shop data for demo
 const MOCK_ITEMS: ShopItemDTO[] = [
+<<<<<<< HEAD
   { id: "hat-detective", name: "Detektiv-Hut", priceCoins: 120, category: "hats", owned: false, assetPath: "/assets/articles/hats/detective_hat/DetectiveHat.png" },
   { id: "hat-birthday", name: "Party-Hut", priceCoins: 80, category: "hats", owned: false, assetPath: "/assets/articles/hats/birthday_hat/birthday_hat.png" },
   { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "🧢" },
   { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "😎" },
   { id: "outfit-scarf", name: "Schal", priceCoins: 35, category: "outfits", owned: false, assetPath: "🧣" },
   { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "🌿" },
+=======
+  { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "/🧢" },
+  { id: "hat-beanie", name: "Beanie", priceCoins: 40, category: "hats", owned: false, assetPath: "/🎩" },
+  { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "/😎" },
+  { id: "outfit-scarf", name: "Schal", priceCoins: 35, category: "outfits", owned: false, assetPath: "/🧣" },
+  { id: "outfit-vest", name: "Weste", priceCoins: 75, category: "outfits", owned: false, assetPath: "/🦁" },
+  { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "/🌿" },
+  { id: "decor-crown", name: "Krone", priceCoins: 150, category: "decor", owned: false, assetPath: "/👑" },
+  { id: "decor-medal", name: "Medaille", priceCoins: 100, category: "decor", owned: false, assetPath: "/🏅" },
+>>>>>>> 26eb503 (Added initial implementation of Shop)
 ];
 
 // Coin packages for purchase
