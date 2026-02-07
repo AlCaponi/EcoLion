@@ -1,5 +1,116 @@
 export type MobilityMode = "walk" | "pt" | "car";
 
+export interface PublicKeyCredentialDescriptorDTO {
+  type: "public-key";
+  id: string;
+  transports?: string[];
+}
+
+export interface PublicKeyCredentialCreationOptionsDTO {
+  challenge: string;
+  rp: {
+    id: string;
+    name: string;
+  };
+  user: {
+    id: string;
+    name: string;
+    displayName: string;
+  };
+  pubKeyCredParams: Array<{
+    type: "public-key";
+    alg: number;
+  }>;
+  timeout: number;
+  attestation: "none" | "direct" | "indirect" | "enterprise";
+  authenticatorSelection?: {
+    residentKey?: "required" | "preferred" | "discouraged";
+    requireResidentKey?: boolean;
+    userVerification?: "required" | "preferred" | "discouraged";
+  };
+  excludeCredentials?: PublicKeyCredentialDescriptorDTO[];
+}
+
+export interface PublicKeyCredentialRequestOptionsDTO {
+  challenge: string;
+  rpId: string;
+  timeout: number;
+  userVerification?: "required" | "preferred" | "discouraged";
+  allowCredentials?: PublicKeyCredentialDescriptorDTO[];
+}
+
+export interface WebAuthnRegistrationCredentialDTO {
+  id: string;
+  rawId: string;
+  type: "public-key";
+  response: {
+    clientDataJSON: string;
+    attestationObject?: string;
+    authenticatorData: string;
+    publicKey: string;
+    publicKeyAlgorithm: number;
+    transports?: string[];
+    userHandle?: string;
+  };
+}
+
+export interface WebAuthnAuthenticationCredentialDTO {
+  id: string;
+  rawId: string;
+  type: "public-key";
+  response: {
+    clientDataJSON: string;
+    authenticatorData: string;
+    signature: string;
+    userHandle?: string;
+  };
+}
+
+export interface PasskeyRegisterBeginRequestDTO {
+  displayName: string;
+}
+
+export interface PasskeyRegisterBeginResponseDTO {
+  sessionId: string;
+  challenge: string;
+  publicKey: PublicKeyCredentialCreationOptionsDTO;
+}
+
+export interface PasskeyRegisterFinishRequestDTO {
+  sessionId: string;
+  credential: WebAuthnRegistrationCredentialDTO | string;
+}
+
+export interface PasskeyRegisterFinishResponseDTO {
+  userId: string;
+  token: string;
+}
+
+export interface PasskeyLoginBeginRequestDTO {
+  userId?: string;
+}
+
+export interface PasskeyLoginBeginResponseDTO {
+  sessionId: string;
+  challenge: string;
+  publicKey: PublicKeyCredentialRequestOptionsDTO;
+}
+
+export interface PasskeyLoginFinishRequestDTO {
+  sessionId: string;
+  credential: WebAuthnAuthenticationCredentialDTO | string;
+}
+
+export interface PasskeyLoginFinishResponseDTO {
+  userId?: string;
+  token: string;
+}
+
+export interface WhoAmIDTO {
+  id: string;
+  displayName: string;
+}
+
 export interface UserDTO {
   sustainabilityScore: number;
   streakDays: number;

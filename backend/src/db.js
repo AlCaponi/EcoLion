@@ -285,8 +285,22 @@ export function createStore(dbPath) {
       user_id TEXT,
       display_name TEXT,
       challenge TEXT NOT NULL,
+      meta_json TEXT,
       consumed INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS passkeys (
+      credential_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      public_key_spki_b64url TEXT NOT NULL,
+      algorithm INTEGER NOT NULL,
+      counter INTEGER NOT NULL DEFAULT 0,
+      transports_json TEXT,
+      user_handle_b64url TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS tokens (
@@ -385,6 +399,12 @@ export function createStore(dbPath) {
     db.exec("ALTER TABLE pokes RENAME COLUMN friend_id TO target_user_id");
   }
 
+  const authSessionColumns = db.prepare("PRAGMA table_info(auth_sessions)").all();
+  const authSessionColumnNames = new Set(authSessionColumns.map((col) => col.name));
+  if (!authSessionColumnNames.has("meta_json")) {
+    db.exec("ALTER TABLE auth_sessions ADD COLUMN meta_json TEXT");
+  }
+
   if (!db.prepare("SELECT 1 FROM settings WHERE key = 'default_dashboard'").get()) {
     setDefaultDashboard(db, DEFAULT_DASHBOARD);
   }
@@ -406,20 +426,37 @@ export function createStore(dbPath) {
       db.close();
     },
 
-    createAuthSession({ kind, userId = null, displayName = null }) {
+    createAuthSession({ kind, userId = null, displayName = null, metadata = null }) {
       const sessionId = crypto.randomUUID();
       const challenge = crypto.randomBytes(24).toString("base64url");
       db.prepare(
         `
-          INSERT INTO auth_sessions (id, kind, user_id, display_name, challenge, created_at)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO auth_sessions (
+            id, kind, user_id, display_name, challenge, meta_json, created_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
-      ).run(sessionId, kind, userId, displayName, challenge, nowIso());
+      ).run(
+        sessionId,
+        kind,
+        userId,
+        displayName,
+        challenge,
+        metadata ? JSON.stringify(metadata) : null,
+        nowIso(),
+      );
       return { sessionId, challenge };
     },
 
     getAuthSession(sessionId) {
-      return db.prepare("SELECT * FROM auth_sessions WHERE id = ?").get(sessionId);
+      const row = db.prepare("SELECT * FROM auth_sessions WHERE id = ?").get(sessionId);
+      if (!row) {
+        return null;
+      }
+      return {
+        ...row,
+        metadata: safeParseJson(row.meta_json, null),
+      };
     },
 
     consumeAuthSession(sessionId) {
@@ -428,6 +465,14 @@ export function createStore(dbPath) {
 
     userExists(userId) {
       return Boolean(db.prepare("SELECT 1 FROM users WHERE id = ?").get(userId));
+    },
+
+    getUserById(userId) {
+      return (
+        db
+          .prepare("SELECT id, display_name AS displayName FROM users WHERE id = ?")
+          .get(userId) ?? null
+      );
     },
 
     createUser(displayName) {
@@ -454,6 +499,75 @@ export function createStore(dbPath) {
         .prepare("SELECT user_id FROM tokens WHERE token = ?")
         .get(token);
       return row?.user_id ?? null;
+    },
+
+    getPasskeyByCredentialId(credentialId) {
+      return (
+        db
+          .prepare(
+            `
+              SELECT
+                credential_id,
+                user_id,
+                public_key_spki_b64url,
+                algorithm,
+                counter,
+                transports_json,
+                user_handle_b64url
+              FROM passkeys
+              WHERE credential_id = ?
+            `,
+          )
+          .get(credentialId) ?? null
+      );
+    },
+
+    addPasskey({
+      credentialId,
+      userId,
+      publicKeySpkiB64Url,
+      algorithm,
+      counter = 0,
+      transports = [],
+      userHandleB64Url = null,
+    }) {
+      const now = nowIso();
+      db.prepare(
+        `
+          INSERT INTO passkeys (
+            credential_id,
+            user_id,
+            public_key_spki_b64url,
+            algorithm,
+            counter,
+            transports_json,
+            user_handle_b64url,
+            created_at,
+            updated_at
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+      ).run(
+        credentialId,
+        userId,
+        publicKeySpkiB64Url,
+        algorithm,
+        counter,
+        JSON.stringify(transports),
+        userHandleB64Url,
+        now,
+        now,
+      );
+    },
+
+    updatePasskeyCounter(credentialId, counter) {
+      db.prepare(
+        `
+          UPDATE passkeys
+          SET counter = ?, updated_at = ?
+          WHERE credential_id = ?
+        `,
+      ).run(counter, nowIso(), credentialId);
     },
 
     getDashboard(userId) {

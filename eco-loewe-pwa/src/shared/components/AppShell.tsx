@@ -1,24 +1,27 @@
 import { type ReactNode, useEffect, useState } from "react";
 import BottomNav from "./BottomNav";
 import { Api } from "../api/endpoints";
-import { apiClient } from "../api/client";
 
-export default function AppShell({ children }: { children: ReactNode }) {
+interface AppShellProps {
+  children: ReactNode;
+  onLogout: () => void;
+}
+
+export default function AppShell({ children, onLogout }: AppShellProps) {
   const [coins, setCoins] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [displayName, setDisplayName] = useState<string>("");
 
   useEffect(() => {
     async function init() {
-        try {
-            await apiClient.ensureAuth();
-            const data = await Api.dashboard();
-            if (data) {
-                setCoins(data.lion.coins);
-                setStreak(data.streakDays);
-            }
-        } catch (error) {
-            console.error("Failed to init app shell:", error);
-        }
+      try {
+        const [dashboard, me] = await Promise.all([Api.dashboard(), Api.whoami()]);
+        setCoins(dashboard.lion.coins);
+        setStreak(dashboard.streakDays);
+        setDisplayName(me.displayName);
+      } catch (error) {
+        console.error("Failed to init app shell:", error);
+      }
     }
     init();
   }, []);
@@ -27,16 +30,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="appShell">
       <header className="topBar">
         <div className="topBarLeft">
-          <div className="statPill fire">
-             🔥 {streak}
+          {displayName ? (
+            <div className="namePill" title={displayName}>
+              {displayName}
+            </div>
+          ) : null}
+          <div className="statPill">
+            <span aria-hidden="true">🔥</span> {streak}
           </div>
-          <div className="statPill coin">
-             🪙 {coins}
+          <div className="statPill">
+            <span aria-hidden="true">🪙</span> {coins}
           </div>
         </div>
         <div className="topBarRight">
-          <button className="iconButton" aria-label="Settings">
-            ⚙️
+          <button className="logoutButton" aria-label="Logout" onClick={onLogout}>
+            <span aria-hidden="true">↪</span>
+            Logout
           </button>
         </div>
       </header>

@@ -31,6 +31,7 @@ import "./styles/pages/stats.css";
 import "./styles/pages/shop.css";
 import "./styles/pages/leaderboard.css";
 import "./styles/pages/rewards.css";
+import "./styles/pages/auth.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

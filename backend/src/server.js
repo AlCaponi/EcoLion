@@ -1,10 +1,15 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import crypto from "node:crypto";
 import { createStore } from "./db.js";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? "0.0.0.0";
 const DATABASE_PATH = process.env.DATABASE_PATH ?? "/app/data/eco-loewe.db";
+const AUTH_SESSION_TTL_MS = 10 * 60 * 1000;
+const WEBAUTHN_RP_ID = process.env.WEBAUTHN_RP_ID ?? "localhost";
+const WEBAUTHN_RP_NAME = process.env.WEBAUTHN_RP_NAME ?? "Eco-Loewe";
+const SUPPORTED_WEBAUTHN_ALGORITHMS = new Set([-7, -257]);
 
 const VALID_ACTIVITY_TYPES = new Set(["walk", "bike", "transit", "drive", "wfh", "pool"]);
 
@@ -29,6 +34,140 @@ const ALLOWED_ORIGINS = new Set([
   "https://ecolion.d00.ch",
   "https://ecolionapi.d00.ch",
 ]);
+const WEBAUTHN_ALLOWED_ORIGINS = new Set(
+  String(process.env.WEBAUTHN_ALLOWED_ORIGINS ?? Array.from(ALLOWED_ORIGINS).join(","))
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
+);
+const EXPECTED_RP_ID_HASH = crypto.createHash("sha256").update(WEBAUTHN_RP_ID).digest();
+
+function isObject(value) {
+  return value !== null && typeof value === "object";
+}
+
+function base64UrlToBuffer(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("Invalid base64url input");
+  }
+  return Buffer.from(value, "base64url");
+}
+
+function buffersEqual(left, right) {
+  if (!Buffer.isBuffer(left) || !Buffer.isBuffer(right) || left.length !== right.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(left, right);
+}
+
+function parseClientDataJSON(clientDataJSONB64Url) {
+  const clientDataJSON = base64UrlToBuffer(clientDataJSONB64Url);
+  const parsed = JSON.parse(clientDataJSON.toString("utf8"));
+  if (
+    !isObject(parsed) ||
+    typeof parsed.type !== "string" ||
+    typeof parsed.challenge !== "string" ||
+    typeof parsed.origin !== "string"
+  ) {
+    throw new Error("Invalid clientDataJSON");
+  }
+  return { raw: clientDataJSON, parsed };
+}
+
+function parseAuthenticatorData(authenticatorDataB64Url) {
+  const raw = base64UrlToBuffer(authenticatorDataB64Url);
+  if (raw.length < 37) {
+    throw new Error("Invalid authenticatorData");
+  }
+  const flags = raw[32];
+  return {
+    raw,
+    rpIdHash: raw.subarray(0, 32),
+    flags,
+    userPresent: Boolean(flags & 0x01),
+    userVerified: Boolean(flags & 0x04),
+    signCount: raw.readUInt32BE(33),
+  };
+}
+
+function verifyChallenge(receivedChallenge, expectedChallenge) {
+  try {
+    return buffersEqual(
+      base64UrlToBuffer(receivedChallenge),
+      base64UrlToBuffer(expectedChallenge),
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isAuthSessionExpired(session) {
+  const createdAtMs = Date.parse(session.created_at ?? "");
+  if (Number.isNaN(createdAtMs)) {
+    return true;
+  }
+  return Date.now() - createdAtMs > AUTH_SESSION_TTL_MS;
+}
+
+function verifyWebAuthnClientData({ clientDataJSON, expectedType, expectedChallenge }) {
+  const clientData = parseClientDataJSON(clientDataJSON);
+  if (clientData.parsed.type !== expectedType) {
+    throw new Error("Invalid clientData type");
+  }
+  if (!verifyChallenge(clientData.parsed.challenge, expectedChallenge)) {
+    throw new Error("Invalid challenge");
+  }
+  if (!WEBAUTHN_ALLOWED_ORIGINS.has(clientData.parsed.origin)) {
+    throw new Error("Invalid origin");
+  }
+  return clientData;
+}
+
+function verifyRpIdHash(authenticatorData) {
+  return buffersEqual(authenticatorData.rpIdHash, EXPECTED_RP_ID_HASH);
+}
+
+function buildRegistrationOptions(challenge, displayName, userHandle) {
+  return {
+    challenge,
+    rp: {
+      id: WEBAUTHN_RP_ID,
+      name: WEBAUTHN_RP_NAME,
+    },
+    user: {
+      id: userHandle,
+      name: displayName,
+      displayName,
+    },
+    pubKeyCredParams: [
+      { type: "public-key", alg: -7 },
+      { type: "public-key", alg: -257 },
+    ],
+    timeout: 60_000,
+    attestation: "none",
+    authenticatorSelection: {
+      residentKey: "required",
+      requireResidentKey: true,
+      userVerification: "preferred",
+    },
+  };
+}
+
+function buildAuthenticationOptions(challenge) {
+  return {
+    challenge,
+    rpId: WEBAUTHN_RP_ID,
+    timeout: 60_000,
+    userVerification: "preferred",
+  };
+}
+
+function getVerifyAlgorithm(coseAlgorithm) {
+  if (coseAlgorithm === -7 || coseAlgorithm === -257) {
+    return "sha256";
+  }
+  return null;
+}
 
 await app.register(cors, {
   origin: (origin, cb) => {
@@ -87,72 +226,245 @@ app.post("/v1/auth/register/begin", async (request, reply) => {
     return reply.code(400).send({ error: "displayName is required" });
   }
 
+  const normalizedDisplayName = displayName.trim();
+  const userHandle = crypto.randomBytes(32).toString("base64url");
   const { sessionId, challenge } = store.createAuthSession({
     kind: "register",
-    displayName: displayName.trim(),
+    displayName: normalizedDisplayName,
+    metadata: {
+      userHandle,
+    },
   });
-  return { sessionId, challenge };
+  return {
+    sessionId,
+    challenge,
+    publicKey: buildRegistrationOptions(challenge, normalizedDisplayName, userHandle),
+  };
 });
 
 app.post("/v1/auth/register/finish", async (request, reply) => {
   const sessionId = request.body?.sessionId;
   const credential = request.body?.credential;
-  if (typeof sessionId !== "string" || typeof credential !== "string") {
+  if (typeof sessionId !== "string" || !credential) {
     return reply.code(400).send({ error: "sessionId and credential are required" });
   }
 
   const session = store.getAuthSession(sessionId);
-  if (!session || session.kind !== "register" || session.consumed) {
+  if (!session || session.kind !== "register" || session.consumed || isAuthSessionExpired(session)) {
     return reply.code(400).send({ error: "Invalid session" });
   }
 
-  if (credential !== `test-credential-${session.challenge}`) {
-    return reply.code(400).send({ error: "Invalid credential" });
+  if (typeof credential === "string") {
+    if (credential !== `test-credential-${session.challenge}`) {
+      return reply.code(400).send({ error: "Invalid credential" });
+    }
+    store.consumeAuthSession(sessionId);
+    const userId = store.createUser(session.display_name || "Anonymous Lion");
+    const token = store.issueToken(userId);
+    return { userId, token };
   }
 
-  store.consumeAuthSession(sessionId);
-  const userId = store.createUser(session.display_name || "Anonymous Lion");
-  const token = store.issueToken(userId);
-  return { userId, token };
+  if (!isObject(credential) || !isObject(credential.response)) {
+    return reply.code(400).send({ error: "Invalid passkey payload" });
+  }
+
+  const credentialId = credential.id;
+  const response = credential.response;
+  if (typeof credentialId !== "string" || !credentialId.trim()) {
+    return reply.code(400).send({ error: "credential.id is required" });
+  }
+  if (
+    typeof response.clientDataJSON !== "string" ||
+    typeof response.authenticatorData !== "string" ||
+    typeof response.publicKey !== "string" ||
+    !Number.isInteger(response.publicKeyAlgorithm)
+  ) {
+    return reply.code(400).send({ error: "Incomplete passkey registration response" });
+  }
+  if (!SUPPORTED_WEBAUTHN_ALGORITHMS.has(response.publicKeyAlgorithm)) {
+    return reply.code(400).send({ error: "Unsupported passkey algorithm" });
+  }
+  if (store.getPasskeyByCredentialId(credentialId)) {
+    return reply.code(409).send({ error: "Passkey already registered" });
+  }
+
+  try {
+    const clientData = verifyWebAuthnClientData({
+      clientDataJSON: response.clientDataJSON,
+      expectedType: "webauthn.create",
+      expectedChallenge: session.challenge,
+    });
+    const authenticatorData = parseAuthenticatorData(response.authenticatorData);
+    if (!verifyRpIdHash(authenticatorData)) {
+      return reply.code(400).send({ error: "Invalid rpId hash" });
+    }
+    if (!authenticatorData.userPresent) {
+      return reply.code(400).send({ error: "User presence required" });
+    }
+
+    store.consumeAuthSession(sessionId);
+    const userId = store.createUser(session.display_name || "Anonymous Lion");
+    store.addPasskey({
+      credentialId,
+      userId,
+      publicKeySpkiB64Url: response.publicKey,
+      algorithm: response.publicKeyAlgorithm,
+      counter: authenticatorData.signCount,
+      transports: Array.isArray(response.transports)
+        ? response.transports.filter((value) => typeof value === "string")
+        : [],
+      userHandleB64Url:
+        typeof response.userHandle === "string"
+          ? response.userHandle
+          : session.metadata?.userHandle ?? null,
+    });
+    const token = store.issueToken(userId);
+    return { userId, token };
+  } catch (error) {
+    request.log.warn({ err: error }, "Failed passkey registration verification");
+    return reply.code(400).send({ error: "Invalid passkey credential" });
+  }
 });
 
 app.post("/v1/auth/login/begin", async (request, reply) => {
-  const userId = request.body?.userId;
-  if (typeof userId !== "string" || !userId.trim()) {
-    return reply.code(400).send({ error: "userId is required" });
+  const requestedUserId = request.body?.userId;
+  if (requestedUserId !== undefined && (typeof requestedUserId !== "string" || !requestedUserId.trim())) {
+    return reply.code(400).send({ error: "userId must be a non-empty string when provided" });
   }
-  if (!store.userExists(userId)) {
+  if (typeof requestedUserId === "string" && !store.userExists(requestedUserId)) {
     return reply.code(404).send({ error: "User not found" });
   }
 
   const { sessionId, challenge } = store.createAuthSession({
     kind: "login",
-    userId,
+    userId: typeof requestedUserId === "string" ? requestedUserId : null,
+    metadata: {
+      legacy: typeof requestedUserId === "string",
+    },
   });
-  return { sessionId, challenge };
+  return {
+    sessionId,
+    challenge,
+    publicKey: buildAuthenticationOptions(challenge),
+  };
 });
 
 app.post("/v1/auth/login/finish", async (request, reply) => {
   const sessionId = request.body?.sessionId;
   const credential = request.body?.credential;
-  if (typeof sessionId !== "string" || typeof credential !== "string") {
+  if (typeof sessionId !== "string" || !credential) {
     return reply.code(400).send({ error: "sessionId and credential are required" });
   }
 
   const session = store.getAuthSession(sessionId);
-  if (!session || session.kind !== "login" || session.consumed || !session.user_id) {
+  if (!session || session.kind !== "login" || session.consumed || isAuthSessionExpired(session)) {
     return reply.code(400).send({ error: "Invalid session" });
   }
-  if (!store.userExists(session.user_id)) {
-    return reply.code(404).send({ error: "User not found" });
-  }
-  if (credential !== `test-credential-${session.challenge}`) {
-    return reply.code(400).send({ error: "Invalid credential" });
+
+  if (typeof credential === "string") {
+    if (!session.user_id || !store.userExists(session.user_id)) {
+      return reply.code(404).send({ error: "User not found" });
+    }
+    if (credential !== `test-credential-${session.challenge}`) {
+      return reply.code(400).send({ error: "Invalid credential" });
+    }
+    store.consumeAuthSession(sessionId);
+    const token = store.issueToken(session.user_id);
+    return { token };
   }
 
-  store.consumeAuthSession(sessionId);
-  const token = store.issueToken(session.user_id);
-  return { token };
+  if (!isObject(credential) || !isObject(credential.response)) {
+    return reply.code(400).send({ error: "Invalid passkey payload" });
+  }
+
+  const credentialId = credential.id;
+  const response = credential.response;
+  if (typeof credentialId !== "string" || !credentialId.trim()) {
+    return reply.code(400).send({ error: "credential.id is required" });
+  }
+  if (
+    typeof response.clientDataJSON !== "string" ||
+    typeof response.authenticatorData !== "string" ||
+    typeof response.signature !== "string"
+  ) {
+    return reply.code(400).send({ error: "Incomplete passkey login response" });
+  }
+
+  const passkey = store.getPasskeyByCredentialId(credentialId);
+  if (!passkey) {
+    return reply.code(404).send({ error: "Passkey not found" });
+  }
+  if (session.user_id && passkey.user_id !== session.user_id) {
+    return reply.code(400).send({ error: "Passkey does not match requested user" });
+  }
+  if (!store.userExists(passkey.user_id)) {
+    return reply.code(404).send({ error: "User not found" });
+  }
+
+  const verifyAlgorithm = getVerifyAlgorithm(passkey.algorithm);
+  if (!verifyAlgorithm) {
+    return reply.code(400).send({ error: "Unsupported passkey algorithm" });
+  }
+
+  try {
+    const clientData = verifyWebAuthnClientData({
+      clientDataJSON: response.clientDataJSON,
+      expectedType: "webauthn.get",
+      expectedChallenge: session.challenge,
+    });
+    const authenticatorData = parseAuthenticatorData(response.authenticatorData);
+    if (!verifyRpIdHash(authenticatorData)) {
+      return reply.code(400).send({ error: "Invalid rpId hash" });
+    }
+    if (!authenticatorData.userPresent) {
+      return reply.code(400).send({ error: "User presence required" });
+    }
+
+    const signedData = Buffer.concat([
+      authenticatorData.raw,
+      crypto.createHash("sha256").update(clientData.raw).digest(),
+    ]);
+    const verified = crypto.verify(
+      verifyAlgorithm,
+      signedData,
+      crypto.createPublicKey({
+        key: base64UrlToBuffer(passkey.public_key_spki_b64url),
+        format: "der",
+        type: "spki",
+      }),
+      base64UrlToBuffer(response.signature),
+    );
+    if (!verified) {
+      return reply.code(400).send({ error: "Invalid signature" });
+    }
+
+    const previousCounter = Number(passkey.counter) || 0;
+    if (
+      authenticatorData.signCount > 0 &&
+      previousCounter > 0 &&
+      authenticatorData.signCount <= previousCounter
+    ) {
+      return reply.code(400).send({ error: "Passkey counter check failed" });
+    }
+    if (authenticatorData.signCount > previousCounter) {
+      store.updatePasskeyCounter(credentialId, authenticatorData.signCount);
+    }
+
+    store.consumeAuthSession(sessionId);
+    const token = store.issueToken(passkey.user_id);
+    return { userId: passkey.user_id, token };
+  } catch (error) {
+    request.log.warn({ err: error }, "Failed passkey login verification");
+    return reply.code(400).send({ error: "Invalid passkey credential" });
+  }
+});
+
+app.get("/v1/whoami", async (request, reply) => {
+  const user = store.getUserById(request.userId);
+  if (!user) {
+    return reply.code(404).send({ error: "User not found" });
+  }
+  return user;
 });
 
 app.get("/v1/dashboard", async (request) => {
