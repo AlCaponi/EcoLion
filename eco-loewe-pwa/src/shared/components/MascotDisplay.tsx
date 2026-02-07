@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { useMemo } from "react";
 // Import the default lion image
 import idleParams from "../../assets/mascot/idle.png";
 import bikingDisplay from "../../assets/mascot/biking.png";
@@ -61,10 +60,17 @@ export default function MascotDisplay({
   compact = false,
 }: MascotDisplayProps) {
   const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
+  const motivationalMessage = MOTIVATIONAL_MESSAGES[(level + xp) % MOTIVATIONAL_MESSAGES.length];
+  const visualWrapperStyle = compact
+    ? { ...styles.visualWrapper, width: "180px", height: "180px" }
+    : styles.visualWrapper;
 
   return (
-    <div className={`mascot-container ${className}`} style={{ ...styles.container, ...style }}>
-      <div className="mascot-visual" style={styles.visualWrapper}>
+    <div
+      className={`mascot-container ${className}`}
+      style={{ ...styles.container, ...(compact ? styles.compactContainer : {}), ...style }}
+    >
+      <div className="mascot-visual" style={visualWrapperStyle}>
         {/* Base Layer (Z-Index 1) */}
         <img src={baseImageSrc} alt={`Eco-Lion is ${movement}`} style={{ ...styles.layer, ...styles.baseLayer }} />
 
@@ -86,12 +92,14 @@ export default function MascotDisplay({
         {movement === "idle" && <div style={styles.speechBubble}>{motivationalMessage}</div>}
       </div>
 
-      <div className="mascot-stats" style={styles.statsContainer}>
-        <div style={styles.statRow}>
-          <span style={styles.statLabel}>Level {level}</span>
-          <span style={styles.statValue}>{xp} XP</span>
+      {!compact && (
+        <div className="mascot-stats" style={styles.statsContainer}>
+          <div style={styles.statRow}>
+            <span style={styles.statLabel}>Level {level}</span>
+            <span style={styles.statValue}>{xp} XP</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -104,6 +112,10 @@ const styles: Record<string, CSSProperties> = {
     gap: "0.5rem",
     padding: "0.5rem 1rem",
     marginBottom: "0",
+  },
+  compactContainer: {
+    gap: "0.25rem",
+    padding: "0.25rem 0.5rem",
   },
   visualWrapper: {
     position: "relative",
