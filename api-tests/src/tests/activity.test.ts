@@ -16,7 +16,7 @@ describe("POST /v1/activity/start", () => {
   let client: ApiClient;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityStartTestUser");
+    const ctx = await createTestContext("Max");
     client = ctx.client;
   });
 
@@ -70,7 +70,7 @@ describe("POST /v1/activity/stop", () => {
   let activityId: number;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityStopTestUser");
+    const ctx = await createTestContext("Felix");
     client = ctx.client;
 
     // Start an activity first so we can stop it
@@ -145,7 +145,7 @@ describe("GET /v1/activity/:activityId", () => {
   let activityId: number;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityGetTestUser");
+    const ctx = await createTestContext("Sara");
     client = ctx.client;
 
     // Start and stop an activity so we can fetch it
@@ -199,8 +199,8 @@ describe("GET /v1/activity/:activityId", () => {
 
 describe("Activity user scoping", () => {
   it("should restrict activities to the owning user", async () => {
-    const ownerCtx = await createTestContext("ActivityOwnerUser");
-    const otherCtx = await createTestContext("ActivityOtherUser");
+    const ownerCtx = await createTestContext("Markus");
+    const otherCtx = await createTestContext("Laura");
 
     const { data: started } = await ownerCtx.client.post<StartActivityResponseDTO>(
       "/v1/activity/start",

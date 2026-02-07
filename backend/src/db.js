@@ -253,6 +253,17 @@ function mapActivityRow(row) {
 }
 
 export function createStore(dbPath) {
+  const purgeOnStart = ["1", "true", "yes"].includes(
+    String(process.env.PURGE_DB_ON_START ?? "").toLowerCase(),
+  );
+  if (purgeOnStart && dbPath && dbPath !== ":memory:") {
+    try {
+      fs.rmSync(dbPath, { force: true });
+    } catch (error) {
+      console.warn("Failed to purge database file:", error);
+    }
+  }
+
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   db.pragma("foreign_keys = ON");
