@@ -23,7 +23,22 @@ function isPublicPath(pathname) {
 const store = createStore(DATABASE_PATH);
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:5173",
+  "http://localhost:8080",
+  "https://ecolion.d00.ch",
+  "https://ecolionapi.d00.ch",
+]);
+
+await app.register(cors, {
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.has(origin)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Origin not allowed"), false);
+  },
+});
 
 app.addContentTypeParser(
   "application/json",
