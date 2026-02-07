@@ -158,7 +158,7 @@ export default function HomePage() {
 
         {/* Live Map - Simple SBB-style color scheme */}
         {userLocation && (
-          <div style={{ height: "220px", width: "100%", marginBottom: "1rem", borderRadius: "12px", overflow: "hidden" }}>
+          <div className="map-container" style={{ height: "220px", width: "100%", marginBottom: "1rem", borderRadius: "12px", overflow: "hidden" }}>
             <MapContainer
               center={userLocation}
               zoom={15}
