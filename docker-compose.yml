@@ -1,12 +1,27 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_PATH=/app/data/eco-loewe.db
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./eco-loewe-pwa
       dockerfile: Dockerfile
+    depends_on:
+      - backend
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
     volumes:
       - ./eco-loewe-pwa/src:/app/src
     restart: unless-stopped
@@ -17,6 +32,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
+    depends_on:
+      - backend
     volumes:
       - ./api-tests/src:/app/src
     profiles:
