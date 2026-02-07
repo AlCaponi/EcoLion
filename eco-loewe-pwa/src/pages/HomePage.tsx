@@ -56,7 +56,7 @@ export default function HomePage() {
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
   const [user, setUser] = useState<UserDTO | null>(null);
-  const [userStats, setUserStats] = useState({ level: 1, xp: 0 });
+  const [userStats] = useState({ level: 1, xp: 0 });
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
