@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import { Api } from "../shared/api/endpoints";
 import type { ActivityType, UserDTO } from "../shared/api/types";
+import { useLocationTracking } from "../hooks/useLocationTracking";
 
 import busIcon from "../assets/transport_types/bus_icon.png";
 import carIcon from "../assets/transport_types/car_icon.png";
@@ -58,6 +59,9 @@ export default function HomePage() {
   const [user, setUser] = useState<UserDTO | null>(null);
   const [userStats] = useState({ level: 1, xp: 0 });
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  
+  // GPS route tracking
+  const { points, startTracking, stopTracking, error: trackingError } = useLocationTracking();
 
   useEffect(() => {
     fetchDashboard();
@@ -116,6 +120,10 @@ export default function HomePage() {
     // Optimistic update
     setActiveActivity(type);
     setTimer(0);
+    
+    // Start GPS tracking
+    startTracking();
+    
     try {
       const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
       setCurrentActivityId(data.activityId);
@@ -123,13 +131,21 @@ export default function HomePage() {
       // eslint-disable-next-line no-console
       console.error("Failed to start activity", e);
       setActiveActivity(null); // Revert on failure
+      stopTracking(); // Stop tracking on failure
     }
   };
 
   const handleStop = async () => {
+    // Stop GPS tracking and get collected points
+    const routePoints = stopTracking();
+    
     if (currentActivityId) {
       try {
-        await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
+        await Api.stopActivity({ 
+          activityId: currentActivityId, 
+          stopTime: new Date().toISOString(),
+          gpx: { points: routePoints }, // Send route data
+        });
         await fetchDashboard(); // Refresh stats
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -169,6 +185,17 @@ export default function HomePage() {
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
+              
+              {/* Route polyline - shows tracked path */}
+              {points.length > 1 && (
+                <Polyline 
+                  positions={points.map(p => [p.lat, p.lng])}
+                  color="#e74c3c"
+                  weight={4}
+                  opacity={0.8}
+                />
+              )}
+              
               <Marker position={userLocation} icon={RedIcon}>
                 <Popup>Your location</Popup>
               </Marker>
