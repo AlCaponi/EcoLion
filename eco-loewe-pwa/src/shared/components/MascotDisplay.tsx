@@ -8,7 +8,6 @@ import homeOfficeDisplay from "../../assets/mascot/homeOffice.png";
 import publicTransportDisplay from "../../assets/mascot/public_transport.png";
 import walkingDisplay from "../../assets/mascot/walking.png";
 
-type Mood = "happy" | "sad" | "determined" | "angry";
 type Movement = "idle" | "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 
 interface MascotDisplayProps {
