@@ -4,9 +4,12 @@ import StatsPage from "../pages/StatsPage";
 import ShopPage from "../pages/ShopPage";
 import LeaderboardPage from "../pages/LeaderboardPage";
 
+import ChallengesPage from "../pages/ChallengesPage";
+
 export const routes: RouteObject[] = [
   { path: "/", element: <HomePage /> },
   { path: "/stats", element: <StatsPage /> },
+  { path: "/leaderboard", element: <LeaderboardPage /> },
   { path: "/shop", element: <ShopPage /> },
-  { path: "/leaderboard", element: <LeaderboardPage /> }
+  { path: "/challenges", element: <ChallengesPage /> },
 ];
