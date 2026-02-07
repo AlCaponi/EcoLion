@@ -61,7 +61,7 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   
   // GPS route tracking
-  const { points, startTracking, stopTracking } = useLocationTracking();
+  const { points, startTracking, stopTracking, clearPoints } = useLocationTracking();
 
   useEffect(() => {
     fetchDashboard();
@@ -124,6 +124,9 @@ export default function HomePage() {
     // Check if we should use mock data (for testing)
     const useMockData = new URLSearchParams(window.location.search).get('mock') === 'true';
     
+    // Clear previous route data before starting new tracking
+    clearPoints();
+    
     // Start GPS tracking (with optional mock mode)
     startTracking(useMockData);
     
@@ -141,6 +144,9 @@ export default function HomePage() {
   const handleStop = async () => {
     // Stop GPS tracking and get collected points
     const routePoints = stopTracking();
+    
+    // Clear points to prevent accumulation across activities
+    clearPoints();
     
     if (currentActivityId) {
       try {
