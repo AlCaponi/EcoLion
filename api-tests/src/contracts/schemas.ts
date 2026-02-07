@@ -89,6 +89,17 @@ export const AddFriendResponseSchema = z.object({
 const ActivityTypeEnum = z.enum(["walk", "bike", "transit", "drive", "wfh", "pool"]);
 const ActivityStateEnum = z.enum(["running", "paused", "stopped"]);
 
+const LocationPointSchema = z.object({
+  lat: z.number(),
+  lng: z.number(),
+  timestamp: z.string().datetime(),
+  accuracy: z.number().optional(),
+});
+
+const GPXDataSchema = z.object({
+  points: z.array(LocationPointSchema),
+});
+
 export const StartActivityRequestSchema = z.object({
   activityType: ActivityTypeEnum,
   startTime: z.string().datetime(),
@@ -102,7 +113,7 @@ export const StartActivityResponseSchema = z.object({
 export const StopActivityRequestSchema = z.object({
   activityId: z.number().int().positive(),
   stopTime: z.string().datetime(),
-  gpx: z.unknown().optional(),
+  gpx: GPXDataSchema.optional(),
   proofs: z.array(z.object({}).passthrough()).optional(),
 });
 
@@ -125,7 +136,7 @@ export const StopActivityResponseSchema = z.object({
   distanceMeters: z.number().nonnegative().optional(),
   xpEarned: z.number().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
-  gpx: z.unknown().optional(),
+  gpx: GPXDataSchema.optional(),
   proofs: z.array(z.object({}).passthrough()).optional(),
 });
 
@@ -136,6 +147,6 @@ export const GetActivityResponseSchema = z.object({
   distanceMeters: z.number().nonnegative().optional(),
   xpEarned: z.number().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
-  gpx: z.unknown().optional(),
+  gpx: GPXDataSchema.optional(),
   proofs: z.array(z.object({}).passthrough()).optional(),
 });

@@ -228,6 +228,144 @@ describe("Activity user scoping", () => {
   });
 });
 
+describe("Activity GPX data", () => {
+  let client: ApiClient;
+
+  beforeAll(async () => {
+    const ctx = await createTestContext("GPXUser");
+    client = ctx.client;
+  });
+
+  it("should accept and return GPX data when stopping an activity", async () => {
+    const { data: started } = await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T17:00:00Z" },
+    );
+
+    const gpxData = {
+      points: [
+        {
+          lat: 47.5,
+          lng: 8.7,
+          timestamp: "2023-10-27T17:00:00Z",
+          accuracy: 10,
+        },
+        {
+          lat: 47.501,
+          lng: 8.701,
+          timestamp: "2023-10-27T17:05:00Z",
+          accuracy: 12,
+        },
+        {
+          lat: 47.502,
+          lng: 8.702,
+          timestamp: "2023-10-27T17:10:00Z",
+        },
+      ],
+    };
+
+    const { data: stopped, status } = await client.post<StopActivityResponseDTO>(
+      "/v1/activity/stop",
+      {
+        activityId: started.activityId,
+        stopTime: "2023-10-27T17:10:00Z",
+        gpx: gpxData,
+      },
+    );
+
+    expect(status).toBe(200);
+    expect(stopped.gpx).toBeDefined();
+    expect(stopped.gpx?.points).toHaveLength(3);
+    expect(stopped.gpx?.points[0]).toMatchObject({
+      lat: 47.5,
+      lng: 8.7,
+      timestamp: "2023-10-27T17:00:00Z",
+      accuracy: 10,
+    });
+  });
+
+  it("should validate GPX data schema in stop response", async () => {
+    const { data: started } = await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "bike", startTime: "2023-10-27T18:00:00Z" },
+    );
+
+    const gpxData = {
+      points: [
+        {
+          lat: 47.5,
+          lng: 8.7,
+          timestamp: "2023-10-27T18:00:00Z",
+          accuracy: 5,
+        },
+      ],
+    };
+
+    const { data } = await client.post<StopActivityResponseDTO>(
+      "/v1/activity/stop",
+      {
+        activityId: started.activityId,
+        stopTime: "2023-10-27T18:15:00Z",
+        gpx: gpxData,
+      },
+    );
+
+    const result = StopActivityResponseSchema.safeParse(data);
+    if (!result.success) {
+      console.error("Schema validation errors:", result.error.issues);
+    }
+    expect(result.success).toBe(true);
+  });
+
+  it("should return GPX data from GET endpoint", async () => {
+    const { data: started } = await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "transit", startTime: "2023-10-27T19:00:00Z" },
+    );
+
+    const gpxData = {
+      points: [
+        {
+          lat: 47.5,
+          lng: 8.7,
+          timestamp: "2023-10-27T19:00:00Z",
+        },
+        {
+          lat: 47.503,
+          lng: 8.703,
+          timestamp: "2023-10-27T19:20:00Z",
+          accuracy: 15,
+        },
+      ],
+    };
+
+    await client.post<StopActivityResponseDTO>("/v1/activity/stop", {
+      activityId: started.activityId,
+      stopTime: "2023-10-27T19:20:00Z",
+      gpx: gpxData,
+    });
+
+    const { data: retrieved } = await client.get<GetActivityResponseDTO>(
+      `/v1/activity/${started.activityId}`,
+    );
+
+    expect(retrieved.gpx).toBeDefined();
+    expect(retrieved.gpx?.points).toHaveLength(2);
+    expect(retrieved.gpx?.points[1]).toMatchObject({
+      lat: 47.503,
+      lng: 8.703,
+      timestamp: "2023-10-27T19:20:00Z",
+      accuracy: 15,
+    });
+
+    const result = GetActivityResponseSchema.safeParse(retrieved);
+    if (!result.success) {
+      console.error("Schema validation errors:", result.error.issues);
+    }
+    expect(result.success).toBe(true);
+  });
+});
+
 describe("GET /v1/activities", () => {
   let client: ApiClient;
 
