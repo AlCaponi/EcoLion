@@ -37,11 +37,11 @@ export const DEFAULT_ASSETS = [
   { id: "decor-plant", url: "/assets/shop/decor-plant.png", category: "decor" },
 ];
 
-export const DEFAULT_FRIENDS = [
-  { id: "p1", name: "Paul", co2SavedKg: 95, streakDays: 6 },
-  { id: "p2", name: "Alex", co2SavedKg: 80, streakDays: 4 },
-  { id: "p3", name: "Sarah", co2SavedKg: 70, streakDays: 7 },
-  { id: "p4", name: "Lisa", co2SavedKg: 62, streakDays: 3 },
+export const DEFAULT_USERS = [
+  { id: "p1", displayName: "Paul", co2SavedKg: 95, streakDays: 6 },
+  { id: "p2", displayName: "Alex", co2SavedKg: 80, streakDays: 4 },
+  { id: "p3", displayName: "Sarah", co2SavedKg: 70, streakDays: 7 },
+  { id: "p4", displayName: "Lisa", co2SavedKg: 62, streakDays: 3 },
 ];
 
 export const DEFAULT_LEADERBOARD = {
@@ -55,7 +55,6 @@ export const DEFAULT_LEADERBOARD = {
     { id: "matt", name: "Mattenbach", co2SavedKg: 390, rank: 6 },
     { id: "velt", name: "Veltheim", co2SavedKg: 370, rank: 7 },
   ],
-  friends: DEFAULT_FRIENDS,
 };
 
 export const DEFAULT_SHOP_ITEMS = [

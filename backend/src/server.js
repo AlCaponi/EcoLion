@@ -144,8 +144,8 @@ app.get("/v1/dashboard", async (request) => {
   return store.getDashboard(request.userId);
 });
 
-app.get("/v1/leaderboard", async () => {
-  return store.getLeaderboard();
+app.get("/v1/leaderboard", async (request) => {
+  return store.getLeaderboard(request.userId);
 });
 
 app.get("/v1/shop/items", async (request) => {
@@ -165,18 +165,18 @@ app.post("/v1/shop/purchase", async (request, reply) => {
   return { ok: true };
 });
 
-app.get("/v1/friends", async () => {
-  return store.listFriends();
+app.get("/v1/users", async () => {
+  return store.listUsers();
 });
 
-app.post("/v1/friends/:friendId/poke", async (request, reply) => {
-  const friendId = request.params?.friendId;
-  if (typeof friendId !== "string" || !friendId.trim()) {
-    return reply.code(400).send({ error: "friendId is required" });
+app.post("/v1/users/:userId/poke", async (request, reply) => {
+  const userId = request.params?.userId;
+  if (typeof userId !== "string" || !userId.trim()) {
+    return reply.code(400).send({ error: "userId is required" });
   }
-  const success = store.pokeFriend(request.userId, friendId);
+  const success = store.pokeUser(request.userId, userId);
   if (!success) {
-    return reply.code(404).send({ error: "Friend not found" });
+    return reply.code(404).send({ error: "User not found" });
   }
   return { ok: true };
 });

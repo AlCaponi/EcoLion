@@ -14,7 +14,7 @@ export async function seedDatabase(client: ApiClient): Promise<void> {
   // Try bulk seed endpoint first
   const { status } = await client.post("/v1/admin/seed", {
     shopItems: fixtures.shopItems,
-    friends: fixtures.friends,
+    users: fixtures.users,
     dashboard: fixtures.dashboard,
     leaderboard: fixtures.leaderboard,
   });

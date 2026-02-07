@@ -154,6 +154,11 @@ Each visual accessory is backed by an `AssetDTO` loaded from the assets endpoint
 
 Categories: `"glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor"`
 
+### LeaderboardDTO (Users)
+The leaderboard endpoint now includes user entries derived from activity aggregates:
+- `GET /v1/leaderboard` → `users: { user: { id, displayName }, score, rank, isMe? }[]`
+- `score` is the total CO₂ saved across stopped activities per user.
+
 ## Project Structure
 
 ```
