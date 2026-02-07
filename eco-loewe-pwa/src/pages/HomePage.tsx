@@ -128,7 +128,7 @@ export default function HomePage() {
 
       <Card>
         <div className="sectionTitle">Dein Löwe</div>
-        {user ? (
+        {user?.lion ? (
           <MascotDisplay
             level={Math.floor(user.sustainabilityScore / 100) + 1}
             xp={user.sustainabilityScore}

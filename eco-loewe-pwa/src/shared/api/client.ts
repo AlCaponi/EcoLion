@@ -60,6 +60,10 @@ class ApiClient {
         data = text as unknown as T;
     }
 
+    if (!response.ok) {
+        throw new Error((data as any)?.error || `Request failed with status ${response.status}`);
+    }
+
     return {
         status: response.status,
         data,

@@ -4,16 +4,6 @@ import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 
-// Mock shop data for demo
-const MOCK_ITEMS: ShopItemDTO[] = [
-  { id: "hat-detective", name: "Detektiv-Hut", priceCoins: 120, category: "hats", owned: false, assetPath: "/assets/articles/hats/detective_hat/DetectiveHat.png" },
-  { id: "hat-birthday", name: "Party-Hut", priceCoins: 80, category: "hats", owned: false, assetPath: "/assets/articles/hats/birthday_hat/birthday_hat.png" },
-  { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "🧢" },
-  { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "😎" },
-  { id: "outfit-scarf", name: "Schal", priceCoins: 35, category: "outfits", owned: false, assetPath: "🧣" },
-  { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "🌿" },
-];
-
 // Coin packages for purchase
 const COIN_PACKAGES = [
   { coins: 100, price: "CHF 4.90" },
@@ -23,7 +13,7 @@ const COIN_PACKAGES = [
 ];
 
 export default function ShopPage() {
-  const [items, setItems] = useState<ShopItemDTO[]>(MOCK_ITEMS);
+  const [items, setItems] = useState<ShopItemDTO[]>([]);
   const [user, setUser] = useState<UserDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -34,15 +24,12 @@ export default function ShopPage() {
   useEffect(() => {
     (async () => {
       try {
-        const userData = await Api.dashboard();
+        const [userData, shopItems] = await Promise.all([
+            Api.dashboard(),
+            Api.shopItems()
+        ]);
         setUser(userData);
-
-        // In production, would call Api.shopItems(), using mock for demo
-        const enrichedItems = items.map((item) => ({
-          ...item,
-          owned: userData.lion.accessories.includes(item.id),
-        }));
-        setItems(enrichedItems);
+        setItems(shopItems);
       } catch (e) {
         setMessage({ type: "error", text: "Fehler beim Laden der Shop-Daten" });
       }
@@ -57,13 +44,14 @@ export default function ShopPage() {
     }
     setLoading(true);
     try {
-      const updated = await Api.purchase({ itemId });
-      setUser(updated);
-      const enrichedItems = items.map((item) => ({
-        ...item,
-        owned: updated.lion.accessories.includes(item.id),
-      }));
-      setItems(enrichedItems);
+      const updatedUser = await Api.purchase({ itemId });
+      setUser(updatedUser);
+      
+      // Update local items state to reflect ownership
+      setItems(prev => prev.map(item => 
+          item.id === itemId ? { ...item, owned: true } : item
+      ));
+
       setMessage({ type: "success", text: "Artikel gekauft! 🎉" });
     } catch (e) {
       setMessage({ type: "error", text: "Kauf fehlgeschlagen" });
@@ -77,13 +65,8 @@ export default function ShopPage() {
     if (!user) return;
     setLoading(true);
     try {
-      const updated = isEquipped ? await Api.unequip(itemId) : await Api.equip({ itemId });
-      setUser(updated);
-      const enrichedItems = items.map((item) => ({
-        ...item,
-        owned: updated.lion.accessories.includes(item.id),
-      }));
-      setItems(enrichedItems);
+      const updatedUser = isEquipped ? await Api.unequip(itemId) : await Api.equip({ itemId });
+      setUser(updatedUser);
     } catch (e) {
       setMessage({ type: "error", text: "Aktion fehlgeschlagen" });
     } finally {
@@ -105,16 +88,11 @@ export default function ShopPage() {
         return;
       }
 
-      // Mock: add coins to user
-      const mockResponse = {
-        transactionId: `TXN-${Date.now()}`,
-        coinsAdded: amount,
-        newBalance: user.lion.coins + amount,
-      };
+      const response = await Api.buyCoins({ amount, paymentMethod: "card" });
 
       setUser({
         ...user,
-        lion: { ...user.lion, coins: mockResponse.newBalance },
+        lion: { ...user.lion, coins: response.newBalance },
       });
 
       setMessage({ type: "success", text: `${amount} Coins hinzugefügt! 🎉` });
@@ -129,7 +107,7 @@ export default function ShopPage() {
 
   // Get item price or button text
   function canAfford(item: ShopItemDTO): boolean {
-    return user ? user.lion.coins >= item.priceCoins : false;
+    return user?.lion?.coins !== undefined ? user.lion.coins >= item.priceCoins : false;
   }
 
   return (
@@ -212,41 +190,53 @@ export default function ShopPage() {
             </h2>
 
             <div className="shopGrid">
-              {categoryItems.map((item) => (
-                <Card key={item.id}>
-                  <div className="shopItem">
-                    <div className="shopItemIcon">{item.assetPath}</div>
-                    <div className="shopItemName">{item.name}</div>
+              {categoryItems.map((item) => {
+                  const isEquipped = user?.lion.accessories.includes(item.id) ?? false;
+                  // Handle potential emoji assets gracefully (legacy items)
+                  const isImage = item.assetPath.startsWith("/") || item.assetPath.endsWith(".png");
 
-                    {item.owned ? (
-                      <div className="shopItemOwned">
-                        <div className="shopItemPrice">Im Besitz</div>
-                        <PrimaryButton
-                          small
-                          disabled={loading}
-                          onClick={() => toggleEquip(item.id, user?.lion.accessories.includes(item.id) ?? false)}
-                          style={{
-                            background: user?.lion.accessories.includes(item.id) ? "var(--brand)" : "var(--muted)",
-                          }}
-                        >
-                          {user?.lion.accessories.includes(item.id) ? "Ausziehen" : "Anziehen"}
-                        </PrimaryButton>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="shopItemPrice">{item.priceCoins} Coins</div>
-                        <PrimaryButton
-                          small
-                          disabled={loading || !canAfford(item)}
-                          onClick={() => buyItem(item.id)}
-                        >
-                          Kaufen
-                        </PrimaryButton>
-                      </>
-                    )}
-                  </div>
-                </Card>
-              ))}
+                  return (
+                    <Card key={item.id}>
+                    <div className="shopItem">
+                        <div className="shopItemIcon">
+                            {isImage ? (
+                                <img src={item.assetPath} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                            ) : (
+                                <span style={{ fontSize: "3rem" }}>{item.assetPath}</span>
+                            )}
+                        </div>
+                        <div className="shopItemName">{item.name}</div>
+
+                        {item.owned ? (
+                        <div className="shopItemOwned">
+                            <div className="shopItemPrice">Im Besitz</div>
+                            <PrimaryButton
+                            small
+                            disabled={loading}
+                            onClick={() => toggleEquip(item.id, isEquipped)}
+                            style={{
+                                background: isEquipped ? "var(--brand)" : "var(--muted)",
+                            }}
+                            >
+                            {isEquipped ? "Ausziehen" : "Anziehen"}
+                            </PrimaryButton>
+                        </div>
+                        ) : (
+                        <>
+                            <div className="shopItemPrice">{item.priceCoins} Coins</div>
+                            <PrimaryButton
+                            small
+                            disabled={loading || !canAfford(item)}
+                            onClick={() => buyItem(item.id)}
+                            >
+                            Kaufen
+                            </PrimaryButton>
+                        </>
+                        )}
+                    </div>
+                    </Card>
+                  );
+              })}
             </div>
           </div>
         );

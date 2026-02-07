@@ -10,8 +10,7 @@ import publicTransportDisplay from "../../assets/mascot/public_transport.png";
 import walkingDisplay from "../../assets/mascot/walking.png";
 
 // Import accessories
-import birthdayHat from "../../assets/articles/hats/birthday_hat/birthday_hat.png";
-import detectiveHat from "../../assets/articles/hats/detective_hat/DetectiveHat.png";
+// (Removed imports in favor of public paths)
 
 type Movement = "idle" | "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 
@@ -35,8 +34,10 @@ const MOVEMENT_IMAGES: Record<Movement, string> = {
 };
 
 const ACCESSORY_IMAGES: Record<string, string> = {
-  "hat-birthday": birthdayHat,
-  "hat-detective": detectiveHat,
+  "hat-birthday": "/assets/articles/hats/birthday_hat/birthday_hat.png",
+  "hat-detective": "/assets/articles/hats/detective_hat/DetectiveHat.png",
+  "hat-cap": "/assets/articles/hats/cap/Cap.png",
+  "outfit-scarf": "/assets/articles/scarfs/FC_Winterthur_scarf/scarf.png",
   // Add other mappings as needed
 };
 
@@ -113,7 +114,7 @@ const styles: Record<string, CSSProperties> = {
   },
   speechBubble: {
     position: "absolute",
-    top: "-10px",
+    top: "-60px",
     right: "-20px",
     backgroundColor: "white",
     padding: "0.5rem 1rem",

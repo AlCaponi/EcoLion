@@ -480,13 +480,46 @@ export function createStore(dbPath) {
         "INSERT OR IGNORE INTO user_shop_ownership (user_id, item_id) VALUES (?, ?)",
       ).run(userId, itemId);
 
-      if (!dashboard.lion.accessories.includes(itemId)) {
-        dashboard.lion.accessories = [...dashboard.lion.accessories, itemId];
-      }
+      // Auto-equip on purchase? Maybe not, let user decide.
+      // But for now let's just add ownership.
+      
       dashboard.lion.coins = Math.max(0, dashboard.lion.coins - item.price_coins);
       upsertDashboardForUser(db, userId, dashboard);
 
       return { notFound: false, insufficientFunds: false };
+    },
+
+    equipItem(userId, itemId) {
+      const ownership = db
+        .prepare("SELECT 1 FROM user_shop_ownership WHERE user_id = ? AND item_id = ?")
+        .get(userId, itemId);
+
+      if (!ownership) {
+        return null; // Not owned
+      }
+
+      const dashboard = this.getDashboard(userId);
+      if (!dashboard.lion.accessories.includes(itemId)) {
+        dashboard.lion.accessories.push(itemId);
+        upsertDashboardForUser(db, userId, dashboard);
+      }
+      return dashboard;
+    },
+
+    unequipItem(userId, itemId) {
+      const dashboard = this.getDashboard(userId);
+      if (dashboard.lion.accessories.includes(itemId)) {
+        dashboard.lion.accessories = dashboard.lion.accessories.filter(id => id !== itemId);
+        upsertDashboardForUser(db, userId, dashboard);
+      }
+      return dashboard;
+    },
+
+    addCoins(userId, amount) {
+      const dashboard = this.getDashboard(userId);
+      dashboard.lion.coins += amount;
+      upsertDashboardForUser(db, userId, dashboard);
+      return dashboard;
     },
 
     listFriends() {
