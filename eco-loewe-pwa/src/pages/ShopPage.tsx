@@ -4,21 +4,11 @@ import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 
-// Coin packages for purchase
-const COIN_PACKAGES = [
-  { coins: 100, price: "CHF 4.90" },
-  { coins: 300, price: "CHF 12.90" },
-  { coins: 600, price: "CHF 24.90" },
-  { coins: 1200, price: "CHF 44.90" },
-];
-
 export default function ShopPage() {
   const [items, setItems] = useState<ShopItemDTO[]>([]);
   const [user, setUser] = useState<UserDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [showPayment, setShowPayment] = useState(false);
-  const [selectedCoins, setSelectedCoins] = useState<number | null>(null);
 
   // Load user and shop items
   useEffect(() => {
@@ -74,37 +64,6 @@ export default function ShopPage() {
     }
   }
 
-  // Buy coins with card (mock)
-  async function buyCoinsMock(amount: number) {
-    // Simulate payment processing
-    setLoading(true);
-    try {
-      // In production: call Api.buyCoins({ amount, paymentMethod: "card" })
-      // For demo: simulate successful payment
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      if (!user) {
-        setMessage({ type: "error", text: "Benutzer nicht geladen" });
-        return;
-      }
-
-      const response = await Api.buyCoins({ amount, paymentMethod: "card" });
-
-      setUser({
-        ...user,
-        lion: { ...user.lion, coins: response.newBalance },
-      });
-
-      setMessage({ type: "success", text: `${amount} Coins hinzugefügt! 🎉` });
-      setShowPayment(false);
-      setSelectedCoins(null);
-    } catch (e) {
-      setMessage({ type: "error", text: "Zahlungsvorgang fehlgeschlagen" });
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // Get item price or button text
   function canAfford(item: ShopItemDTO): boolean {
     return user?.lion?.coins !== undefined ? user.lion.coins >= item.priceCoins : false;
@@ -120,56 +79,15 @@ export default function ShopPage() {
         </Card>
       )}
 
-      {/* Coin Balance & Buy Coins */}
+      {/* Coin Balance */}
       <Card>
         <div className="row between">
           <div>
             <div className="label">Deine Coins</div>
             <div className="coinBalance">{user?.lion.coins ?? 0} 🪙</div>
           </div>
-          <PrimaryButton small onClick={() => setShowPayment(!showPayment)}>
-            Coins kaufen →
-          </PrimaryButton>
+          {/* Coin purchase removed as per decision */}
         </div>
-
-        {showPayment && (
-          <div className="coinPurchaseSection">
-            <div className="label" style={{ marginTop: "12px" }}>
-              Coins kaufen mit Kreditkarte
-            </div>
-            <div className="coinPackages">
-              {COIN_PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.coins}
-                  className={`coinPackage ${selectedCoins === pkg.coins ? "selected" : ""}`}
-                  onClick={() => setSelectedCoins(pkg.coins)}
-                  disabled={loading}
-                >
-                  <div className="coins">{pkg.coins} 🪙</div>
-                  <div className="price">{pkg.price}</div>
-                </button>
-              ))}
-            </div>
-            {selectedCoins && (
-              <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
-                <PrimaryButton
-                  small
-                  onClick={() => buyCoinsMock(selectedCoins)}
-                  disabled={loading}
-                >
-                  {loading ? "Verarbeite..." : "Bezahlen"}
-                </PrimaryButton>
-                <PrimaryButton
-                  small
-                  onClick={() => setShowPayment(false)}
-                  style={{ background: "var(--muted)", color: "white" }}
-                >
-                  Abbrechen
-                </PrimaryButton>
-              </div>
-            )}
-          </div>
-        )}
       </Card>
 
       {/* Items Grid by Category */}

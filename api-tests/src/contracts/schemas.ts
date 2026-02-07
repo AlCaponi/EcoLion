@@ -32,12 +32,26 @@ export const LeaderboardSchema = z.object({
       rank: z.number().int().positive(),
     }),
   ),
+  users: z.array(
+    z.object({
+      user: z.object({
+        id: z.string().min(1),
+        displayName: z.string().min(1),
+      }),
+      score: z.number().nonnegative(),
+      rank: z.number().int().positive(),
+      isMe: z.boolean().optional(),
+    }),
+  ),
   friends: z.array(
     z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      co2SavedKg: z.number().nonnegative(),
-      streakDays: z.number().int().nonnegative(),
+      user: z.object({
+        id: z.string().min(1),
+        displayName: z.string().min(1),
+      }),
+      score: z.number().nonnegative(),
+      rank: z.number().int().positive(),
+      isMe: z.boolean().optional(),
     }),
   ),
 });
@@ -51,11 +65,25 @@ export const ShopItemSchema = z.object({
   assetPath: z.string().startsWith("/"),
 });
 
-export const FriendSchema = z.object({
+export const UserListEntrySchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
+  displayName: z.string().min(1),
   streakDays: z.number().int().nonnegative(),
   co2SavedKg: z.number().nonnegative(),
+});
+
+export const FriendSummarySchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().min(1),
+});
+
+export const AddFriendRequestSchema = z.object({
+  userId: z.string().min(1),
+});
+
+export const AddFriendResponseSchema = z.object({
+  ok: z.literal(true),
+  friend: FriendSummarySchema,
 });
 
 const ActivityTypeEnum = z.enum(["walk", "bike", "transit", "drive", "wfh", "pool"]);
@@ -76,6 +104,18 @@ export const StopActivityRequestSchema = z.object({
   stopTime: z.string().datetime(),
   gpx: z.unknown().optional(),
   proofs: z.array(z.object({}).passthrough()).optional(),
+});
+
+export const ActivityListItemSchema = z.object({
+  activityId: z.number().int().positive(),
+  activityType: ActivityTypeEnum,
+  state: ActivityStateEnum,
+  startTime: z.string().datetime(),
+  stopTime: z.string().datetime().optional(),
+  durationSeconds: z.number().nonnegative(),
+  distanceMeters: z.number().nonnegative().optional(),
+  xpEarned: z.number().nonnegative(),
+  co2SavedKg: z.number().nonnegative(),
 });
 
 export const StopActivityResponseSchema = z.object({

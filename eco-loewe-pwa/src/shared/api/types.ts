@@ -34,11 +34,32 @@ export interface QuartierEntry {
   isMe?: boolean; // the user's own quartier
 }
 
+export interface UserSummaryDTO {
+  id: string;
+  displayName: string;
+}
+
+export interface AddFriendRequestDTO {
+  userId: string;
+}
+
+export interface AddFriendResponseDTO {
+  ok: true;
+  friend: UserSummaryDTO;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
+  rank: number;
+  isMe?: boolean;
+}
+
 export interface LeaderboardDTO {
   streakDays: number;
   quartiers: QuartierEntry[];
-  friends: LeaderboardEntry[];
-  city: LeaderboardEntry[]; // city-wide ranking (all users)
+  users: UserScoreEntryDTO[];
+  friends: UserScoreEntryDTO[];
 }
 
 export interface ShopItemDTO {
@@ -71,7 +92,7 @@ export interface BuyCoinResponseDTO {
 
 export interface FriendDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }
@@ -141,6 +162,18 @@ export interface StartActivityResponseDTO {
   state: ActivityState;
 }
 
+export interface ActivityListItemDTO {
+  activityId: number;
+  activityType: ActivityType;
+  state: ActivityState;
+  startTime: string;
+  stopTime?: string;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
+}
+
 export interface StopActivityRequestDTO {
   activityId: number;
   stopTime: string; // ISO timestamp
@@ -168,4 +201,15 @@ export interface GetActivityResponseDTO {
   co2SavedKg: number;
   gpx?: unknown;
   proofs?: object[];
+}
+
+export interface BuyCoinDTO {
+  amount: number;
+  paymentMethod: "card" | "paypal";
+}
+
+export interface BuyCoinResponseDTO {
+  transactionId: string;
+  coinsAdded: number;
+  newBalance: number;
 }

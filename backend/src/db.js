@@ -5,7 +5,7 @@ import Database from "better-sqlite3";
 import {
   DEFAULT_ASSETS,
   DEFAULT_DASHBOARD,
-  DEFAULT_FRIENDS,
+  DEFAULT_USERS,
   DEFAULT_LEADERBOARD,
   DEFAULT_SHOP_ITEMS,
 } from "./fixtures.js";
@@ -113,21 +113,66 @@ function seedAssets(db, assets) {
   }
 }
 
-function seedFriends(db, friends) {
-  db.prepare("DELETE FROM friends").run();
-  const stmt = db.prepare(
+function seedUsers(db, users) {
+  const insertUser = db.prepare(
     `
-      INSERT INTO friends (id, name, streak_days, co2_saved_kg)
-      VALUES (@id, @name, @streakDays, @co2SavedKg)
+      INSERT OR IGNORE INTO users (id, display_name, created_at)
+      VALUES (@id, @displayName, @createdAt)
     `,
   );
-  for (const friend of friends) {
-    stmt.run({
-      id: String(friend.id),
-      name: String(friend.name),
-      streakDays: Number(friend.streakDays) || 0,
-      co2SavedKg: Number(friend.co2SavedKg) || 0,
+  const insertDashboard = db.prepare(
+    `
+      INSERT OR IGNORE INTO dashboard_state (
+        user_id, sustainability_score, streak_days, today_walk_km, today_pt_trips, today_car_km,
+        lion_mood, lion_activity_mode, lion_accessories_json, coins
+      )
+      VALUES (
+        @userId, @sustainabilityScore, @streakDays, @todayWalkKm, @todayPtTrips, @todayCarKm,
+        @lionMood, @lionActivityMode, @lionAccessoriesJson, @coins
+      )
+    `,
+  );
+  const insertActivity = db.prepare(
+    `
+      INSERT INTO activities (
+        user_id, activity_type, state, start_time, stop_time, duration_seconds,
+        distance_meters, xp_earned, co2_saved_kg
+      )
+      VALUES (
+        @userId, 'walk', 'stopped', @startTime, @stopTime, 0, 0, 0, @co2SavedKg
+      )
+    `,
+  );
+  const defaultDashboard = getDefaultDashboard(db);
+
+  for (const user of users) {
+    const userId = String(user.id);
+    const displayName = String(user.displayName ?? user.name ?? "Eco User");
+    const streakDays = Number(user.streakDays) || 0;
+    const co2SavedKg = Number(user.co2SavedKg) || 0;
+
+    insertUser.run({
+      id: userId,
+      displayName,
+      createdAt: nowIso(),
     });
+
+    const dashboard = {
+      ...defaultDashboard,
+      streakDays,
+    };
+    const row = buildDashboardRow(userId, dashboard);
+    insertDashboard.run(row);
+
+    if (co2SavedKg > 0) {
+      const now = nowIso();
+      insertActivity.run({
+        userId,
+        startTime: now,
+        stopTime: now,
+        co2SavedKg,
+      });
+    }
   }
 }
 
@@ -196,7 +241,10 @@ function estimateCo2SavedKg(activityType, distanceMeters) {
 function mapActivityRow(row) {
   return {
     activityId: row.id,
+    activityType: row.activity_type,
     state: row.state,
+    startTime: row.start_time,
+    stopTime: row.stop_time ?? undefined,
     durationSeconds: row.duration_seconds ?? 0,
     distanceMeters:
       typeof row.distance_meters === "number" ? row.distance_meters : undefined,
@@ -208,6 +256,17 @@ function mapActivityRow(row) {
 }
 
 export function createStore(dbPath) {
+  const purgeOnStart = ["1", "true", "yes"].includes(
+    String(process.env.PURGE_DB_ON_START ?? "").toLowerCase(),
+  );
+  if (purgeOnStart && dbPath && dbPath !== ":memory:") {
+    try {
+      fs.rmSync(dbPath, { force: true });
+    } catch (error) {
+      console.warn("Failed to purge database file:", error);
+    }
+  }
+
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   db.pragma("foreign_keys = ON");
@@ -262,13 +321,6 @@ export function createStore(dbPath) {
       category TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS friends (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      streak_days INTEGER NOT NULL,
-      co2_saved_kg REAL NOT NULL
-    );
-
     CREATE TABLE IF NOT EXISTS leaderboard_quartiers (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -311,11 +363,27 @@ export function createStore(dbPath) {
     CREATE TABLE IF NOT EXISTS pokes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id TEXT NOT NULL,
-      friend_id TEXT NOT NULL,
+      target_user_id TEXT NOT NULL,
       created_at TEXT NOT NULL,
-      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(target_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS friends (
+      user_id TEXT NOT NULL,
+      friend_user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (user_id, friend_user_id),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(friend_user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  const pokeColumns = db.prepare("PRAGMA table_info(pokes)").all();
+  const pokeColumnNames = new Set(pokeColumns.map((col) => col.name));
+  if (pokeColumnNames.has("friend_id") && !pokeColumnNames.has("target_user_id")) {
+    db.exec("ALTER TABLE pokes RENAME COLUMN friend_id TO target_user_id");
+  }
 
   if (!db.prepare("SELECT 1 FROM settings WHERE key = 'default_dashboard'").get()) {
     setDefaultDashboard(db, DEFAULT_DASHBOARD);
@@ -323,8 +391,8 @@ export function createStore(dbPath) {
   if (!db.prepare("SELECT 1 FROM assets LIMIT 1").get()) {
     seedAssets(db, DEFAULT_ASSETS);
   }
-  if (!db.prepare("SELECT 1 FROM friends LIMIT 1").get()) {
-    seedFriends(db, DEFAULT_FRIENDS);
+  if (!db.prepare("SELECT 1 FROM users LIMIT 1").get()) {
+    seedUsers(db, DEFAULT_USERS);
   }
   if (!db.prepare("SELECT 1 FROM leaderboard_quartiers LIMIT 1").get()) {
     seedLeaderboardQuartiers(db, DEFAULT_LEADERBOARD.quartiers);
@@ -414,7 +482,12 @@ export function createStore(dbPath) {
       return dashboard;
     },
 
-    getLeaderboard() {
+    updateDashboard(userId, dashboard) {
+      upsertDashboardForUser(db, userId, dashboard);
+      return this.getDashboard(userId);
+    },
+
+    getLeaderboard(userId) {
       const defaultDashboard = getDefaultDashboard(db);
       const quartiers = db
         .prepare(
@@ -425,19 +498,61 @@ export function createStore(dbPath) {
           `,
         )
         .all();
-      const friends = db
+      const userRows = db
         .prepare(
           `
-            SELECT id, name, co2_saved_kg AS co2SavedKg, streak_days AS streakDays
-            FROM friends
-            ORDER BY id ASC
+            SELECT
+              u.id,
+              u.display_name AS displayName,
+              COALESCE(SUM(a.co2_saved_kg), 0) AS score
+            FROM users u
+            LEFT JOIN activities a
+              ON a.user_id = u.id AND a.state = 'stopped'
+            GROUP BY u.id
+            ORDER BY score DESC, displayName ASC
           `,
         )
         .all();
+      const users = userRows.map((row, index) => ({
+        user: { id: row.id, displayName: row.displayName },
+        score: Number(Number(row.score ?? 0).toFixed(3)),
+        rank: index + 1,
+        isMe: userId ? row.id === userId : undefined,
+      }));
+      const friendIds = userId
+        ? db
+            .prepare(
+              "SELECT friend_user_id AS friendId FROM friends WHERE user_id = ?",
+            )
+            .all(userId)
+            .map((row) => row.friendId)
+        : [];
+      const friendSet = new Set(friendIds);
+      if (userId) {
+        friendSet.add(userId);
+      }
+      if (friendSet.size < 3) {
+        for (const row of userRows) {
+          if (friendSet.size >= 3) break;
+          if (!friendSet.has(row.id)) {
+            friendSet.add(row.id);
+          }
+        }
+      }
+      const friends = userRows
+        .filter((row) => friendSet.has(row.id))
+        .map((row) => ({
+          user: { id: row.id, displayName: row.displayName },
+          score: Number(Number(row.score ?? 0).toFixed(3)),
+          isMe: userId ? row.id === userId : undefined,
+        }))
+        .sort((a, b) => b.score - a.score || a.user.displayName.localeCompare(b.user.displayName))
+        .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
       return {
         streakDays: defaultDashboard.streakDays ?? 0,
         quartiers,
+        users,
         friends,
       };
     },
@@ -537,27 +652,88 @@ export function createStore(dbPath) {
       upsertDashboardForUser(db, userId, dashboard);
       return dashboard;
     },
-
-    listFriends() {
-      return db
+    listUsers() {
+      const rows = db
         .prepare(
           `
-            SELECT id, name, streak_days AS streakDays, co2_saved_kg AS co2SavedKg
-            FROM friends
-            ORDER BY id ASC
+            SELECT
+              u.id,
+              u.display_name AS displayName,
+              COALESCE(ds.streak_days, 0) AS streakDays,
+              COALESCE(SUM(a.co2_saved_kg), 0) AS co2SavedKg
+            FROM users u
+            LEFT JOIN dashboard_state ds
+              ON ds.user_id = u.id
+            LEFT JOIN activities a
+              ON a.user_id = u.id AND a.state = 'stopped'
+            GROUP BY u.id
+            ORDER BY displayName ASC
           `,
         )
         .all();
+      return rows.map((row) => ({
+        id: row.id,
+        displayName: row.displayName,
+        streakDays: Number(row.streakDays ?? 0),
+        co2SavedKg: Number(Number(row.co2SavedKg ?? 0).toFixed(3)),
+      }));
     },
 
-    pokeFriend(userId, friendId) {
-      const friend = db.prepare("SELECT 1 FROM friends WHERE id = ?").get(friendId);
+    listFriends(userId) {
+      const rows = db
+        .prepare(
+          `
+            SELECT u.id, u.display_name AS displayName
+            FROM friends f
+            JOIN users u
+              ON u.id = f.friend_user_id
+            WHERE f.user_id = ?
+            ORDER BY displayName ASC
+          `,
+        )
+        .all(userId);
+      return rows.map((row) => ({ id: row.id, displayName: row.displayName }));
+    },
+
+    addFriendById(userId, friendUserId) {
+      const friendId = typeof friendUserId === "string" ? friendUserId.trim() : "";
+      if (!friendId) {
+        return { status: "invalid" };
+      }
+      if (friendId === userId) {
+        return { status: "self" };
+      }
+      const friend = db
+        .prepare(
+          `
+            SELECT id, display_name AS displayName
+            FROM users
+            WHERE id = ?
+          `,
+        )
+        .get(friendId);
       if (!friend) {
+        return { status: "not_found" };
+      }
+      const result = db
+        .prepare(
+          "INSERT OR IGNORE INTO friends (user_id, friend_user_id, created_at) VALUES (?, ?, ?)",
+        )
+        .run(userId, friend.id, nowIso());
+      if (result.changes === 0) {
+        return { status: "duplicate", friend };
+      }
+      return { status: "ok", friend };
+    },
+
+    pokeUser(userId, targetUserId) {
+      const target = db.prepare("SELECT 1 FROM users WHERE id = ?").get(targetUserId);
+      if (!target) {
         return false;
       }
       db.prepare(
-        "INSERT INTO pokes (user_id, friend_id, created_at) VALUES (?, ?, ?)",
-      ).run(userId, friendId, nowIso());
+        "INSERT INTO pokes (user_id, target_user_id, created_at) VALUES (?, ?, ?)",
+      ).run(userId, targetUserId, nowIso());
       return true;
     },
 
@@ -655,10 +831,43 @@ export function createStore(dbPath) {
       return row ? mapActivityRow(row) : null;
     },
 
+    listActivities(userId) {
+      const rows = db
+        .prepare(
+          `
+            SELECT
+              id,
+              activity_type,
+              state,
+              start_time,
+              stop_time,
+              duration_seconds,
+              distance_meters,
+              xp_earned,
+              co2_saved_kg
+            FROM activities
+            WHERE user_id = ?
+            ORDER BY start_time DESC
+          `,
+        )
+        .all(userId);
+      return rows.map((row) => ({
+        activityId: row.id,
+        activityType: row.activity_type,
+        state: row.state,
+        startTime: row.start_time,
+        stopTime: row.stop_time ?? undefined,
+        durationSeconds: row.duration_seconds ?? 0,
+        distanceMeters:
+          typeof row.distance_meters === "number" ? row.distance_meters : undefined,
+        xpEarned: row.xp_earned ?? 0,
+        co2SavedKg: row.co2_saved_kg ?? 0,
+      }));
+    },
+
     resetReferenceData() {
       db.prepare("DELETE FROM user_shop_ownership").run();
       seedAssets(db, DEFAULT_ASSETS);
-      seedFriends(db, DEFAULT_FRIENDS);
       seedLeaderboardQuartiers(db, DEFAULT_LEADERBOARD.quartiers);
       seedShopItems(db, DEFAULT_SHOP_ITEMS);
       setDefaultDashboard(db, DEFAULT_DASHBOARD);
@@ -678,10 +887,18 @@ export function createStore(dbPath) {
       if (Array.isArray(data.shopItems)) {
         seedShopItems(db, data.shopItems);
       }
-      if (Array.isArray(data.friends)) {
-        seedFriends(db, data.friends);
-      } else if (Array.isArray(data.leaderboard?.friends)) {
-        seedFriends(db, data.leaderboard.friends);
+      if (Array.isArray(data.users)) {
+        seedUsers(db, data.users);
+      } else if (Array.isArray(data.leaderboard?.users)) {
+        const mappedUsers = data.leaderboard.users
+          .map((entry) => ({
+            id: entry?.user?.id,
+            displayName: entry?.user?.displayName,
+            streakDays: 0,
+            co2SavedKg: entry?.score ?? 0,
+          }))
+          .filter((entry) => entry.id && entry.displayName);
+        seedUsers(db, mappedUsers);
       }
       if (Array.isArray(data.leaderboard?.quartiers)) {
         seedLeaderboardQuartiers(db, data.leaderboard.quartiers);

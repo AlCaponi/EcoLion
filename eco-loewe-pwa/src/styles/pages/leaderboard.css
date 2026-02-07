@@ -3,6 +3,65 @@
 .lbHeader h1 { margin: 0; font-size: 24px; }
 .lbSubtitle { color: var(--muted); font-weight: 600; font-size: 13px; margin: 2px 0 0; }
 
+/* TEMP: Hide leaderboard card section. Remove when re-enabling. */
+section.card:nth-child(3) {
+  display: none;
+}
+
+/* ── Friend add ── */
+.friendAdd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.friendSearch {
+  position: relative;
+  flex: 1;
+}
+.friendAdd input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 600;
+}
+.friendDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 10;
+}
+.friendOption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.friendOption:hover {
+  background: var(--surface-2);
+}
+.friendOptionName {
+  font-weight: 700;
+  font-size: 13px;
+}
+.friendOptionId {
+  font-size: 11px;
+  color: var(--muted);
+}
+
 /* ── Your rank summary card ── */
 .myRankCard {
   display: flex;

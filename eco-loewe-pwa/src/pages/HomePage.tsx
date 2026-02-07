@@ -21,8 +21,6 @@ const ACTIVITIES = [
   { id: "pool", label: "Pooling", iconSrc: carPoolingIcon, emoji: "🤝" },
 ];
 
-const STREAK_DAYS = 8;
-
 export default function HomePage() {
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);

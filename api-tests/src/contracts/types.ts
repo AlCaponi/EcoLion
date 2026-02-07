@@ -38,12 +38,29 @@ export interface LeaderboardDTO {
     co2SavedKg: number;
     rank: number;
   }>;
-  friends: Array<{
-    id: string;
-    name: string;
-    co2SavedKg: number;
-    streakDays: number;
-  }>;
+  users: UserScoreEntryDTO[];
+  friends: UserScoreEntryDTO[];
+}
+
+export interface UserSummaryDTO {
+  id: string;
+  displayName: string;
+}
+
+export interface AddFriendRequestDTO {
+  userId: string;
+}
+
+export interface AddFriendResponseDTO {
+  ok: true;
+  friend: UserSummaryDTO;
+}
+
+export interface UserScoreEntryDTO {
+  user: UserSummaryDTO;
+  score: number;
+  rank: number;
+  isMe?: boolean;
 }
 
 export interface ShopItemDTO {
@@ -59,9 +76,9 @@ export interface PurchaseDTO {
   itemId: string;
 }
 
-export interface FriendDTO {
+export interface UserListEntryDTO {
   id: string;
-  name: string;
+  displayName: string;
   streakDays: number;
   co2SavedKg: number;
 }
@@ -77,6 +94,18 @@ export interface StartActivityRequestDTO {
 export interface StartActivityResponseDTO {
   activityId: number;
   state: ActivityState;
+}
+
+export interface ActivityListItemDTO {
+  activityId: number;
+  activityType: ActivityType;
+  state: ActivityState;
+  startTime: string;
+  stopTime?: string;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
 }
 
 export interface StopActivityRequestDTO {

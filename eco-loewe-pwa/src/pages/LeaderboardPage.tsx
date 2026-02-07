@@ -4,7 +4,7 @@ import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { LeaderboardDTO, LeaderboardEntry, QuartierEntry } from "../shared/api/types";
 
-type Tab = "freunde" | "quartiere" | "stadt";
+type Tab = "quartiere" | "stadt" | "freund";
 
 const MOCK: LeaderboardDTO = {
   streakDays: 8,
@@ -17,30 +17,28 @@ const MOCK: LeaderboardDTO = {
     { id: "k7", name: "Mattenbach",      co2SavedKg: 390, rank: 6 },
     { id: "k6", name: "Wülflingen",      co2SavedKg: 350, rank: 7 },
   ],
-  friends: [
-    { id: "p1", name: "Paul",  co2SavedKg: 95, rank: 1 },
-    { id: "p2", name: "Alex",  co2SavedKg: 80, rank: 2 },
-    { id: "me", name: "Du",    co2SavedKg: 74, rank: 3, isMe: true },
-    { id: "p3", name: "Sarah", co2SavedKg: 70, rank: 4 },
-    { id: "p4", name: "Lisa",  co2SavedKg: 62, rank: 5 },
-  ],
-  city: [
-    { id: "c1",  name: "MaxGreen",    co2SavedKg: 210, rank: 1 },
-    { id: "c2",  name: "EcoQueen",    co2SavedKg: 195, rank: 2 },
-    { id: "c3",  name: "BikeHero",    co2SavedKg: 180, rank: 3 },
-    { id: "c4",  name: "TrainLover",  co2SavedKg: 160, rank: 4 },
-    { id: "c5",  name: "WalkFan",     co2SavedKg: 145, rank: 5 },
+  users: [
+    { user: { id: "c1", displayName: "MaxGreen" }, score: 210, rank: 1 },
+    { user: { id: "c2", displayName: "EcoQueen" }, score: 195, rank: 2 },
+    { user: { id: "c3", displayName: "BikeHero" }, score: 180, rank: 3 },
+    { user: { id: "c4", displayName: "TrainLover" }, score: 160, rank: 4 },
+    { user: { id: "c5", displayName: "WalkFan" }, score: 145, rank: 5 },
     // gap — neighbors around the user
-    { id: "c41", name: "SolarSam",    co2SavedKg: 78,  rank: 41 },
-    { id: "c42", name: "GreenStep",   co2SavedKg: 76,  rank: 42 },
-    { id: "me",  name: "Du",          co2SavedKg: 74,  rank: 43, isMe: true },
-    { id: "c44", name: "GreenRookie", co2SavedKg: 71,  rank: 44 },
-    { id: "c45", name: "Newbie123",   co2SavedKg: 68,  rank: 45 },
+    { user: { id: "c41", displayName: "SolarSam" }, score: 78, rank: 41 },
+    { user: { id: "c42", displayName: "GreenStep" }, score: 76, rank: 42 },
+    { user: { id: "me", displayName: "Du" }, score: 74, rank: 43, isMe: true },
+    { user: { id: "c44", displayName: "GreenRookie" }, score: 71, rank: 44 },
+    { user: { id: "c45", displayName: "Newbie123" }, score: 68, rank: 45 },
+  ],
+  friends: [
+    { user: { id: "c2", displayName: "EcoQueen" }, score: 195, rank: 1 },
+    { user: { id: "c41", displayName: "SolarSam" }, score: 78, rank: 2 },
+    { user: { id: "c44", displayName: "GreenRookie" }, score: 71, rank: 3 },
   ],
 };
 
 /** Split entries into podium (top 3) and the rest, with gap logic for "me" */
-function splitPodiumAndList(entries: LeaderboardEntry[]) {
+function splitPodiumAndList(entries: LeaderboardEntry[] = []) {
   const sorted = [...entries].sort((a, b) => a.rank - b.rank);
   const podium = sorted.slice(0, 3);
   const rest = sorted.slice(3);
@@ -64,46 +62,111 @@ function splitPodiumAndList(entries: LeaderboardEntry[]) {
 
 export default function LeaderboardPage() {
   const [data, setData] = useState<LeaderboardDTO | null>(null);
-  const [tab, setTab] = useState<Tab>("freunde");
+  const [tab, setTab] = useState<Tab>("stadt");
   const [poking, setPoking] = useState<string | null>(null);
+  const [friendName, setFriendName] = useState("");
+  const [friendQuery, setFriendQuery] = useState("");
+  const [friendsPool, setFriendsPool] = useState<
+    { id: string; displayName: string }[]
+  >([]);
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
+  const [addingFriend, setAddingFriend] = useState(false);
+
+  const loadLeaderboard = async () => {
+    try {
+      const res = await Api.leaderboard();
+      setData(res);
+    } catch {
+      setData(MOCK);
+    }
+  };
+
+  useEffect(() => {
+    void loadLeaderboard();
+  }, []);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await Api.leaderboard();
-        setData(res);
+        const res = await Api.users();
+        setFriendsPool(res);
       } catch {
-        setData(MOCK);
+        setFriendsPool([]);
       }
     })();
   }, []);
+
+  const userEntries = useMemo<LeaderboardEntry[]>(() => {
+    if (!data) return [];
+    const users = Array.isArray(data.users) ? data.users : [];
+    return users.map((entry) => ({
+      id: entry.user.id,
+      name: entry.user.displayName,
+      co2SavedKg: entry.score,
+      rank: entry.rank,
+      isMe: entry.isMe,
+    }));
+  }, [data]);
+
+  const friendEntries = useMemo<LeaderboardEntry[]>(() => {
+    if (!data) return [];
+    const friends = Array.isArray(data.friends) ? data.friends : [];
+    return friends.map((entry) => ({
+      id: entry.user.id,
+      name: entry.user.displayName,
+      co2SavedKg: entry.score,
+      rank: entry.rank,
+      isMe: entry.isMe,
+    }));
+  }, [data]);
 
   const { podium, list } = useMemo(() => {
     if (!data) return { podium: [], list: [] };
     const entries =
       tab === "quartiere"
-        ? (data.quartiers as LeaderboardEntry[])
-        : tab === "stadt"
-          ? data.city
-          : data.friends;
+        ? ((Array.isArray(data.quartiers) ? data.quartiers : []) as LeaderboardEntry[])
+        : tab === "freund"
+          ? friendEntries
+          : userEntries;
     return splitPodiumAndList(entries);
-  }, [data, tab]);
+  }, [data, tab, userEntries, friendEntries]);
 
   const myEntry = useMemo(() => {
     if (!data) return null;
     const entries =
-      tab === "quartiere" ? data.quartiers : tab === "stadt" ? data.city : data.friends;
+      tab === "quartiere"
+        ? (Array.isArray(data.quartiers) ? data.quartiers : [])
+        : tab === "freund"
+          ? friendEntries
+          : userEntries;
     return (entries as LeaderboardEntry[]).find((e) => e.isMe) ?? null;
-  }, [data, tab]);
+  }, [data, tab, userEntries, friendEntries]);
 
-  async function poke(friendId: string) {
+  async function poke(userId: string) {
     try {
-      setPoking(friendId);
-      await Api.pokeFriend(friendId);
+      setPoking(userId);
+      await Api.pokeUser(userId);
     } catch {
       /* ignore in mock mode */
     } finally {
       setPoking(null);
+    }
+  }
+
+  async function addFriend() {
+    const userId = selectedFriendId;
+    if (!userId || addingFriend) return;
+    try {
+      setAddingFriend(true);
+      await Api.addFriend({ userId });
+      setFriendName("");
+      setFriendQuery("");
+      setSelectedFriendId(null);
+      await loadLeaderboard();
+    } catch {
+      /* ignore in mock mode */
+    } finally {
+      setAddingFriend(false);
     }
   }
 
@@ -118,6 +181,25 @@ export default function LeaderboardPage() {
     return entry.name;
   }
 
+  function matchScore(name: string, query: string) {
+    const n = name.toLowerCase();
+    const q = query.trim().toLowerCase();
+    if (!q) return -1;
+    if (n.includes(q)) {
+      return 20 + q.length;
+    }
+    let qi = 0;
+    for (let i = 0; i < n.length && qi < q.length; i++) {
+      if (n[i] === q[qi]) {
+        qi += 1;
+      }
+    }
+    if (qi === q.length) {
+      return 10 + q.length;
+    }
+    return -1;
+  }
+
   return (
     <div className="page leaderboardPage">
       <div className="lbHeader">
@@ -128,9 +210,9 @@ export default function LeaderboardPage() {
       {/* ── Tab bar ── */}
       <div className="segmented full">
         {([
-          ["freunde", "Freunde"],
-          ["quartiere", "Quartiere"],
           ["stadt", "Stadt"],
+          ["quartiere", "Quartiere"],
+          ["freund", "Freunde"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -142,6 +224,65 @@ export default function LeaderboardPage() {
           </button>
         ))}
       </div>
+
+      {tab === "freund" && (
+        <Card>
+          <div className="friendAdd">
+            <div className="friendSearch">
+              <input
+                type="text"
+                placeholder="Freund:in suchen"
+                value={friendQuery}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setFriendQuery(value);
+                  setFriendName(value);
+                  setSelectedFriendId(null);
+                }}
+              />
+              {friendQuery.trim().length > 0 && (
+                <div className="friendDropdown">
+                  {friendsPool
+                    .filter((user) => user.displayName !== friendName)
+                    .map((user) => ({
+                      user,
+                      score: matchScore(user.displayName, friendQuery),
+                    }))
+                    .filter(({ score }) => score >= 0)
+                    .sort(
+                      (a, b) =>
+                        b.score - a.score ||
+                        a.user.displayName.localeCompare(b.user.displayName),
+                    )
+                    .slice(0, 6)
+                    .map(({ user }) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        className="friendOption"
+                        onClick={() => {
+                          setFriendName(user.displayName);
+                          setFriendQuery(user.displayName);
+                          setSelectedFriendId(user.id);
+                        }}
+                      >
+                        <span className="friendOptionName">{user.displayName}</span>
+                        <span className="friendOptionId">{user.id}</span>
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+            <PrimaryButton
+              small
+              onClick={addFriend}
+              disabled={addingFriend || !selectedFriendId}
+            >
+              {addingFriend ? "…" : "Hinzufügen"}
+            </PrimaryButton>
+          </div>
+        </Card>
+      )}
 
       {/* ── Your position summary ── */}
       {myEntry && (
@@ -187,7 +328,7 @@ export default function LeaderboardPage() {
                 return <div key={`gap-${i}`} className="rankGap">···</div>;
               }
               const isMe = entry.isMe ?? false;
-              const showPoke = tab === "freunde" && !isMe;
+              const showPoke = tab === "stadt" && !isMe;
 
               return (
                 <div key={entry.id} className={`rankRow${isMe ? " rankRowMe" : ""}`}>

@@ -23,7 +23,22 @@ function isPublicPath(pathname) {
 const store = createStore(DATABASE_PATH);
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:5173",
+  "http://localhost:8080",
+  "https://ecolion.d00.ch",
+  "https://ecolionapi.d00.ch",
+]);
+
+await app.register(cors, {
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.has(origin)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Origin not allowed"), false);
+  },
+});
 
 app.addContentTypeParser(
   "application/json",
@@ -144,8 +159,8 @@ app.get("/v1/dashboard", async (request) => {
   return store.getDashboard(request.userId);
 });
 
-app.get("/v1/leaderboard", async () => {
-  return store.getLeaderboard();
+app.get("/v1/leaderboard", async (request) => {
+  return store.getLeaderboard(request.userId);
 });
 
 app.get("/v1/shop/items", async (request) => {
@@ -207,18 +222,65 @@ app.post("/v1/shop/buyCoins", async (request, reply) => {
   };
 });
 
-app.get("/v1/friends", async () => {
-  return store.listFriends();
+app.post("/v1/shop/buyCoins", async (request, reply) => {
+  const { amount, paymentMethod } = request.body;
+  
+  // Validierung
+  if (typeof amount !== "number" || amount <= 0) {
+    return reply.code(400).send({ error: "Invalid amount" });
+  }
+  if (!["card", "paypal"].includes(paymentMethod)) {
+    return reply.code(400).send({ error: "Invalid payment method" });
+  }
+
+  // Coins zu User hinzufügen
+  const dashboard = store.getDashboard(request.userId);
+  const transactionId = `TXN-${Date.now()}`;
+  
+  dashboard.lion.coins += amount;
+  store.updateDashboard(request.userId, dashboard);
+
+  return {
+    transactionId,
+    coinsAdded: amount,
+    newBalance: dashboard.lion.coins,
+  };
 });
 
-app.post("/v1/friends/:friendId/poke", async (request, reply) => {
-  const friendId = request.params?.friendId;
-  if (typeof friendId !== "string" || !friendId.trim()) {
-    return reply.code(400).send({ error: "friendId is required" });
+app.get("/v1/users", async () => {
+  return store.listUsers();
+});
+
+app.get("/v1/friends", async (request) => {
+  return store.listFriends(request.userId);
+});
+
+app.post("/v1/friends", async (request, reply) => {
+  const friendUserId = request.body?.userId;
+  const result = store.addFriendById(request.userId, friendUserId);
+  if (result.status === "invalid") {
+    return reply.code(400).send({ error: "userId is required" });
   }
-  const success = store.pokeFriend(request.userId, friendId);
+  if (result.status === "self") {
+    return reply.code(400).send({ error: "Cannot add yourself as a friend" });
+  }
+  if (result.status === "duplicate") {
+    return reply.code(200).send({ ok: true, friend: result.friend });
+  }
+  if (result.status === "not_found") {
+    return reply.code(404).send({ error: "User not found" });
+  }
+  return { ok: true, friend: result.friend };
+});
+
+app.post("/v1/users/:userId/poke", async (request, reply) => {
+  const userId = request.params?.userId;
+  if (typeof userId !== "string" || !userId.trim()) {
+    return reply.code(400).send({ error: "userId is required" });
+  }
+  const success = store.pokeUser(request.userId, userId);
   if (!success) {
-    return reply.code(404).send({ error: "Friend not found" });
+    return reply.code(404).send({ error: "User not found" });
   }
   return { ok: true };
 });
@@ -293,6 +355,10 @@ app.get("/v1/activity/:activityId", async (request, reply) => {
     return reply.code(404).send({ error: "Activity not found" });
   }
   return activity;
+});
+
+app.get("/v1/activities", async (request) => {
+  return store.listActivities(request.userId);
 });
 
 app.post("/v1/admin/reset", async () => {

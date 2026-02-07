@@ -5,18 +5,20 @@ import {
   StartActivityResponseSchema,
   StopActivityResponseSchema,
   GetActivityResponseSchema,
+  ActivityListItemSchema,
 } from "../contracts/schemas.ts";
 import type {
   StartActivityResponseDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
+  ActivityListItemDTO,
 } from "../contracts/types.ts";
 
 describe("POST /v1/activity/start", () => {
   let client: ApiClient;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityStartTestUser");
+    const ctx = await createTestContext("Max");
     client = ctx.client;
   });
 
@@ -70,7 +72,7 @@ describe("POST /v1/activity/stop", () => {
   let activityId: number;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityStopTestUser");
+    const ctx = await createTestContext("Felix");
     client = ctx.client;
 
     // Start an activity first so we can stop it
@@ -145,7 +147,7 @@ describe("GET /v1/activity/:activityId", () => {
   let activityId: number;
 
   beforeAll(async () => {
-    const ctx = await createTestContext("ActivityGetTestUser");
+    const ctx = await createTestContext("Sara");
     client = ctx.client;
 
     // Start and stop an activity so we can fetch it
@@ -194,5 +196,81 @@ describe("GET /v1/activity/:activityId", () => {
   it("should return 404 for a non-existent activity", async () => {
     const { status } = await client.get("/v1/activity/999999");
     expect(status).toBe(404);
+  });
+});
+
+describe("Activity user scoping", () => {
+  it("should restrict activities to the owning user", async () => {
+    const ownerCtx = await createTestContext("Markus");
+    const otherCtx = await createTestContext("Laura");
+
+    const { data: started } = await ownerCtx.client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T15:00:00Z" },
+    );
+
+    const { status: otherGetStatus } = await otherCtx.client.get(
+      `/v1/activity/${started.activityId}`,
+    );
+    expect(otherGetStatus).toBe(404);
+
+    const { status: otherStopStatus } = await otherCtx.client.post(
+      "/v1/activity/stop",
+      { activityId: started.activityId, stopTime: "2023-10-27T15:10:00Z" },
+    );
+    expect(otherStopStatus).toBe(404);
+
+    const { status: ownerStopStatus } = await ownerCtx.client.post(
+      "/v1/activity/stop",
+      { activityId: started.activityId, stopTime: "2023-10-27T15:10:00Z" },
+    );
+    expect(ownerStopStatus).toBe(200);
+  });
+});
+
+describe("GET /v1/activities", () => {
+  let client: ApiClient;
+
+  beforeAll(async () => {
+    const ctx = await createTestContext("ActivityListUser");
+    client = ctx.client;
+
+    await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T16:00:00Z" },
+    );
+  });
+
+  it("should return 200 with an array", async () => {
+    const { status, data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+    expect(status).toBe(200);
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+  });
+
+  it("should have valid schema for each activity", async () => {
+    const { data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+    for (const activity of data) {
+      const result = ActivityListItemSchema.safeParse(activity);
+      if (!result.success) {
+        console.error(
+          `Schema error for activity ${activity.activityId}:`,
+          result.error.issues,
+        );
+      }
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("should only list activities accessible by the user", async () => {
+    const ctx = await createTestContext("ActivityListOtherUser");
+    const { data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+
+    for (const activity of data) {
+      const { status } = await ctx.client.get(
+        `/v1/activity/${activity.activityId}`,
+      );
+      expect(status).toBe(404);
+    }
   });
 });

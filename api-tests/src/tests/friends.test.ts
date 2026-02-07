@@ -1,63 +1,66 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import type { ApiClient } from "../client/api-client.ts";
+import { createApiClient, type ApiClient } from "../client/api-client.ts";
+import { registerAnonymousUser } from "../client/auth.ts";
 import { createTestContext } from "../helpers/test-context.ts";
-import { FriendSchema } from "../contracts/schemas.ts";
-import type { FriendDTO } from "../contracts/types.ts";
+import {
+  AddFriendResponseSchema,
+  FriendSummarySchema,
+} from "../contracts/schemas.ts";
+import type {
+  AddFriendResponseDTO,
+  UserSummaryDTO,
+} from "../contracts/types.ts";
 
-describe("Friends API", () => {
+const API_BASE_URL = process.env["API_BASE_URL"] ?? "http://localhost:8080";
+
+describe("Friends", () => {
   let client: ApiClient;
+  let friendNames: string[] = [];
+  let friendIds: string[] = [];
 
   beforeAll(async () => {
-    const ctx = await createTestContext("FriendsTestUser");
+    const ctx = await createTestContext("Luca");
     client = ctx.client;
-  });
 
-  describe("GET /v1/friends", () => {
-    it("should return 200 with an array", async () => {
-      const { status, data } = await client.get<FriendDTO[]>("/v1/friends");
+    const uniqueSuffix = `-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const friendOneName = `Mia${uniqueSuffix}`;
+    const friendTwoName = `Jonas${uniqueSuffix}`;
 
-      expect(status).toBe(200);
-      expect(Array.isArray(data)).toBe(true);
-    });
+    const friendOneClient = createApiClient({ baseUrl: API_BASE_URL });
+    const friendTwoClient = createApiClient({ baseUrl: API_BASE_URL });
 
-    it("should have valid schema for each friend", async () => {
-      const { data } = await client.get<FriendDTO[]>("/v1/friends");
+    const friendOne = await registerAnonymousUser(friendOneClient, friendOneName);
+    const friendTwo = await registerAnonymousUser(friendTwoClient, friendTwoName);
 
-      for (const friend of data) {
-        const result = FriendSchema.safeParse(friend);
-        if (!result.success) {
-          console.error(
-            `Schema error for friend ${friend.id}:`,
-            result.error.issues,
-          );
-        }
-        expect(result.success).toBe(true);
+    friendNames = [friendOneName, friendTwoName];
+    friendIds = [friendOne.userId, friendTwo.userId];
+
+    for (const friendId of friendIds) {
+      const { data } = await client.post<AddFriendResponseDTO>("/v1/friends", {
+        userId: friendId,
+      });
+      const result = AddFriendResponseSchema.safeParse(data);
+      if (!result.success) {
+        console.error("Add friend response schema errors:", result.error.issues);
       }
-    });
-
-    it("should have unique friend IDs", async () => {
-      const { data } = await client.get<FriendDTO[]>("/v1/friends");
-      const ids = data.map((f) => f.id);
-      expect(new Set(ids).size).toBe(ids.length);
-    });
+      expect(result.success).toBe(true);
+    }
   });
 
-  describe("POST /v1/friends/:friendId/poke", () => {
-    it("should successfully poke a friend", async () => {
-      const { data: friends } = await client.get<FriendDTO[]>("/v1/friends");
-      if (friends.length === 0) return; // skip if no friends
+  it("should list added friends", async () => {
+    const { data } = await client.get<UserSummaryDTO[]>("/v1/friends");
+    expect(Array.isArray(data)).toBe(true);
 
-      const { status } = await client.post(
-        `/v1/friends/${friends[0]!.id}/poke`,
-      );
-      expect(status).toBe(200);
-    });
+    const parseResults = data.map((friend) => FriendSummarySchema.safeParse(friend));
+    const invalid = parseResults.find((result) => !result.success);
+    if (invalid && !invalid.success) {
+      console.error("Friend list schema errors:", invalid.error.issues);
+    }
+    expect(parseResults.every((result) => result.success)).toBe(true);
 
-    it("should return 404 for a non-existent friend", async () => {
-      const { status } = await client.post(
-        "/v1/friends/nonexistent-friend-xyz/poke",
-      );
-      expect(status).toBe(404);
-    });
+    const names = data.map((friend) => friend.displayName).sort();
+    for (const name of friendNames) {
+      expect(names).toContain(name);
+    }
   });
 });
