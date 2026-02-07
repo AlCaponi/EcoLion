@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Api } from "../shared/api/endpoints";
 import type { QuestDTO, MilestoneDTO, RewardDTO, RewardCategory } from "../shared/api/types";
 
 /* ── Mock rewards (linked via rewardId in milestones) ─────── */
@@ -193,35 +194,76 @@ const categoryInfo: Record<RewardCategory, { label: string; emoji: string }> = {
 
 /* ── Component ─────────────────────────────────── */
 export default function RewardsPage() {
-  const [quests, setQuests] = useState<QuestDTO[]>(mockQuests);
-  const [milestones, setMilestones] = useState<MilestoneDTO[]>(mockMilestones);
-  const [rewards, setRewards] = useState<RewardDTO[]>(mockRewards);
+  const [quests, setQuests] = useState<QuestDTO[]>([]);
+  const [milestones, setMilestones] = useState<MilestoneDTO[]>([]);
+  const [rewards, setRewards] = useState<RewardDTO[]>([]);
   const [tab, setTab] = useState<"quests" | "rewards">("quests");
+
+  /* Fetch rewards data from API with mock fallback */
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await Api.rewards();
+        setQuests(data.quests);
+        setMilestones(data.milestones);
+        setRewards(data.rewards);
+      } catch {
+        // Fallback to mocks if API fails
+        setQuests(mockQuests);
+        setMilestones(mockMilestones);
+        setRewards(mockRewards);
+      }
+    })();
+  }, []);
 
   /* Look up reward by id */
   const getReward = (id: string) => rewards.find((r) => r.id === id);
 
   /* Claim a quest */
-  const claimQuest = (id: string) => {
-    setQuests((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
-    );
+  const claimQuest = async (id: string) => {
+    try {
+      await Api.claimQuest(id);
+      setQuests((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
+      );
+    } catch {
+      // Fallback to local state update if API fails
+      setQuests((prev) =>
+        prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
+      );
+    }
   };
 
   /* Claim a milestone → unlock its reward */
-  const claimMilestone = (id: string) => {
+  const claimMilestone = async (id: string) => {
     const ms = milestones.find((m) => m.id === id);
     if (!ms) return;
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
-    );
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === ms.rewardId
-          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-          : r
-      )
-    );
+    
+    try {
+      await Api.claimMilestone(id);
+      setMilestones((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
+      );
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === ms.rewardId
+            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+            : r
+        )
+      );
+    } catch {
+      // Fallback to local state update if API fails
+      setMilestones((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
+      );
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === ms.rewardId
+            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+            : r
+        )
+      );
+    }
   };
 
   /* Derived */
