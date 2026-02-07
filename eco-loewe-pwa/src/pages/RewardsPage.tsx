@@ -421,8 +421,12 @@ function MilestoneCard({
       )}
 
       {milestone.completed && !milestone.claimed && (
-        <button className="rwClaimBtnLarge" onClick={() => onClaim(milestone.id)}>
-          🎁 Reward einlösen
+        <button
+          className="rwClaimBtnLarge"
+          onClick={() => onClaim(milestone.id)}
+          aria-label="Reward einlösen"
+        >
+          <span aria-hidden="true">🎁</span> Reward einlösen
         </button>
       )}
       {milestone.claimed && <div className="rwClaimedLabel">✅ Eingelöst</div>}
