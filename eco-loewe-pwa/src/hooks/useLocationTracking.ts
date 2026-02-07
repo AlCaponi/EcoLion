@@ -17,12 +17,11 @@ interface UseLocationTrackingReturn {
 }
 
 const TRACKING_CONFIG = {
-  intervalSeconds: 5, // Record point every 5 seconds
   minAccuracyMeters: 50, // Ignore points with accuracy > 50m
   enableHighAccuracy: true, // Use GPS (not just WiFi/cell towers)
   maximumAge: 5000, // Don't use cached positions older than 5s
   timeout: 10000, // Give up on location request after 10s
-  mockIntervalMs: 2000, // Add mock point every 2 seconds
+  mockIntervalMs: 2000, // Mock mode: add point every 2 seconds
 };
 
 // Mock route: circular path around Winterthur city center
@@ -43,8 +42,8 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<number | null>(null);
+  const watchIdRef = useRef<number | null>(null); // Real GPS tracking
+  const intervalIdRef = useRef<number | null>(null); // Mock mode timer
 
   const addPoint = useCallback((position: GeolocationPosition) => {
     const { latitude, longitude, accuracy } = position.coords;
