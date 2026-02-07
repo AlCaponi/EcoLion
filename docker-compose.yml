@@ -11,13 +11,20 @@ services:
     volumes:
       - ./backend/data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
       context: ./eco-loewe-pwa
       dockerfile: Dockerfile
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "5173:5173"
     environment:
@@ -33,7 +40,8 @@ services:
     environment:
       - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     volumes:
       - ./api-tests/src:/app/src
     profiles:
