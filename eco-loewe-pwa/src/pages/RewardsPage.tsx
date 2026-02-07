@@ -218,7 +218,10 @@ export default function RewardsPage() {
   /* Claim a milestone → unlock its reward */
   const claimMilestone = (id: string) => {
     const ms = milestones.find((m) => m.id === id);
-    if (!ms) return;
+    // Only allow claiming if the milestone exists, is completed, and not already claimed
+    if (!ms || ms.claimed || !ms.completed) {
+      return;
+    }
     setMilestones((prev) =>
       prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
     );
