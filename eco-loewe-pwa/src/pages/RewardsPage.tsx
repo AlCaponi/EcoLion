@@ -203,9 +203,16 @@ export default function RewardsPage() {
 
   /* Claim a quest */
   const claimQuest = (id: string) => {
-    setQuests((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, claimed: true } : q))
-    );
+    setQuests((prev) => {
+      const quest = prev.find((q) => q.id === id);
+      // Only allow claiming if the quest exists, is completed, and not already claimed
+      if (!quest || quest.claimed || !quest.completed) {
+        return prev;
+      }
+      return prev.map((q) =>
+        q.id === id ? { ...q, claimed: true } : q
+      );
+    });
   };
 
   /* Claim a milestone → unlock its reward */
