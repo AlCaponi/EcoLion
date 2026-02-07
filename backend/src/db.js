@@ -396,7 +396,22 @@ export function createStore(dbPath) {
         upsertDashboardForUser(db, userId, getDefaultDashboard(db));
         row = db.prepare("SELECT * FROM dashboard_state WHERE user_id = ?").get(userId);
       }
-      return rowToDashboard(row);
+      
+      const dashboard = rowToDashboard(row);
+      const activityRow = db
+        .prepare(
+          "SELECT id, activity_type, start_time FROM activities WHERE user_id = ? AND state = 'running' ORDER BY start_time DESC LIMIT 1"
+        )
+        .get(userId);
+
+      if (activityRow) {
+        dashboard.currentActivity = {
+          activityId: activityRow.id,
+          activityType: activityRow.activity_type,
+          startTime: activityRow.start_time,
+        };
+      }
+      return dashboard;
     },
 
     getLeaderboard() {

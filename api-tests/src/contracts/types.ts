@@ -14,8 +14,13 @@ export interface UserDTO {
   lion: {
     mood: "sad" | "neutral" | "happy";
     activityMode: "sleeping" | "idle" | "walking" | "riding";
-    accessories: string[]; // equipped item IDs, e.g. ["hat-cap", "acc-sunglasses"]
+    accessories: string[];
     coins: number;
+  };
+  currentActivity?: {
+    activityId: number;
+    activityType: ActivityType;
+    startTime: string;
   };
 }
 

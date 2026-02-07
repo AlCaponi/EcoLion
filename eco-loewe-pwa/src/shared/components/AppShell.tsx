@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import BottomNav from "./BottomNav";
-import { api } from "../api/endpoints";
+import { Api } from "../api/endpoints";
+import { apiClient } from "../api/client";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const [coins, setCoins] = useState(0);
@@ -9,8 +10,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function init() {
         try {
-            await api.auth.ensureAuth();
-            const { data } = await api.dashboard.get();
+            await apiClient.ensureAuth();
+            const data = await Api.dashboard();
             if (data) {
                 setCoins(data.lion.coins);
                 setStreak(data.streakDays);

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
 import PrimaryButton from "../shared/components/PrimaryButton";
-import { api } from "../shared/api/endpoints";
+import { Api } from "../shared/api/endpoints";
 import type { ActivityType } from "../shared/api/types";
 
 import busIcon from "../assets/transport_types/bus_icon.png";
@@ -35,13 +35,20 @@ export default function HomePage() {
 
   const fetchDashboard = async () => {
     try {
-        const { data } = await api.dashboard.get();
+        const data = await Api.dashboard();
         // Calculate level based on XP (simplified logic for now)
         // In real app, backend might send level or we compute it
         setUserStats({ 
             level: Math.floor(data.sustainabilityScore / 100) + 1, 
             xp: data.sustainabilityScore 
         });
+
+        if (data.currentActivity) {
+            setActiveActivity(data.currentActivity.activityType);
+            setCurrentActivityId(data.currentActivity.activityId);
+            const elapsed = Math.floor((Date.now() - new Date(data.currentActivity.startTime).getTime()) / 1000);
+            setTimer(elapsed > 0 ? elapsed : 0);
+        }
     } catch (e) {
         console.error("Failed to fetch dashboard", e);
     }
@@ -66,7 +73,7 @@ export default function HomePage() {
     setActiveActivity(type);
     setTimer(0);
     try {
-        const { data } = await api.activity.start(type);
+        const data = await Api.startActivity({ activityType: type, startTime: new Date().toISOString() });
         setCurrentActivityId(data.activityId);
     } catch (e) {
         console.error("Failed to start activity", e);
@@ -76,7 +83,7 @@ export default function HomePage() {
   const handleStop = async () => {
     if (currentActivityId) {
         try {
-            await api.activity.stop(currentActivityId);
+            await Api.stopActivity({ activityId: currentActivityId, stopTime: new Date().toISOString() });
             await fetchDashboard(); // Refresh stats
         } catch (e) {
             console.error("Failed to stop activity", e);

@@ -120,4 +120,17 @@ class ApiClient {
   }
 }
 
-export const apiClient = new ApiClient("http://localhost:8080");
+export const apiClient = new ApiClient(API_BASE_URL);
+
+export async function apiRequest<T>(
+  path: string,
+  method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
+  body?: unknown
+): Promise<T> {
+  await apiClient.ensureAuth();
+  const res = await apiClient.request<T>(path, { 
+    method, 
+    body: body ? JSON.stringify(body) : undefined 
+  });
+  return res.data;
+}
