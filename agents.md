@@ -124,8 +124,8 @@ docker compose --profile test run --rm api-tests npm run test:seed
 
 ## Key DTOs
 
-### DashboardDTO
-The dashboard returns a `sustainabilityScore` (abstract score, not raw CO2) and a `lion` object with:
+### UserDTO
+The user endpoint returns a `sustainabilityScore` (abstract score, not raw CO2) and a `lion` object with:
 - `mood` — `"sad" | "neutral" | "happy"`
 - `activityMode` — `"sleeping" | "idle" | "walking" | "riding"`
 - `accessories` — flat array of equipped item IDs (e.g. `["hat-cap", "acc-sunglasses"]`)

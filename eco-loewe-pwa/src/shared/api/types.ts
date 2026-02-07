@@ -1,6 +1,6 @@
 export type MobilityMode = "walk" | "pt" | "car";
 
-export interface DashboardDTO {
+export interface UserDTO {
   sustainabilityScore: number;
   streakDays: number;
   today: { walkKm: number; ptTrips: number; carKm: number };
@@ -59,4 +59,46 @@ export interface FriendDTO {
   name: string;
   streakDays: number;
   co2SavedKg: number;
+}
+
+export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
+export type ActivityState = "running" | "paused" | "stopped";
+
+export interface StartActivityRequestDTO {
+  activityType: ActivityType;
+  startTime: string; // ISO timestamp
+}
+
+export interface StartActivityResponseDTO {
+  activityId: number;
+  state: ActivityState;
+}
+
+export interface StopActivityRequestDTO {
+  activityId: number;
+  stopTime: string; // ISO timestamp
+  gpx?: unknown; // optional tracking data
+  proofs?: object[]; // optional activity proofs like QR scans, pictures etc.
+}
+
+export interface StopActivityResponseDTO {
+  activityId: number;
+  state: ActivityState;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
+  gpx?: unknown;
+  proofs?: object[];
+}
+
+export interface GetActivityResponseDTO {
+  activityId: number;
+  state: ActivityState;
+  durationSeconds: number;
+  distanceMeters?: number;
+  xpEarned: number;
+  co2SavedKg: number;
+  gpx?: unknown;
+  proofs?: object[];
 }
