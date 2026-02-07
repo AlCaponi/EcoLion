@@ -1,0 +1,133 @@
+.chatWidgetButton {
+  position: fixed;
+  bottom: 80px; /* Above BottomNav */
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.chatWidgetButton:active {
+  transform: scale(0.95);
+}
+
+.chatWidgetWindow {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  height: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chatHeader {
+  background: var(--brand);
+  color: #fff;
+  padding: 12px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.chatMessages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message {
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message.lion {
+  background: var(--surface-2);
+  color: var(--text);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.message.user {
+  background: var(--brand);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.typing {
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  background: none !important;
+  padding: 0;
+}
+
+.chatInputArea {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  background: var(--surface);
+}
+
+.chatInputArea input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.chatInputArea button {
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.chatInputArea button:disabled {
+  color: var(--muted);
+  cursor: default;
+}

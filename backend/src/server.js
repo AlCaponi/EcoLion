@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import crypto from "node:crypto";
 import { createStore } from "./db.js";
+import OpenAI from "openai";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -658,6 +659,35 @@ app.post("/v1/admin/reset", async () => {
 app.post("/v1/admin/seed", async (request) => {
   store.seedFromPayload(request.body ?? {});
   return { ok: true };
+});
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.post("/v1/chat", async (request, reply) => {
+  const { message } = request.body;
+  if (!message || typeof message !== "string") {
+    return reply.code(400).send({ error: "Message required" });
+  }
+
+  const allowed = store.checkAndIncrementQuota(request.userId);
+  if (!allowed) {
+    return reply.code(429).send({ error: "Daily quota exceeded (50 messages/day)" });
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are EcoLion, a helpful, encouraging, and eco-conscious assistant suitable for all ages. You help users clear their doubts about sustainability." },
+        { role: "user", content: message }
+      ],
+      model: "gpt-3.5-turbo", // Use 3.5 turbo to save costs/latency
+    });
+    const replyContent = completion.choices[0]?.message?.content || "I'm having trouble thinking right now.";
+    return { reply: replyContent };
+  } catch (err) {
+    request.log.error({ err }, "OpenAI API error");
+    return reply.code(502).send({ error: "Failed to fetch response from AI" });
+  }
 });
 
 app.setErrorHandler((error, _request, reply) => {

@@ -12,6 +12,7 @@ services:
       - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-localhost}
       - WEBAUTHN_RP_NAME=${WEBAUTHN_RP_NAME:-Eco-Loewe}
       - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080,https://ecolion.d00.ch,https://ecolionapi.d00.ch}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./backend/data:/app/data
       - ./backend/src:/app/src
