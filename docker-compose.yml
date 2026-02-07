@@ -1,0 +1,23 @@
+services:
+  frontend:
+    build:
+      context: ./eco-loewe-pwa
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+    volumes:
+      - ./eco-loewe-pwa/src:/app/src
+    restart: unless-stopped
+
+  api-tests:
+    build:
+      context: ./api-tests
+      dockerfile: Dockerfile
+    environment:
+      - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
+    volumes:
+      - ./api-tests/src:/app/src
+    profiles:
+      - test

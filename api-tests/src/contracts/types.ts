@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+// Contract types – copied from eco-loewe-pwa/src/shared/api/types.ts
+//
+// This IS the contract. If this file differs from the frontend types,
+// that's a bug that needs resolution.
+// ---------------------------------------------------------------------------
+
 export type MobilityMode = "walk" | "pt" | "car";
 
 export interface DashboardDTO {
@@ -18,27 +25,20 @@ export interface AssetDTO {
   category: "glasses" | "hats" | "scarfs" | "earrings" | "outfits" | "decor";
 }
 
-export interface LeaderboardEntry {
-  id: string;
-  name: string;
-  co2SavedKg: number;
-  rank: number;
-  isMe?: boolean;
-}
-
-export interface QuartierEntry {
-  id: string;
-  name: string;
-  co2SavedKg: number;
-  rank: number;
-  isMe?: boolean;           // the user's own quartier
-}
-
 export interface LeaderboardDTO {
   streakDays: number;
-  quartiers: QuartierEntry[];
-  friends: LeaderboardEntry[];
-  city: LeaderboardEntry[];  // city-wide ranking (all users)
+  quartiers: Array<{
+    id: string;
+    name: string;
+    co2SavedKg: number;
+    rank: number;
+  }>;
+  friends: Array<{
+    id: string;
+    name: string;
+    co2SavedKg: number;
+    streakDays: number;
+  }>;
 }
 
 export interface ShopItemDTO {
@@ -47,7 +47,7 @@ export interface ShopItemDTO {
   priceCoins: number;
   category: "hats" | "outfits" | "accessories" | "decor";
   owned: boolean;
-  assetPath: string; // e.g. "/assets/shop/hat-cap.png"
+  assetPath: string;
 }
 
 export interface PurchaseDTO {

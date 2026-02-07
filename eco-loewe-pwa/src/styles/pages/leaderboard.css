@@ -1,70 +1,150 @@
-.leaderboardPage h1 { margin: 6px 0 10px; }
-.hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+/* ── Leaderboard page ──────────────────────────── */
+.lbHeader { text-align: center; padding: 4px 0 2px; }
+.lbHeader h1 { margin: 0; font-size: 24px; }
+.lbSubtitle { color: var(--muted); font-weight: 600; font-size: 13px; margin: 2px 0 0; }
 
-.streakValue { font-size: 22px; font-weight: 800; }
-.streakHint { color: var(--muted); font-weight: 600; }
-
-.streakBar { display: flex; gap: 8px; margin-top: 12px; }
-.dot { width: 10px; height: 10px; border-radius: 999px; background: var(--border); }
-.dot.on { background: var(--brand); }
-
-.quartierMap { display: grid; gap: 14px; }
-.quartierMap svg { width: 100%; }
-.quartierMap svg rect { fill: var(--surface-2); stroke: var(--border); }
-.quartierMap svg circle { fill: var(--brand); opacity: .9; }
-.quartierMap svg text { font-size: 12px; fill: var(--text); font-weight: 700; }
-
-.quartierList { display: grid; gap: 8px; }
-.quartierRow {
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 10px;
+/* ── Your rank summary card ── */
+.myRankCard {
+  display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  gap: 14px;
 }
-.quartierRank { font-weight: 900; color: var(--brand); }
-.quartierName { font-weight: 700; }
-.quartierMetric { color: var(--muted); font-weight: 700; }
+.myRankPos {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--brand);
+  min-width: 56px;
+  text-align: center;
+}
+.myRankName { font-weight: 800; font-size: 16px; }
+.myRankStat { color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 2px; }
 
-.friendsRow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-.friendChip {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 14px;
-  padding: 10px 12px;
+/* ── Podium / Grandstand ── */
+.podium {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 4px 10px;
-  text-align: left;
-  box-shadow: var(--shadow-sm);
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 10px 0 0;
 }
-.friendChip .avatar {
-  grid-row: 1 / span 2;
+
+.podiumSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.podiumRank { font-size: 22px; }
+
+.podiumBar {
+  width: 100%;
+  border-radius: 12px 12px 0 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.podiumBar.first  { height: 80px; background: linear-gradient(180deg, #FFD700 0%, #FFC107 100%); border-color: #e6ac00; }
+.podiumBar.second { height: 56px; background: linear-gradient(180deg, #E0E0E0 0%, #BDBDBD 100%); border-color: #aaa; }
+.podiumBar.third  { height: 40px; background: linear-gradient(180deg, #E8A87C 0%, #CD7F32 100%); border-color: #b5692a; }
+
+.podiumAvatar {
+  width: 36px; height: 36px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--surface-2);
+  font-weight: 900;
+  font-size: 15px;
+  border: 2px solid var(--border);
+  margin-top: -22px;
+  position: relative;
+  z-index: 1;
+}
+.podiumMe .podiumAvatar {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand-dark);
+}
+
+.podiumName {
+  font-weight: 800;
+  font-size: 13px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.podiumMe .podiumName { color: var(--brand); }
+
+.podiumMetric {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ── Ranking list (4th onward) ── */
+.rankList { display: grid; gap: 8px; }
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 28px 28px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  transition: background .12s ease;
+}
+
+.rankRowMe {
+  background: color-mix(in srgb, var(--brand) 8%, white 92%);
+  border-color: color-mix(in srgb, var(--brand) 25%, var(--border) 75%);
+}
+
+.rankPos { font-weight: 900; text-align: center; color: var(--muted); font-size: 14px; }
+.rankAvatar {
   width: 28px; height: 28px;
   border-radius: 999px;
   display: grid; place-items: center;
   background: var(--surface-2);
   font-weight: 900;
+  font-size: 13px;
 }
-.friendChip .name { font-weight: 800; }
-.friendChip .mini { color: var(--muted); font-weight: 700; font-size: 12px; }
-.friendChip .poke { grid-column: 3; grid-row: 1 / span 2; color: var(--brand); font-weight: 900; }
-
-.friendsTable { display: grid; gap: 8px; margin-top: 12px; }
-.friendsTableRow{
-  display: grid;
-  grid-template-columns: 28px 1fr auto auto auto;
-  gap: 10px;
+.rankRowMe .rankAvatar {
+  background: var(--brand);
+  color: white;
+}
+.rankName {
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
-.friendsTableRow .pos { font-weight: 900; color: var(--brand); }
-.friendsTableRow .who { font-weight: 800; }
-.friendsTableRow .stat { color: var(--muted); font-weight: 700; }
+.rankMetric { color: var(--muted); font-weight: 700; font-size: 12px; white-space: nowrap; }
+
+.youBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.rankGap {
+  text-align: center;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 4px;
+  padding: 4px 0;
+}
