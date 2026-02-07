@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-
-// Import base movements
+import { useMemo } from "react";
+// Import the default lion image
 import idleParams from "../../assets/mascot/idle.png";
 import bikingDisplay from "../../assets/mascot/biking.png";
 import carDisplay from "../../assets/mascot/car.png";
@@ -14,6 +14,14 @@ import walkingDisplay from "../../assets/mascot/walking.png";
 
 type Movement = "idle" | "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 
+const MOTIVATIONAL_MESSAGES = [
+  "Let's go green today! 🌿",
+  "It's nice weather today, perfect for biking! 🚴",
+  "Every step counts towards a better planet! 🌍",
+  "Ready to make a difference? Let's move! 💚",
+  "Your eco-journey starts now! 🦁✨",
+];
+
 interface MascotDisplayProps {
   movement?: Movement;
   level?: number;
@@ -21,6 +29,7 @@ interface MascotDisplayProps {
   accessories?: string[]; // IDs of equipped accessories
   className?: string;
   style?: CSSProperties;
+  compact?: boolean; // New prop for compact recording mode
 }
 
 const MOVEMENT_IMAGES: Record<Movement, string> = {
@@ -49,6 +58,7 @@ export default function MascotDisplay({
   accessories = [],
   className = "",
   style,
+  compact = false,
 }: MascotDisplayProps) {
   const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
 
@@ -73,7 +83,7 @@ export default function MascotDisplay({
         })}
 
         {/* Optional Speech Bubble for Idle state */}
-        {movement === "idle" && <div style={styles.speechBubble}>Let's go green today! 🌿</div>}
+        {movement === "idle" && <div style={styles.speechBubble}>{motivationalMessage}</div>}
       </div>
 
       <div className="mascot-stats" style={styles.statsContainer}>
@@ -91,8 +101,9 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "1rem",
-    padding: "1rem",
+    gap: "0.5rem",
+    padding: "0.5rem 1rem",
+    marginBottom: "0",
   },
   visualWrapper: {
     position: "relative",

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import MascotDisplay from "../shared/components/MascotDisplay";
-import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { ActivityType, UserDTO } from "../shared/api/types";
 
@@ -11,6 +12,35 @@ import carPoolingIcon from "../assets/transport_types/carPooling_icon.png";
 import homeOfficeIcon from "../assets/transport_types/homeOffice_icon.png";
 import walkingIcon from "../assets/transport_types/walking_icon.png";
 import bikingIcon from "../assets/transport_types/biking_icon.png";
+
+// Fix Leaflet default marker icon issue with webpack
+import L from "leaflet";
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Create custom red marker
+const RedIcon = L.icon({
+  iconUrl: `data:image/svg+xml;base64,${btoa(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" fill="#e74c3c">
+      <path d="M12 0C7.03 0 3 4.03 3 9c0 5.25 9 18 9 18s9-12.75 9-18c0-4.97-4.03-9-9-9z"/>
+      <circle cx="12" cy="9" r="4" fill="white"/>
+    </svg>
+  `)}`,
+  shadowUrl: iconShadow,
+  iconSize: [30, 45],
+  iconAnchor: [15, 45],
+  popupAnchor: [0, -45],
+  shadowSize: [41, 41],
+});
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const ACTIVITIES = [
   { id: "walk", label: "Gehen", iconSrc: walkingIcon, emoji: "🚶" },
@@ -26,9 +56,28 @@ export default function HomePage() {
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
   const [user, setUser] = useState<UserDTO | null>(null);
+  const [userStats, setUserStats] = useState({ level: 1, xp: 0 });
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     fetchDashboard();
+    
+    // Get user's GPS location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.warn("Could not get location:", error);
+          // Fallback to Winterthur center
+          setUserLocation([47.5, 8.72]);
+        }
+      );
+    } else {
+      // Fallback to Winterthur center
+      setUserLocation([47.5, 8.72]);
+    }
   }, []);
 
   const fetchDashboard = async () => {
@@ -93,28 +142,93 @@ export default function HomePage() {
   };
 
   if (activeActivity) {
-    const activity = ACTIVITIES.find((a) => a.id === activeActivity);
     return (
       <div className="page homePage recording-mode">
-        <div className="recording-header">
-          <h1>Aufzeichnung läuft...</h1>
-          <div className="recording-label">{activity?.label}</div>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", padding: "0" }}>
+          {/* Compact Mascot Display with Custom Activity Animation */}
+          <div style={{ marginTop: "-0.5rem", marginBottom: "0.5rem" }}>
+            <MascotDisplay 
+              movement={activeActivity} 
+              level={userStats.level} 
+              xp={userStats.xp} 
+              compact={true}
+            />
+          </div>
         </div>
 
-        <MascotDisplay
-          movement={activeActivity as any}
-          level={user ? Math.floor(user.sustainabilityScore / 100) + 1 : 1}
-          xp={user?.sustainabilityScore ?? 0}
-          accessories={user?.lion.accessories}
-          style={{ marginBottom: "2rem" }}
-        />
+        {/* Live Map - Simple SBB-style color scheme */}
+        {userLocation && (
+          <div style={{ height: "220px", width: "100%", marginBottom: "1rem", borderRadius: "12px", overflow: "hidden" }}>
+            <MapContainer
+              center={userLocation}
+              zoom={15}
+              style={{ height: "100%", width: "100%" }}
+              zoomControl={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              />
+              <Marker position={userLocation} icon={RedIcon}>
+                <Popup>Your location</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        )}
 
-        <div className="recording-timer">{formatTime(timer)}</div>
+        {/* Slider Control - SBB Easy Ride Style */}
+        <div style={{ padding: "0 1rem", width: "100%", maxWidth: "600px", margin: "0 auto" }}>
+          <div style={{ 
+            position: "relative",
+            width: "100%",
+            height: "60px",
+            backgroundColor: "#f0f0f0",
+            borderRadius: "30px",
+            display: "flex",
+            alignItems: "center",
+            padding: "0 8px",
+            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
+          }}>
+            {/* Timer Display in Slider Track */}
+            <div style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+              color: "#666",
+              pointerEvents: "none",
+              zIndex: 1
+            }}>
+              {formatTime(timer)}
+            </div>
 
-        <div className="recording-actions">
-          <PrimaryButton onClick={handleStop} className="stop-btn">
-            Beenden & Speichern
-          </PrimaryButton>
+            {/* Slider Handle with STOP text */}
+            <button
+              onClick={handleStop}
+              style={{
+                position: "absolute",
+                right: "4px",
+                width: "120px",
+                height: "52px",
+                backgroundColor: "#e74c3c",
+                color: "white",
+                border: "none",
+                borderRadius: "26px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                transition: "all 0.2s",
+                zIndex: 2
+              }}
+              onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+              onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              STOP
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -141,7 +255,7 @@ export default function HomePage() {
         )}
       </Card>
 
-      <section className="activity-section">
+      <section className="activity-section" style={{ marginTop: "1rem" }}>
         <h2 className="sectionTitle">Aktivität starten</h2>
         <div className="activity-grid">
           {ACTIVITIES.map((act) => (

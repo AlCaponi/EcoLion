@@ -1,6 +1,11 @@
 /* ── Home page ─────────────────────────────────── */
 .homePage h1 { margin: 6px 0 10px; }
 
+/* Compact hero card for mobile */
+.hero-card-compact {
+  padding: 0.75rem !important;
+}
+
 .heroValue { font-size: 22px; font-weight: 800; }
 
 /* streak bar (shared visual) */
@@ -43,10 +48,18 @@
 
 .activity-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, auto);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   margin-top: 16px;
+  width: 100%;
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 768px) {
+  .activity-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
 }
 
 .activity-btn {
@@ -57,8 +70,10 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 16px 8px;
+  padding: 8px 4px;
   aspect-ratio: 1;
+  width: 100%;
+  max-width: 100%;
   transition: transform 0.1s, background 0.2s;
   cursor: pointer;
 }
@@ -68,8 +83,35 @@
   background: var(--surface-2);
 }
 
-.act-icon { font-size: 32px; margin-bottom: 8px; }
-.act-label { font-weight: 700; font-size: 13px; text-align: center; line-height: 1.2; }
+.act-icon { 
+  font-size: clamp(24px, 6vw, 32px);
+  margin-bottom: 4px;
+  width: 75%;
+  height: auto;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.act-label { 
+  font-weight: 700; 
+  font-size: clamp(10px, 2.5vw, 13px);
+  text-align: center; 
+  line-height: 1.2; 
+}
+
+/* Desktop: more padding and larger elements */
+@media (min-width: 768px) {
+  .activity-btn {
+    padding: 16px 8px;
+  }
+  
+  .act-icon {
+    width: 80%;
+    margin-bottom: 8px;
+  }
+}
 
 /* Recording Mode override */
 .recording-mode {
