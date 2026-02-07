@@ -18,6 +18,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY --from=build /app/dist /app/dist
+COPY --from=build /app/vite.config.ts /app/vite.config.ts
 
 EXPOSE 5173
 
