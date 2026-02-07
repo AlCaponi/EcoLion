@@ -54,7 +54,7 @@ function FitBoundsToFeatures() {
       map.fitBounds(bounds, {
         paddingTopLeft: padding as [number, number],
         paddingBottomRight: padding as [number, number],
-        maxZoom: isMobile ? 12 : 13,
+        maxZoom: isMobile ? 12 : 15, // Allow more zoom on desktop
         animate: false
       });
     }
