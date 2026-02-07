@@ -46,6 +46,19 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   const watchIdRef = useRef<number | null>(null);
   const intervalIdRef = useRef<number | null>(null);
 
+  // Helper to clean up tracking resources
+  const cleanupTracking = useCallback(() => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
+  }, []);
+
   const addPoint = useCallback((position: GeolocationPosition) => {
     const { latitude, longitude, accuracy } = position.coords;
     
@@ -90,20 +103,11 @@ export function useLocationTracking(): UseLocationTrackingReturn {
     
     // Stop tracking on terminal errors
     if (isTerminalError) {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-      }
-      
-      if (intervalIdRef.current !== null) {
-        clearInterval(intervalIdRef.current);
-        intervalIdRef.current = null;
-      }
-      
+      cleanupTracking();
       setIsTracking(false);
       console.warn("🛑 Tracking stopped due to terminal error:", errorMessage);
     }
-  }, []);
+  }, [cleanupTracking]);
 
   const startTracking = useCallback((useMockData = false) => {
     setError(null);
@@ -176,21 +180,12 @@ export function useLocationTracking(): UseLocationTrackingReturn {
   }, [addPoint, handleError]);
 
   const stopTracking = useCallback((): LocationPoint[] => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    
-    if (intervalIdRef.current !== null) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
-    
+    cleanupTracking();
     setIsTracking(false);
     console.log(`🛑 Location tracking stopped. Total points: ${points.length}`);
     
     return points;
-  }, [points]);
+  }, [points, cleanupTracking]);
 
   const clearPoints = useCallback(() => {
     setPoints([]);
