@@ -219,22 +219,29 @@ export default function RewardsPage() {
   };
 
   /* Claim a milestone → unlock its reward */
-  const claimMilestone = (id: string) => {
-    const ms = milestones.find((m) => m.id === id);
-    // Only allow claiming if the milestone exists, is completed, and not already claimed
-    if (!ms || ms.claimed || !ms.completed) {
-      return;
+  const claimMilestone = (id: string, rewardId: string) => {
+    // Use functional updates with rewardId passed in to avoid stale state
+    let shouldUpdateReward = false;
+    
+    setMilestones((prev) => {
+      const ms = prev.find((m) => m.id === id);
+      // Only allow claiming if the milestone exists, is completed, and not already claimed
+      if (!ms || ms.claimed || !ms.completed) {
+        return prev;
+      }
+      shouldUpdateReward = true;
+      return prev.map((m) => (m.id === id ? { ...m, claimed: true } : m));
+    });
+    
+    if (shouldUpdateReward) {
+      setRewards((prev) =>
+        prev.map((r) =>
+          r.id === rewardId
+            ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
+            : r
+        )
+      );
     }
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, claimed: true } : m))
-    );
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === ms.rewardId
-          ? { ...r, claimed: true, claimedAt: new Date().toISOString() }
-          : r
-      )
-    );
   };
 
   /* Derived */
@@ -390,7 +397,7 @@ function MilestoneCard({
 }: {
   milestone: MilestoneDTO;
   reward: RewardDTO | undefined;
-  onClaim: (id: string) => void;
+  onClaim: (id: string, rewardId: string) => void;
 }) {
   const pct = Math.min((milestone.progress / milestone.goal) * 100, 100);
   const cat = reward ? categoryInfo[reward.category] : null;
@@ -429,7 +436,7 @@ function MilestoneCard({
       {milestone.completed && !milestone.claimed && (
         <button
           className="rwClaimBtnLarge"
-          onClick={() => onClaim(milestone.id)}
+          onClick={() => onClaim(milestone.id, milestone.rewardId)}
           aria-label="Reward einlösen"
         >
           <span aria-hidden="true">🎁</span> Reward einlösen
