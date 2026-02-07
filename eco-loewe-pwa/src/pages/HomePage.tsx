@@ -133,16 +133,32 @@ export default function HomePage() {
     const activity = ACTIVITIES.find((a) => a.id === activeActivity);
     return (
       <div className="page homePage recording-mode">
-        <div className="recording-header" style={{ marginBottom: "0.5rem", padding: "0.5rem 1rem" }}>
-            <div className="recording-label" style={{ fontSize: "0.9rem", fontWeight: "500" }}>{activity?.label}</div>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          {/* Compact Mascot Display */}
+          <div style={{ 
+            width: "180px", 
+            height: "180px", 
+            position: "relative",
+            marginTop: "0.5rem",
+            marginBottom: "0.25rem"
+          }}>
+            <img 
+              src={ACTIVITIES.find((a) => a.id === activeActivity)?.iconSrc} 
+              alt={activity?.label} 
+              style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+            />
+          </div>
+          
+          {/* Activity Label Below Lion */}
+          <div style={{ 
+            fontSize: "0.95rem", 
+            fontWeight: "600", 
+            marginBottom: "0.75rem",
+            color: "#333"
+          }}>
+            {activity?.label}
+          </div>
         </div>
-        
-        <MascotDisplay 
-            movement={activeActivity} 
-            level={userStats.level} 
-            xp={userStats.xp} 
-            style={{ marginBottom: "0.5rem", padding: "0" }}
-        />
 
         {/* Live Map */}
         {userLocation && (
