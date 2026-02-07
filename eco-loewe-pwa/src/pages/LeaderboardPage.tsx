@@ -4,7 +4,7 @@ import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { LeaderboardDTO, LeaderboardEntry, QuartierEntry } from "../shared/api/types";
 
-type Tab = "freunde" | "quartiere" | "stadt";
+type Tab = "quartiere" | "stadt";
 
 const MOCK: LeaderboardDTO = {
   streakDays: 8,
@@ -16,13 +16,6 @@ const MOCK: LeaderboardDTO = {
     { id: "k5", name: "Veltheim",        co2SavedKg: 420, rank: 5 },
     { id: "k7", name: "Mattenbach",      co2SavedKg: 390, rank: 6 },
     { id: "k6", name: "Wülflingen",      co2SavedKg: 350, rank: 7 },
-  ],
-  friends: [
-    { id: "p1", name: "Paul",  co2SavedKg: 95, rank: 1 },
-    { id: "p2", name: "Alex",  co2SavedKg: 80, rank: 2 },
-    { id: "me", name: "Du",    co2SavedKg: 74, rank: 3, isMe: true },
-    { id: "p3", name: "Sarah", co2SavedKg: 70, rank: 4 },
-    { id: "p4", name: "Lisa",  co2SavedKg: 62, rank: 5 },
   ],
   users: [
     { user: { id: "c1", displayName: "MaxGreen" }, score: 210, rank: 1 },
@@ -40,7 +33,7 @@ const MOCK: LeaderboardDTO = {
 };
 
 /** Split entries into podium (top 3) and the rest, with gap logic for "me" */
-function splitPodiumAndList(entries: LeaderboardEntry[]) {
+function splitPodiumAndList(entries: LeaderboardEntry[] = []) {
   const sorted = [...entries].sort((a, b) => a.rank - b.rank);
   const podium = sorted.slice(0, 3);
   const rest = sorted.slice(3);
@@ -64,7 +57,7 @@ function splitPodiumAndList(entries: LeaderboardEntry[]) {
 
 export default function LeaderboardPage() {
   const [data, setData] = useState<LeaderboardDTO | null>(null);
-  const [tab, setTab] = useState<Tab>("freunde");
+  const [tab, setTab] = useState<Tab>("stadt");
   const [poking, setPoking] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,7 +73,8 @@ export default function LeaderboardPage() {
 
   const userEntries = useMemo<LeaderboardEntry[]>(() => {
     if (!data) return [];
-    return data.users.map((entry) => ({
+    const users = Array.isArray(data.users) ? data.users : [];
+    return users.map((entry) => ({
       id: entry.user.id,
       name: entry.user.displayName,
       co2SavedKg: entry.score,
@@ -93,24 +87,21 @@ export default function LeaderboardPage() {
     if (!data) return { podium: [], list: [] };
     const entries =
       tab === "quartiere"
-        ? (data.quartiers as LeaderboardEntry[])
-        : tab === "stadt"
-          ? userEntries
-          : data.friends;
+        ? ((Array.isArray(data.quartiers) ? data.quartiers : []) as LeaderboardEntry[])
+        : userEntries;
     return splitPodiumAndList(entries);
   }, [data, tab, userEntries]);
 
   const myEntry = useMemo(() => {
     if (!data) return null;
-    const entries =
-      tab === "quartiere" ? data.quartiers : tab === "stadt" ? userEntries : data.friends;
+    const entries = tab === "quartiere" ? (Array.isArray(data.quartiers) ? data.quartiers : []) : userEntries;
     return (entries as LeaderboardEntry[]).find((e) => e.isMe) ?? null;
   }, [data, tab, userEntries]);
 
-  async function poke(friendId: string) {
+  async function poke(userId: string) {
     try {
-      setPoking(friendId);
-      await Api.pokeFriend(friendId);
+      setPoking(userId);
+      await Api.pokeUser(userId);
     } catch {
       /* ignore in mock mode */
     } finally {
@@ -139,9 +130,8 @@ export default function LeaderboardPage() {
       {/* ── Tab bar ── */}
       <div className="segmented full">
         {([
-          ["freunde", "Freunde"],
-          ["quartiere", "Quartiere"],
           ["stadt", "Stadt"],
+          ["quartiere", "Quartiere"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -198,7 +188,7 @@ export default function LeaderboardPage() {
                 return <div key={`gap-${i}`} className="rankGap">···</div>;
               }
               const isMe = entry.isMe ?? false;
-              const showPoke = tab === "freunde" && !isMe;
+              const showPoke = tab === "stadt" && !isMe;
 
               return (
                 <div key={entry.id} className={`rankRow${isMe ? " rankRowMe" : ""}`}>
