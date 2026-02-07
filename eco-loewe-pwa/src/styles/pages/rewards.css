@@ -258,16 +258,16 @@
   display: block;
   margin-bottom: 12px;
 }
-.rwEmpty p {
+.rwEmpty > p:first-of-type {
   font-weight: 700;
   font-size: 16px;
   margin: 0;
 }
 .rwEmptyHint {
   color: var(--muted);
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  margin-top: 6px !important;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 6px 0 0;
 }
 
 /* ── Reward Card (My Rewards) ── */
