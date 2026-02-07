@@ -68,21 +68,41 @@ export function useLocationTracking(): UseLocationTrackingReturn {
 
   const handleError = useCallback((err: GeolocationPositionError) => {
     let errorMessage = "Unknown location error";
+    let isTerminalError = false;
     
     switch (err.code) {
       case err.PERMISSION_DENIED:
         errorMessage = "Location permission denied. Please enable location access.";
+        isTerminalError = true;
         break;
       case err.POSITION_UNAVAILABLE:
         errorMessage = "Location unavailable. Please check your GPS.";
+        isTerminalError = true;
         break;
       case err.TIMEOUT:
         errorMessage = "Location request timed out.";
+        // Timeout is not terminal - allow retry
         break;
     }
     
     console.error("Location tracking error:", errorMessage, err);
     setError(errorMessage);
+    
+    // Stop tracking on terminal errors
+    if (isTerminalError) {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+      
+      setIsTracking(false);
+      console.warn("🛑 Tracking stopped due to terminal error:", errorMessage);
+    }
   }, []);
 
   const startTracking = useCallback((useMockData = false) => {
