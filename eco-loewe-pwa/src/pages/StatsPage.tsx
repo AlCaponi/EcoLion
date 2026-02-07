@@ -48,7 +48,7 @@ function FitBoundsToFeatures() {
       
       // Fit with responsive padding based on screen size
       const isMobile = window.innerWidth < 768;
-      const padding = isMobile ? [20, 20] : [50, 50];
+      const padding = isMobile ? [10, 10] : [15, 15];
       
       // Use paddingTopLeft and paddingBottomRight for proper constraint handling
       map.fitBounds(bounds, {
