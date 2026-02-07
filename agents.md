@@ -138,6 +138,14 @@ docker compose --profile test run --rm api-tests npm run test:seed
 docker compose --profile test up --build
 ```
 
+## Testing Guidance
+
+After large or multi-file changes (especially backend + contract + frontend), run the full API test suite:
+
+```bash
+docker compose --profile test run --rm api-tests
+```
+
 ## Key DTOs
 
 ### UserDTO

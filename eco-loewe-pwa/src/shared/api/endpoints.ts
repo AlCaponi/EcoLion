@@ -9,6 +9,7 @@ import type {
   RewardsPageDTO,
   StartActivityRequestDTO,
   StartActivityResponseDTO,
+  ActivityListItemDTO,
   StopActivityRequestDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
@@ -28,6 +29,7 @@ export const Api = {
   claimMilestone: (milestoneId: string) => apiRequest<void>(`/v1/rewards/milestones/${milestoneId}/claim`, "POST"),
   startActivity: (payload: StartActivityRequestDTO) =>
     apiRequest<StartActivityResponseDTO>("/v1/activity/start", "POST", payload),
+  activities: () => apiRequest<ActivityListItemDTO[]>("/v1/activities"),
   stopActivity: (payload: StopActivityRequestDTO) =>
     apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
   getActivity: (activityId: number) =>

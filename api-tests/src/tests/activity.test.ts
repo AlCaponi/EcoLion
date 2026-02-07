@@ -5,11 +5,13 @@ import {
   StartActivityResponseSchema,
   StopActivityResponseSchema,
   GetActivityResponseSchema,
+  ActivityListItemSchema,
 } from "../contracts/schemas.ts";
 import type {
   StartActivityResponseDTO,
   StopActivityResponseDTO,
   GetActivityResponseDTO,
+  ActivityListItemDTO,
 } from "../contracts/types.ts";
 
 describe("POST /v1/activity/start", () => {
@@ -223,5 +225,52 @@ describe("Activity user scoping", () => {
       { activityId: started.activityId, stopTime: "2023-10-27T15:10:00Z" },
     );
     expect(ownerStopStatus).toBe(200);
+  });
+});
+
+describe("GET /v1/activities", () => {
+  let client: ApiClient;
+
+  beforeAll(async () => {
+    const ctx = await createTestContext("ActivityListUser");
+    client = ctx.client;
+
+    await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T16:00:00Z" },
+    );
+  });
+
+  it("should return 200 with an array", async () => {
+    const { status, data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+    expect(status).toBe(200);
+    expect(Array.isArray(data)).toBe(true);
+    expect(data.length).toBeGreaterThan(0);
+  });
+
+  it("should have valid schema for each activity", async () => {
+    const { data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+    for (const activity of data) {
+      const result = ActivityListItemSchema.safeParse(activity);
+      if (!result.success) {
+        console.error(
+          `Schema error for activity ${activity.activityId}:`,
+          result.error.issues,
+        );
+      }
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("should only list activities accessible by the user", async () => {
+    const ctx = await createTestContext("ActivityListOtherUser");
+    const { data } = await client.get<ActivityListItemDTO[]>("/v1/activities");
+
+    for (const activity of data) {
+      const { status } = await ctx.client.get(
+        `/v1/activity/${activity.activityId}`,
+      );
+      expect(status).toBe(404);
+    }
   });
 });
