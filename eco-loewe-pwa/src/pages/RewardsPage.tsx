@@ -12,7 +12,7 @@ const mockRewards: RewardDTO[] = [
     category: "culture",
     icon: "🎭",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: new Date(Date.now() + 90 * 24 * 3600_000).toISOString(),
     code: "ECO-TECH-10",
   },
   {
@@ -23,7 +23,7 @@ const mockRewards: RewardDTO[] = [
     category: "mobility",
     icon: "🚲",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: new Date(Date.now() + 90 * 24 * 3600_000).toISOString(),
     code: "ECO-VELO-CHK",
   },
   {
@@ -34,7 +34,7 @@ const mockRewards: RewardDTO[] = [
     category: "gastro",
     icon: "🍽️",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: new Date(Date.now() + 90 * 24 * 3600_000).toISOString(),
     code: "ECO-OSKAR-15",
   },
   {
@@ -45,7 +45,7 @@ const mockRewards: RewardDTO[] = [
     category: "sport",
     icon: "🧗",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: new Date(Date.now() + 90 * 24 * 3600_000).toISOString(),
     code: "ECO-KLETTER-20",
   },
   {
@@ -56,7 +56,7 @@ const mockRewards: RewardDTO[] = [
     category: "mobility",
     icon: "🚌",
     claimed: false,
-    expiresAt: "2025-12-31",
+    expiresAt: new Date(Date.now() + 90 * 24 * 3600_000).toISOString(),
     code: "ECO-STBUS-50",
   },
 ];
