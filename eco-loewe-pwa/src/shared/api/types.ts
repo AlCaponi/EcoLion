@@ -61,6 +61,56 @@ export interface FriendDTO {
   co2SavedKg: number;
 }
 
+/* ── Rewards ──────────────────────────────────── */
+
+export type QuestFrequency = "daily" | "weekly";
+
+export interface QuestDTO {
+  id: string;
+  title: string;
+  description: string;
+  frequency: QuestFrequency;
+  progress: number;       // current progress (e.g. 2)
+  goal: number;           // target (e.g. 5)
+  rewardCoins: number;
+  rewardXp: number;
+  completed: boolean;     // goal reached this period
+  claimed: boolean;       // reward already collected
+  icon: string;           // emoji
+  resetsAt: string;       // ISO timestamp when quest resets
+}
+
+export interface MilestoneDTO {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  goal: number;
+  rewardId: string;       // links to a RewardDTO
+  completed: boolean;
+  claimed: boolean;
+  icon: string;
+}
+
+export type RewardCategory = "gastro" | "mobility" | "culture" | "sport" | "shopping";
+
+export interface RewardDTO {
+  id: string;
+  title: string;
+  description: string;
+  partner: string;        // e.g. "Stadtbus Winterthur"
+  category: RewardCategory;
+  icon: string;
+  claimed: boolean;
+  claimedAt?: string;     // ISO timestamp
+  expiresAt?: string;     // ISO timestamp
+  code?: string;          // discount code shown after claim
+}
+
+export interface RewardsPageDTO {
+  quests: QuestDTO[];
+  milestones: MilestoneDTO[];
+  rewards: RewardDTO[];
 export type ActivityType = "walk" | "bike" | "transit" | "drive" | "wfh" | "pool";
 export type ActivityState = "running" | "paused" | "stopped";
 
