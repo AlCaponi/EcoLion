@@ -8,6 +8,7 @@ import type { ShopItemDTO, UserDTO } from "../shared/api/types";
 const MOCK_ITEMS: ShopItemDTO[] = [
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
   { id: "hat-detective", name: "Detektiv-Hut", priceCoins: 120, category: "hats", owned: false, assetPath: "/assets/articles/hats/detective_hat/DetectiveHat.png" },
@@ -18,6 +19,8 @@ const MOCK_ITEMS: ShopItemDTO[] = [
   { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "🌿" },
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 759c662 (Added initial implementation of Shop)
   { id: "hat-cap", name: "Basecap", priceCoins: 50, category: "hats", owned: false, assetPath: "/🧢" },
   { id: "hat-beanie", name: "Beanie", priceCoins: 40, category: "hats", owned: false, assetPath: "/🎩" },
   { id: "acc-sunglasses", name: "Sonnenbrille", priceCoins: 60, category: "accessories", owned: false, assetPath: "/😎" },
@@ -26,9 +29,12 @@ const MOCK_ITEMS: ShopItemDTO[] = [
   { id: "decor-plant", name: "Pflanze", priceCoins: 25, category: "decor", owned: false, assetPath: "/🌿" },
   { id: "decor-crown", name: "Krone", priceCoins: 150, category: "decor", owned: false, assetPath: "/👑" },
   { id: "decor-medal", name: "Medaille", priceCoins: 100, category: "decor", owned: false, assetPath: "/🏅" },
+<<<<<<< HEAD
 >>>>>>> 26eb503 (Added initial implementation of Shop)
 =======
 >>>>>>> db9a526 (Implement Mascot Layering and Shop Assets)
+=======
+>>>>>>> 759c662 (Added initial implementation of Shop)
 ];
 
 // Coin packages for purchase
