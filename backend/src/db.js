@@ -456,18 +456,22 @@ export function createStore(dbPath) {
         return { notFound: true };
       }
 
+      const dashboard = this.getDashboard(userId);
+      if (dashboard.lion.coins < item.price_coins) {
+        return { notFound: false, insufficientFunds: true };
+      }
+
       db.prepare(
         "INSERT OR IGNORE INTO user_shop_ownership (user_id, item_id) VALUES (?, ?)",
       ).run(userId, itemId);
 
-      const dashboard = this.getDashboard(userId);
       if (!dashboard.lion.accessories.includes(itemId)) {
         dashboard.lion.accessories = [...dashboard.lion.accessories, itemId];
       }
       dashboard.lion.coins = Math.max(0, dashboard.lion.coins - item.price_coins);
       upsertDashboardForUser(db, userId, dashboard);
 
-      return { notFound: false };
+      return { notFound: false, insufficientFunds: false };
     },
 
     listFriends() {
