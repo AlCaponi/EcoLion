@@ -26,7 +26,13 @@ export default function AppShell({ children, onLogout }: AppShellProps) {
         console.error("Failed to init app shell:", error);
       }
     }
+    
     init();
+
+    // Listen for custom event to refresh stats (e.g. from Settings debug tools)
+    const handleRefresh = () => init();
+    window.addEventListener("ecolion:refresh-stats", handleRefresh);
+    return () => window.removeEventListener("ecolion:refresh-stats", handleRefresh);
   }, []);
 
   return (

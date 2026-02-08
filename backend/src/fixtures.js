@@ -1,12 +1,12 @@
 export const DEFAULT_DASHBOARD = {
-  sustainabilityScore: 78.5,
-  streakDays: 8,
-  today: { walkKm: 2.3, ptTrips: 1, carKm: 0 },
+  sustainabilityScore: 0,
+  streakDays: 0,
+  today: { walkKm: 0, ptTrips: 0, carKm: 0 },
   lion: {
-    mood: "happy",
-    activityMode: "walking",
-    accessories: ["hat-cap", "acc-sunglasses"],
-    coins: 85,
+    mood: "sad",
+    activityMode: "idle",
+    accessories: [],
+    coins: 0,
   },
 };
 

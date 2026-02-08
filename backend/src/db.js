@@ -454,6 +454,36 @@ export function createStore(dbPath) {
       return true;
     },
 
+    debugBoost(userId) {
+      if (!this.userExists(userId)) return false;
+      
+      const now = new Date().toISOString();
+      // Insert dummy activity to make sure CO2 sum increases (for mood)
+      db.prepare(`
+        INSERT INTO activities (
+            user_id, activity_type, state, start_time, stop_time, duration_seconds, distance_meters, xp_earned, co2_saved_kg
+        ) VALUES (
+            ?, 'walk', 'stopped', ?, ?, 600, 1000, 100, 10.0
+        )
+      `).run(userId, now, now);
+
+      // Update dashboard state
+      db.prepare(`
+        UPDATE dashboard_state
+        SET sustainability_score = sustainability_score + 100, 
+            coins = coins + 50
+        WHERE user_id = ?
+      `).run(userId);
+      
+      return true;
+    },
+
+    addCoins(userId, amount) {
+      if (!this.userExists(userId)) return false;
+      db.prepare("UPDATE dashboard_state SET coins = coins + ? WHERE user_id = ?").run(amount, userId);
+      return true;
+    },
+
     createAuthSession({ kind, userId = null, displayName = null, metadata = null }) {
       const sessionId = crypto.randomUUID();
       const challenge = crypto.randomBytes(24).toString("base64url");
@@ -614,6 +644,19 @@ export function createStore(dbPath) {
         )
         .get(userId);
 
+      const today = new Date().toISOString().split("T")[0];
+      const quotaRow = db.prepare("SELECT count FROM user_quotas WHERE user_id = ? AND date = ?").get(userId, today);
+      const messagesUsed = quotaRow ? quotaRow.count : 0;
+      
+      // Calculate mood based on CO2 saved
+      // Threshold: 5kg to be happy
+      // We need to fetch total CO2 saved from the activities table logic or dashboard state
+      // Dashboard state has sustainability_score which is XP, let's assume co2 is roughly tracked there or we query activities.
+      // Better: Use total CO2 from activities
+      const totalCo2Row = db.prepare("SELECT SUM(co2_saved_kg) as total FROM activities WHERE user_id = ?").get(userId);
+      const totalCo2 = totalCo2Row ? (totalCo2Row.total || 0) : 0;
+      const isHappy = totalCo2 >= 5.0;
+
       if (activityRow) {
         dashboard.currentActivity = {
           activityId: activityRow.id,
@@ -621,6 +664,10 @@ export function createStore(dbPath) {
           startTime: activityRow.start_time,
         };
       }
+      
+      // Override mood
+      dashboard.lion.mood = isHappy ? "happy" : "sad";
+      
       return dashboard;
     },
 
