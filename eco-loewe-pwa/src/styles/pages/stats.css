@@ -64,60 +64,6 @@
 
 .weekLabel { color: var(--muted); font-weight: 700; font-size: 11px; }
 
-/* ── Quartier map (simple image) ── */
-.quartierMapContainer {
-  margin-top: 10px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  position: relative;
-}
-
-.quartierMapImage {
-  width: 100%;
-  display: block;
-  object-fit: cover;
-  /* Slight grayscale filter to match app vibe, optional */
-  filter: saturate(0.8) contrast(1.1); 
-}
-
-.quartierHighlight {
-  background: var(--surface);
-  padding: 10px 14px;
-  border-top: 1px solid var(--border);
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  color: var(--text);
-}
-.quartierHighlight strong {
-  color: var(--brand);
-  font-weight: 800;
-}
-.quartierMap svg rect { fill: var(--surface-2); stroke: var(--border); }
-.quartierMap svg circle { fill: var(--brand); opacity: .9; }
-.quartierMap svg circle.pinMe { fill: var(--brand); opacity: 1; stroke: var(--text); stroke-width: 2; }
-.quartierMap svg text { font-size: 12px; fill: var(--text); font-weight: 700; }
-
-.quartierList { display: grid; gap: 8px; }
-.quartierRow {
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-}
-.quartierRowMe {
-  background: color-mix(in srgb, var(--brand) 8%, white 92%);
-  border-color: color-mix(in srgb, var(--brand) 25%, var(--border) 75%);
-}
-.quartierRank { font-weight: 900; color: var(--brand); }
-.quartierName { font-weight: 700; }
-.quartierMetric { color: var(--muted); font-weight: 700; }
-
 /* ── Activity history ─────────────────────────── */
 .activityList {
   display: grid;

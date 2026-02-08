@@ -1,11 +1,56 @@
 import { useEffect, useMemo, useState } from "react";
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
 import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { LeaderboardDTO, LeaderboardEntry, QuartierEntry } from "../shared/api/types";
 import { useSettings } from "../shared/context/SettingsContext";
+import kreiseData from "../assets/winterthur_kreise.json";
 
 type Tab = "quartiere" | "stadt" | "freund";
+
+const KREIS_NAMES: Record<number, string> = {
+  1: "Stadt",
+  2: "Oberwinterthur",
+  3: "Seen",
+  4: "Töss",
+  5: "Veltheim",
+  6: "Wülflingen",
+  7: "Mattenbach",
+};
+
+const KREIS_CO2: Record<number, number> = {
+  1: 1250,
+  2: 890,
+  3: 1100,
+  4: 3200, // Active user
+  5: 650,
+  6: 920,
+  7: 1540,
+};
+
+function FitBoundsToFeatures() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (kreiseData && kreiseData.features) {
+      const geoJsonLayer = (window as any).L.geoJSON(kreiseData);
+      const bounds = geoJsonLayer.getBounds();
+      const isMobile = window.innerWidth < 768;
+      const padding = isMobile ? [10, 10] : [15, 15];
+
+      map.fitBounds(bounds, {
+        paddingTopLeft: padding as [number, number],
+        paddingBottomRight: padding as [number, number],
+        maxZoom: isMobile ? 12 : 15,
+        animate: false,
+      });
+    }
+  }, [map]);
+
+  return null;
+}
 
 const MOCK: LeaderboardDTO = {
   streakDays: 8,
@@ -295,6 +340,67 @@ export default function LeaderboardPage() {
               <div className="myRankName">{entryLabel(myEntry)}</div>
               <div className="myRankStat">{myEntry.co2SavedKg} kg CO₂ gespart</div>
             </div>
+          </div>
+        </Card>
+      )}
+
+      {tab === "quartiere" && (
+        <Card>
+          <div className="sectionTitle">Quartiere im Vergleich</div>
+          <div className="quartierMapContainer leaderboardQuartierMap">
+            <MapContainer
+              center={[47.5, 8.72]}
+              zoom={12}
+              scrollWheelZoom={false}
+              style={{ height: "100%", width: "100%" }}
+              attributionControl={true}
+            >
+              <FitBoundsToFeatures />
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              />
+              <GeoJSON
+                data={kreiseData as any}
+                style={(feature: any) => {
+                  const id = feature.properties.KREIS;
+                  const co2 = KREIS_CO2[id] || 0;
+                  const color =
+                    co2 > 2000 ? "#1a9850"
+                      : co2 > 1000 ? "#66bd63"
+                      : co2 > 500 ? "#a6d96a"
+                        : "#d9ef8b";
+                  return {
+                    fillColor: color,
+                    weight: 1,
+                    opacity: 1,
+                    color: "white",
+                    dashArray: "3",
+                    fillOpacity: 0.7,
+                  };
+                }}
+                onEachFeature={(feature: any, layer: any) => {
+                  const id = feature.properties.KREIS;
+                  const name = KREIS_NAMES[id] || `Kreis ${id}`;
+                  const co2 = KREIS_CO2[id] || 0;
+
+                  layer.bindTooltip(
+                    `<div style="text-align: center; line-height: 1.2;">
+                       <div style="font-weight:700; font-size: 10px;">${name}</div>
+                       <div style="font-size: 9px; opacity: 0.8;">${co2} kg</div>
+                     </div>`,
+                    {
+                      permanent: true,
+                      direction: "center",
+                      className: "kreis-label-tooltip",
+                    },
+                  );
+                }}
+              />
+            </MapContainer>
+          </div>
+          <div className="quartierHighlight">
+            Du bist im Quartier <strong>Töss</strong> aktiv!
           </div>
         </Card>
       )}
