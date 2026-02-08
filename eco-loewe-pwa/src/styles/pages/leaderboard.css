@@ -158,7 +158,7 @@ section.card:nth-child(3) {
 }
 
 .rankRowMe {
-  background: color-mix(in srgb, var(--brand) 8%, white 92%);
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface) 92%);
   border-color: color-mix(in srgb, var(--brand) 25%, var(--border) 75%);
 }
 
