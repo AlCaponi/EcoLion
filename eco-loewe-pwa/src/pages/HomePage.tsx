@@ -185,6 +185,7 @@ export default function HomePage() {
           <div style={{ marginTop: "-0.5rem", marginBottom: "0.5rem" }}>
             <MascotDisplay 
               movement={activeActivity} 
+              mood={user?.lion?.mood}
               level={userStats.level} 
               xp={userStats.xp} 
               compact={true}
@@ -297,6 +298,7 @@ export default function HomePage() {
             xp={user.sustainabilityScore}
             accessories={user.lion.accessories}
             movement="idle"
+            mood={user.lion.mood}
           />
         ) : (
           <div className="lionPreview">

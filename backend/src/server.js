@@ -744,6 +744,26 @@ app.post("/v1/admin/reset", async () => {
   return { ok: true };
 });
 
+app.post("/v1/debug/boost", async (request, reply) => {
+  const success = store.debugBoost(request.userId);
+  if (!success) {
+    return reply.code(404).send({ error: "User not found" });
+  }
+  return { ok: true };
+});
+
+app.post("/v1/debug/coins", async (request, reply) => {
+  const amount = request.body?.amount;
+  if (!Number.isInteger(amount)) {
+    return reply.code(400).send({ error: "Amount required" });
+  }
+  const success = store.addCoins(request.userId, amount);
+  if (!success) {
+    return reply.code(404).send({ error: "User not found" });
+  }
+  return { ok: true };
+});
+
 app.post("/v1/admin/seed", async (request) => {
   store.seedFromPayload(request.body ?? {});
   return { ok: true };

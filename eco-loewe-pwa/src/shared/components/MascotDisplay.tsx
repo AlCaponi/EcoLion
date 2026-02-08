@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 // Import the default lion image
 import idleParams from "../../assets/mascot/idle.png";
+import idleSadParams from "../../assets/mascot/idle_sad.png";
 import bikingDisplay from "../../assets/mascot/biking.png";
 import carDisplay from "../../assets/mascot/car.png";
 import carPoolingDisplay from "../../assets/mascot/carPooling.png";
@@ -23,6 +24,7 @@ const MOTIVATIONAL_MESSAGES = [
 
 interface MascotDisplayProps {
   movement?: Movement;
+  mood?: "happy" | "neutral" | "sad";
   level?: number;
   xp?: number;
   accessories?: string[]; // IDs of equipped accessories
@@ -52,6 +54,7 @@ const ACCESSORY_IMAGES: Record<string, string> = {
 
 export default function MascotDisplay({
   movement = "idle",
+  mood = "happy",
   level = 1,
   xp = 0,
   accessories = [],
@@ -59,7 +62,13 @@ export default function MascotDisplay({
   style,
   compact = false,
 }: MascotDisplayProps) {
-  const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
+  let baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
+  
+  // Override for sad idle
+  if (movement === "idle" && mood === "sad") {
+    baseImageSrc = idleSadParams;
+  }
+
   const motivationalMessage = MOTIVATIONAL_MESSAGES[(level + xp) % MOTIVATIONAL_MESSAGES.length];
   const visualWrapperStyle = compact
     ? { ...styles.visualWrapper, width: "180px", height: "180px" }

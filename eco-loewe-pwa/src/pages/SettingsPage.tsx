@@ -129,6 +129,64 @@ export default function SettingsPage() {
             </Card>
           </div>
         </section>
+
+        {/* Debug Zone */}
+        <section className="settingsSection">
+          <h2>Debug Zone 🛠️</h2>
+          <Card>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button 
+                onClick={async () => {
+                  try {
+                    const { Api } = await import("../shared/api/endpoints");
+                    await Api.debugBoost();
+                    window.dispatchEvent(new Event("ecolion:refresh-stats"));
+                    setMsg("Boosted! (+10kg CO2, +50 Coins)");
+                    setTimeout(() => setMsg(""), 3000);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                style={{
+                  fontSize: "12px",
+                  padding: "8px 12px",
+                  background: "#eee",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                  cursor: "pointer"
+                }}
+              >
+                Add CO2 (Boost Mood)
+              </button>
+              
+              <button 
+                onClick={async () => {
+                  try {
+                    const { Api } = await import("../shared/api/endpoints");
+                    await Api.addCoins(100);
+                    window.dispatchEvent(new Event("ecolion:refresh-stats"));
+                    setMsg("Rich! (+100 Coins)");
+                    setTimeout(() => setMsg(""), 3000);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                style={{
+                  fontSize: "12px",
+                  padding: "8px 12px",
+                  background: "#ffd700",
+                  border: "1px solid #cca700",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
+                +100 Coins
+              </button>
+            </div>
+            {msg && <p className="successMsg" style={{marginTop: "8px"}}>{msg}</p>}
+          </Card>
+        </section>
       </div>
     </div>
   );
