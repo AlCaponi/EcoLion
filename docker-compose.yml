@@ -9,7 +9,7 @@ services:
       - PORT=8080
       - DATABASE_PATH=/app/data/eco-loewe.db
       - PURGE_DB_ON_START=${PURGE_DB_ON_START:-0}
-      - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-localhost}
+      - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-ecolion.d00.ch}
       - WEBAUTHN_RP_NAME=${WEBAUTHN_RP_NAME:-Eco-Loewe}
       - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-http://localhost:5173}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080}
