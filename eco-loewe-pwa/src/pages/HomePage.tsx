@@ -66,13 +66,14 @@ export default function HomePage() {
   const { language, setLanguage } = useSettings();
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   const [timer, setTimer] = useState(0);
   const [user, setUser] = useState<UserDTO | null>(null);
   const [userStats] = useState({ level: 1, xp: 0 });
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   
   // GPS route tracking
-  const { points, startTracking, stopTracking } = useLocationTracking();
+  const { points, startTracking, stopTracking } = useLocationTracking(isPaused);
 
   // Update map center to follow latest tracked point
   useEffect(() => {
@@ -122,11 +123,11 @@ export default function HomePage() {
 
   useEffect(() => {
     let interval: number;
-    if (activeActivity) {
+    if (activeActivity && !isPaused) {
       interval = setInterval(() => setTimer((t) => t + 1), 1000);
     }
     return () => clearInterval(interval);
-  }, [activeActivity]);
+  }, [activeActivity, isPaused]);
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -231,57 +232,175 @@ export default function HomePage() {
         )}
 
         {/* Slider Control - SBB Easy Ride Style */}
-        <div style={{ padding: "0 1rem", width: "100%", maxWidth: "600px", margin: "0 auto" }}>
-          <div style={{ 
-            position: "relative",
-            width: "100%",
-            height: "60px",
-            backgroundColor: "#f0f0f0",
-            borderRadius: "30px",
-            display: "flex",
-            alignItems: "center",
-            padding: "0 8px",
-            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)"
-          }}>
-            {/* Timer Display in Slider Track */}
+        <div style={{ 
+          padding: "0 1rem", 
+          width: "100%", 
+          maxWidth: "600px", 
+          margin: "0 auto",
+          display: "flex",
+          gap: "1rem",
+          alignItems: "center",
+          justifyContent: "center" // Center the whole control group
+        }}>
+          {/* Pause/Play Button */}
+          <button
+            onClick={() => setIsPaused(!isPaused)}
+            style={{
+              width: "50px",
+              height: "50px",
+              flexShrink: 0, // Prevent shrinking
+              borderRadius: "50%",
+              border: "none",
+              backgroundColor: isPaused ? "#2ecc71" : "#f1c40f",
+              color: "white",
+              fontSize: "1.5rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+            }}
+          >
+            {isPaused ? "▶" : "⏸"}
+          </button>
+
+          {/* Swipe to Stop Slider */}
+          <div 
+            className="slider-container"
+            style={{ 
+              position: "relative",
+              flex: 1,
+              height: "60px",
+              backgroundColor: "#f0f0f0",
+              borderRadius: "30px",
+              display: "flex",
+              alignItems: "center",
+              padding: "4px",
+              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)",
+              overflow: "hidden"
+            }}
+          >
+            {/* Timer Display (Centered) */}
             <div style={{
               position: "absolute",
               left: "50%",
               transform: "translateX(-50%)",
-              fontSize: "1.2rem",
+              fontSize: "1.2rem", // Slightly larger
               fontWeight: "bold",
-              color: "#666",
+              color: "#333", // Darker for better visibility
               pointerEvents: "none",
-              zIndex: 1
+              zIndex: 2 // Above everything else
             }}>
               {formatTime(timer)}
             </div>
 
-            {/* Slider Handle with STOP text */}
-            <button
-              onClick={handleStop}
+            {/* Slider Track Text - Hide if timer has started to reduce clutter, or make it subtle */}
+            <div style={{
+              position: "absolute",
+              width: "100%",
+              textAlign: "right", // Move to right
+              paddingRight: "20px",
+              fontSize: "0.8rem",
+              color: "#aaa",
+              pointerEvents: "none",
+              zIndex: 0,
+              opacity: timer > 5 ? 0 : 1, // Fade out after 5 seconds
+              transition: "opacity 0.5s"
+            }}>
+              Slide to Stop &gt;&gt;
+            </div>
+
+            {/* Draggable Handle */}
+            <div
+              className="slider-handle"
+              onMouseDown={(e) => {
+                const handle = e.currentTarget;
+                const container = handle.parentElement;
+                if (!container) return;
+                
+                const startX = e.clientX;
+                const maxDist = container.clientWidth - handle.clientWidth - 8; 
+                
+                const onMove = (moveEvent: MouseEvent) => {
+                  let dist = moveEvent.clientX - startX;
+                  if (dist < 0) dist = 0;
+                  if (dist > maxDist) dist = maxDist;
+                  handle.style.transform = `translateX(${dist}px)`;
+                };
+                
+                const onUp = (upEvent: MouseEvent) => {
+                  const dist = upEvent.clientX - startX;
+                  document.removeEventListener("mousemove", onMove);
+                  document.removeEventListener("mouseup", onUp);
+                  
+                  if (dist > maxDist * 0.8) { // Require 80% slide
+                    handleStop();
+                  } else {
+                    handle.style.transition = "transform 0.3s ease";
+                    handle.style.transform = "translateX(0)";
+                    setTimeout(() => {
+                      handle.style.transition = "none";
+                    }, 300);
+                  }
+                };
+                
+                document.addEventListener("mousemove", onMove);
+                document.addEventListener("mouseup", onUp);
+              }}
+              onTouchStart={(e) => {
+                 const handle = e.currentTarget;
+                 const container = handle.parentElement;
+                 if (!container) return;
+                 
+                 const touch = e.touches[0];
+                 const startX = touch.clientX;
+                 const maxDist = container.clientWidth - handle.clientWidth - 8;
+
+                 const onTouchMove = (moveEvent: TouchEvent) => {
+                   let dist = moveEvent.touches[0].clientX - startX;
+                   if (dist < 0) dist = 0;
+                   if (dist > maxDist) dist = maxDist;
+                   handle.style.transform = `translateX(${dist}px)`;
+                 };
+
+                 const onTouchEnd = (endEvent: TouchEvent) => {
+                   const dist = endEvent.changedTouches[0].clientX - startX;
+                   document.removeEventListener("touchmove", onTouchMove);
+                   document.removeEventListener("touchend", onTouchEnd);
+                   
+                   if (dist > maxDist * 0.8) {
+                     handleStop();
+                   } else {
+                     handle.style.transition = "transform 0.3s ease";
+                     handle.style.transform = "translateX(0)";
+                     setTimeout(() => {
+                        handle.style.transition = "none";
+                     }, 300);
+                   }
+                 };
+
+                 document.addEventListener("touchmove", onTouchMove);
+                 document.addEventListener("touchend", onTouchEnd);
+              }}
               style={{
-                position: "absolute",
-                right: "4px",
-                width: "120px",
+                width: "52px",
                 height: "52px",
                 backgroundColor: "#e74c3c",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 color: "white",
-                border: "none",
-                borderRadius: "26px",
-                fontSize: "1rem",
+                fontSize: "0.8rem",
                 fontWeight: "bold",
-                cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                transition: "all 0.2s",
-                zIndex: 2
+                cursor: "grab",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                zIndex: 3, // Highest priority
+                touchAction: "none"
               }}
-              onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
-              onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
             >
               STOP
-            </button>
+            </div>
           </div>
         </div>
       </div>

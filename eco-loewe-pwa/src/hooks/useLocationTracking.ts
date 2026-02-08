@@ -38,15 +38,28 @@ const MOCK_ROUTE = [
   { lat: 47.5000, lng: 8.7200 }, // Back to start
 ];
 
-export function useLocationTracking(): UseLocationTrackingReturn {
+export function useLocationTracking(isPaused = false): UseLocationTrackingReturn {
   const [points, setPoints] = useState<LocationPoint[]>([]);
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const watchIdRef = useRef<number | null>(null);
   const intervalIdRef = useRef<number | null>(null);
+  const isPausedRef = useRef(isPaused);
+
+  // Update ref when prop changes
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+    if (isPaused) {
+      console.log("⏸️ Location tracking paused");
+    } else if (isTracking) {
+      console.log("▶️ Location tracking resumed");
+    }
+  }, [isPaused, isTracking]);
 
   const addPoint = useCallback((position: GeolocationPosition) => {
+    if (isPausedRef.current) return; // Skip if paused
+
     const { latitude, longitude, accuracy } = position.coords;
     
     // Filter out low-accuracy points
@@ -105,6 +118,8 @@ export function useLocationTracking(): UseLocationTrackingReturn {
 
       // Add subsequent points at intervals
       intervalIdRef.current = window.setInterval(() => {
+        if (isPausedRef.current) return; // Skip if paused
+
         mockIndex++;
         if (mockIndex >= MOCK_ROUTE.length) {
           mockIndex = 0; // Loop back to start
