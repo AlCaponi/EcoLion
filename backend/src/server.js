@@ -13,6 +13,8 @@ const SUPPORTED_WEBAUTHN_ALGORITHMS = new Set([-7, -257]);
 
 const VALID_ACTIVITY_TYPES = new Set(["walk", "bike", "transit", "drive", "wfh", "pool"]);
 
+
+
 function isIsoTimestamp(value) {
   return typeof value === "string" && !Number.isNaN(Date.parse(value));
 }
@@ -584,6 +586,44 @@ app.post("/v1/shop/purchase", async (request, reply) => {
   
   // Return updated user data (dashboard)
   return store.getDashboard(request.userId);
+});
+
+import OpenAI from "openai";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+app.post("/v1/chat", async (request, reply) => {
+  const message = request.body?.message;
+  if (typeof message !== "string" || !message.trim()) {
+    return reply.code(400).send({ error: "Message is required" });
+  }
+
+  // Rate limiting check
+  const allowed = store.checkAndIncrementQuota(request.userId);
+  if (!allowed) {
+    return reply.code(429).send({ 
+      error: "Daily limit reached. Please come back tomorrow!" 
+    });
+  }
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are EcoLion, a friendly and encouraging mascot for a sustainability app. You help users save CO2 by walking, biking, and using public transport. Keep answers short, fun, and motivating. Use lion emojis 🦁." 
+        },
+        { role: "user", content: message },
+      ],
+    });
+
+    return { reply: completion.choices[0].message.content };
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: "Failed to communicate with AI" });
+  }
 });
 
 app.post("/v1/shop/equip", async (request, reply) => {
