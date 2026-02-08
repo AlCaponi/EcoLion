@@ -61,6 +61,16 @@ export default function MascotDisplay({
 }: MascotDisplayProps) {
   const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
   const motivationalMessage = MOTIVATIONAL_MESSAGES[(level + xp) % MOTIVATIONAL_MESSAGES.length];
+  
+  // Debug logging
+  console.log('MascotDisplay Debug:', {
+    movement,
+    level,
+    xp,
+    motivationalMessage,
+    calculatedIndex: (level + xp) % MOTIVATIONAL_MESSAGES.length
+  });
+  
   const visualWrapperStyle = compact
     ? { ...styles.visualWrapper, width: "180px", height: "180px" }
     : styles.visualWrapper;
@@ -89,7 +99,11 @@ export default function MascotDisplay({
         })}
 
         {/* Optional Speech Bubble for Idle state */}
-        {movement === "idle" && <div style={styles.speechBubble}>{motivationalMessage}</div>}
+        {movement === "idle" && (
+          <div style={styles.speechBubble}>
+            {motivationalMessage}
+          </div>
+        )}
       </div>
 
       {!compact && (
@@ -110,8 +124,9 @@ const styles: Record<string, CSSProperties> = {
     flexDirection: "column",
     alignItems: "center",
     gap: "0.5rem",
-    padding: "0.5rem 1rem",
+    padding: "4rem 1rem 0.5rem 1rem", // Extra top padding for speech bubble
     marginBottom: "0",
+    overflow: "visible", // Allow speech bubble to overflow
   },
   compactContainer: {
     gap: "0.25rem",
@@ -124,6 +139,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "visible", // Allow speech bubble to overflow
   },
   layer: {
     position: "absolute",
@@ -138,31 +154,33 @@ const styles: Record<string, CSSProperties> = {
   },
   speechBubble: {
     position: "absolute",
-    top: "-60px",
-    right: "-20px",
+    top: "-70px",
+    left: "50%",
+    transform: "translateX(-50%)",
     backgroundColor: "white",
-    padding: "0.5rem 1rem",
+    padding: "0.75rem 1.25rem",
     borderRadius: "20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
     fontSize: "0.9rem",
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#333",
-    zIndex: 100, // Always on top
-    animation: "float 3s ease-in-out infinite",
-  },
+    zIndex: 100,
+    whiteSpace: "nowrap",
+    border: "2px solid #e0e0e0",
+  } as CSSProperties,
   statsContainer: {
     display: "flex",
     gap: "0.8rem",
     alignItems: "center",
   },
   statRow: {
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(0,0,0,0.05)",
     padding: "0.4rem 0.8rem",
     borderRadius: "12px",
     backdropFilter: "blur(4px)",
     display: "flex",
     gap: "0.5rem",
-    color: "#fff",
+    color: "#333",
     fontWeight: "500",
   },
   statLabel: {},
