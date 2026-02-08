@@ -595,8 +595,6 @@ const openai = new OpenAI({
 
 app.post("/v1/chat", async (request, reply) => {
   const message = request.body?.message;
-  const language = request.body?.language || "en";
-
   if (typeof message !== "string" || !message.trim()) {
     return reply.code(400).send({ error: "Message is required" });
   }
