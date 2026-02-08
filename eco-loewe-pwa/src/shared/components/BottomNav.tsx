@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useSettings } from "../context/SettingsContext";
 
 /* Minimal inline SVG icons — 24×24, strokeWidth 2, no fill */
 const icons = {
@@ -41,6 +42,7 @@ const icons = {
 };
 
 export default function BottomNav() {
+  const { t } = useSettings();
   const cls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "navItem active" : "navItem";
 
@@ -48,22 +50,23 @@ export default function BottomNav() {
     <nav className="bottomNav">
       <NavLink to="/" className={cls}>
         {icons.home}
-        <span>Home</span>
+        <span>{t("nav.home")}</span>
       </NavLink>
       <NavLink to="/stats" className={cls}>
         {icons.stats}
-        <span>Stats</span>
+        <span>{t("nav.stats")}</span>
       </NavLink>
       <NavLink to="/leaderboard" className={cls}>
         {icons.trophy}
+        <span>{t("nav.leaderboard")}</span>
       </NavLink>
       <NavLink to="/shop" className={cls}>
         {icons.shop}
-        <span>Shop</span>
+        <span>{t("nav.shop")}</span>
       </NavLink>
       <NavLink to="/rewards" className={cls}>
         {icons.rewards}
-        <span>Rewards</span>
+        <span>{t("nav.rewards")}</span>
       </NavLink>
     </nav>
   );

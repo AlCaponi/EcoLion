@@ -68,6 +68,7 @@
   align-items: center;
   justify-content: center;
   background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 8px 4px;

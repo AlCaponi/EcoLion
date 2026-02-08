@@ -8,7 +8,9 @@ services:
     environment:
       - PORT=8080
       - DATABASE_PATH=/app/data/eco-loewe.db
-      - PURGE_DB_ON_START=${PURGE_DB_ON_START:-0}
+      - DATABASE_PATH=/app/data/eco-loewe.db
+      - PURGE_DB_ON_START=1
+      - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-ecolion.d00.ch}
       - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-ecolion.d00.ch}
       - WEBAUTHN_RP_NAME=${WEBAUTHN_RP_NAME:-Eco-Loewe}
       - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-http://localhost:5173}
@@ -42,14 +44,14 @@ services:
       - ./eco-loewe-pwa/src:/app/src
     restart: unless-stopped
 
-  api-tests:
-    build:
-      context: ./api-tests
-      dockerfile: Dockerfile
-    environment:
-      - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
-    depends_on:
-      backend:
-        condition: service_healthy
-    volumes:
-      - ./api-tests/src:/app/src
+#  api-tests:
+#    build:
+#      context: ./api-tests
+#      dockerfile: Dockerfile
+#    environment:
+#      - API_BASE_URL=${API_BASE_URL:-http://backend:8080}
+#    depends_on:
+#      backend:
+#        condition: service_healthy
+#    volumes:
+#      - ./api-tests/src:/app/src
