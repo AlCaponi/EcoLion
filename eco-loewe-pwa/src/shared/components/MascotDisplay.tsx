@@ -60,16 +60,10 @@ export default function MascotDisplay({
   compact = false,
 }: MascotDisplayProps) {
   const baseImageSrc = MOVEMENT_IMAGES[movement] || idleParams;
-  const motivationalMessage = MOTIVATIONAL_MESSAGES[(level + xp) % MOTIVATIONAL_MESSAGES.length];
   
-  // Debug logging
-  console.log('MascotDisplay Debug:', {
-    movement,
-    level,
-    xp,
-    motivationalMessage,
-    calculatedIndex: (level + xp) % MOTIVATIONAL_MESSAGES.length
-  });
+  // Select motivational message based on level and xp for consistency
+  const messageIndex = (level + xp) % MOTIVATIONAL_MESSAGES.length;
+  const motivationalMessage = MOTIVATIONAL_MESSAGES[messageIndex] || "Let's go green today! 🌿";
   
   const visualWrapperStyle = compact
     ? { ...styles.visualWrapper, width: "180px", height: "180px" }
@@ -80,6 +74,13 @@ export default function MascotDisplay({
       className={`mascot-container ${className}`}
       style={{ ...styles.container, ...(compact ? styles.compactContainer : {}), ...style }}
     >
+      {/* Optional Speech Bubble for Idle state - ABOVE the lion */}
+      {movement === "idle" && (
+        <div style={styles.speechBubble}>
+          {motivationalMessage}
+        </div>
+      )}
+
       <div className="mascot-visual" style={visualWrapperStyle}>
         {/* Base Layer (Z-Index 1) */}
         <img src={baseImageSrc} alt={`Eco-Lion is ${movement}`} style={{ ...styles.layer, ...styles.baseLayer }} />
@@ -97,13 +98,6 @@ export default function MascotDisplay({
             />
           );
         })}
-
-        {/* Optional Speech Bubble for Idle state */}
-        {movement === "idle" && (
-          <div style={styles.speechBubble}>
-            {motivationalMessage}
-          </div>
-        )}
       </div>
 
       {!compact && (
@@ -153,10 +147,6 @@ const styles: Record<string, CSSProperties> = {
     zIndex: 1,
   },
   speechBubble: {
-    position: "absolute",
-    top: "-70px",
-    left: "50%",
-    transform: "translateX(-50%)",
     backgroundColor: "white",
     padding: "0.75rem 1.25rem",
     borderRadius: "20px",
@@ -164,9 +154,10 @@ const styles: Record<string, CSSProperties> = {
     fontSize: "0.9rem",
     fontWeight: "600",
     color: "#333",
-    zIndex: 100,
     whiteSpace: "nowrap",
     border: "2px solid #e0e0e0",
+    marginBottom: "0.5rem",
+    textAlign: "center",
   } as CSSProperties,
   statsContainer: {
     display: "flex",
