@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Api } from "../api/endpoints";
+import { useSettings } from "../context/SettingsContext";
 import "../../styles/components/chat-widget.css";
 
 interface Message {
@@ -8,13 +9,24 @@ interface Message {
 }
 
 export default function ChatWidget() {
+  const { language, t } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "lion", text: "Hi! I'm EcoLion. Ask me anything about saving CO2! 🦁" },
+    { role: "lion", text: t("chat.greeting") },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update greeting when language changes
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length > 0 && prev[0].role === "lion") {
+        return [{ ...prev[0], text: t("chat.greeting") }, ...prev.slice(1)];
+      }
+      return prev;
+    });
+  }, [language, t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,6 +35,8 @@ export default function ChatWidget() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isOpen]);
+
+
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -33,7 +47,7 @@ export default function ChatWidget() {
     setLoading(true);
 
     try {
-      const { reply } = await Api.chat(userMsg);
+      const { reply } = await Api.chat(userMsg, language);
       setMessages((prev) => [...prev, { role: "lion", text: reply }]);
     } catch (error: any) {
       console.error(error);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSettings } from "../shared/context/SettingsContext";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Card from "../shared/components/Card";
@@ -62,6 +63,7 @@ const ACTIVITIES = [
 ];
 
 export default function HomePage() {
+  const { language, setLanguage } = useSettings();
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>(null);
   const [currentActivityId, setCurrentActivityId] = useState<number | null>(null);
   const [timer, setTimer] = useState(0);
@@ -291,7 +293,25 @@ export default function HomePage() {
       <h1>Willkommen, Eco-Löwe! 🦁</h1>
 
       <Card>
-        <div className="sectionTitle">Dein Löwe</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <div className="sectionTitle" style={{ marginBottom: 0 }}>Dein Löwe</div>
+          <div className="segmented" style={{ transform: "scale(0.8)", margin: 0 }}>
+            <button
+              aria-selected={language === "de"}
+              onClick={() => setLanguage("de")}
+              style={{ padding: "4px 8px", fontSize: "12px" }}
+            >
+              DE
+            </button>
+            <button
+              aria-selected={language === "en"}
+              onClick={() => setLanguage("en")}
+              style={{ padding: "4px 8px", fontSize: "12px" }}
+            >
+              EN
+            </button>
+          </div>
+        </div>
         {user?.lion ? (
           <MascotDisplay
             level={Math.floor(user.sustainabilityScore / 100) + 1}

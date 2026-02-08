@@ -595,6 +595,8 @@ const openai = new OpenAI({
 
 app.post("/v1/chat", async (request, reply) => {
   const message = request.body?.message;
+  const language = request.body?.language || "en";
+
   if (typeof message !== "string" || !message.trim()) {
     return reply.code(400).send({ error: "Message is required" });
   }
@@ -607,13 +609,18 @@ app.post("/v1/chat", async (request, reply) => {
     });
   }
 
+  const systemPrompts = {
+    en: "You are EcoLion, a friendly and encouraging mascot for a sustainability app. You help users save CO2 by walking, biking, and using public transport. Keep answers short, fun, and motivating. Use lion emojis 🦁.",
+    de: "Du bist EcoLion, ein freundliches und ermutigendes Maskottchen für eine Nachhaltigkeits-App. Du hilfst Nutzern, CO2 zu sparen, indem sie laufen, Rad fahren oder den ÖV nutzen. Halte Antworten kurz, lustig und motivierend. Nutze Löwen-Emojis 🦁."
+  };
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { 
           role: "system", 
-          content: "You are EcoLion, a friendly and encouraging mascot for a sustainability app. You help users save CO2 by walking, biking, and using public transport. Keep answers short, fun, and motivating. Use lion emojis 🦁." 
+          content: systemPrompts[language] || systemPrompts.en
         },
         { role: "user", content: message },
       ],
@@ -655,7 +662,8 @@ app.post("/v1/shop/buyCoins", async (request, reply) => {
     return reply.code(400).send({ error: "Valid amount is required" });
   }
 
-  const dashboard = store.addCoins(request.userId, amount);
+  store.addCoins(request.userId, amount);
+  const dashboard = store.getDashboard(request.userId);
   return {
     transactionId: `txn-${Date.now()}`,
     coinsAdded: amount,

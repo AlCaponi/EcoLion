@@ -3,6 +3,7 @@ import Card from "../shared/components/Card";
 import PrimaryButton from "../shared/components/PrimaryButton";
 import { Api } from "../shared/api/endpoints";
 import type { LeaderboardDTO, LeaderboardEntry, QuartierEntry } from "../shared/api/types";
+import { useSettings } from "../shared/context/SettingsContext";
 
 type Tab = "quartiere" | "stadt" | "freund";
 
@@ -61,6 +62,7 @@ function splitPodiumAndList(entries: LeaderboardEntry[] = []) {
 }
 
 export default function LeaderboardPage() {
+  const { t } = useSettings();
   const [data, setData] = useState<LeaderboardDTO | null>(null);
   const [tab, setTab] = useState<Tab>("stadt");
   const [poking, setPoking] = useState<string | null>(null);
@@ -203,7 +205,7 @@ export default function LeaderboardPage() {
   return (
     <div className="page leaderboardPage">
       <div className="lbHeader">
-        <h1>🏆 Leaderboard</h1>
+        <h1>🏆 {t("nav.leaderboard")}</h1>
         <p className="lbSubtitle">Wer spart am meisten CO₂?</p>
       </div>
 

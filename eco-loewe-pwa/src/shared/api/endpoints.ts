@@ -62,7 +62,7 @@ export const Api = {
     apiRequest<StopActivityResponseDTO>("/v1/activity/stop", "POST", payload),
   getActivity: (activityId: number) =>
     apiRequest<GetActivityResponseDTO>(`/v1/activity/${activityId}`),
-  chat: (message: string) => apiRequest<{ reply: string }>("/v1/chat", "POST", { message }),
+  chat: (message: string, language: string = "en") => apiRequest<{ reply: string }>("/v1/chat", "POST", { message, language }),
   debugBoost: () => apiRequest<{ ok: boolean }>("/v1/debug/boost", "POST"),
   addCoins: (amount: number) => apiRequest<{ ok: boolean }>("/v1/debug/coins", "POST", { amount }),
 };

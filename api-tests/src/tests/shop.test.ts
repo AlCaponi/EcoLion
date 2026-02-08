@@ -59,6 +59,9 @@ describe("Shop API", () => {
       const available = items.find((i) => !i.owned);
       if (!available) return; // skip if nothing available
 
+      // Add coins first to ensure purchase succeeds
+      await client.post("/v1/shop/buyCoins", { amount: 1000 });
+
       const { status } = await client.post("/v1/shop/purchase", {
         itemId: available.id,
       });
