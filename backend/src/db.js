@@ -239,6 +239,9 @@ function estimateCo2SavedKg(activityType, distanceMeters) {
 }
 
 function mapActivityRow(row) {
+  const gpxRaw = row.gpx_json ?? row.gpx;
+  const proofsRaw = row.proofs_json ?? row.proofs;
+
   return {
     activityId: row.id,
     activityType: row.activity_type,
@@ -250,8 +253,8 @@ function mapActivityRow(row) {
       typeof row.distance_meters === "number" ? row.distance_meters : undefined,
     xpEarned: row.xp_earned ?? 0,
     co2SavedKg: row.co2_saved_kg ?? 0,
-    gpx: row.gpx_json ? safeParseJson(row.gpx_json, undefined) : undefined,
-    proofs: row.proofs_json ? safeParseJson(row.proofs_json, undefined) : undefined,
+    gpx: gpxRaw ? safeParseJson(gpxRaw, undefined) : undefined,
+    proofs: proofsRaw ? safeParseJson(proofsRaw, undefined) : undefined,
   };
 }
 
@@ -413,6 +416,21 @@ export function createStore(dbPath) {
   const authSessionColumnNames = new Set(authSessionColumns.map((col) => col.name));
   if (!authSessionColumnNames.has("meta_json")) {
     db.exec("ALTER TABLE auth_sessions ADD COLUMN meta_json TEXT");
+  }
+
+  const activityColumns = db.prepare("PRAGMA table_info(activities)").all();
+  const activityColumnNames = new Set(activityColumns.map((col) => col.name));
+  if (!activityColumnNames.has("gpx_json")) {
+    db.exec("ALTER TABLE activities ADD COLUMN gpx_json TEXT");
+  }
+  if (!activityColumnNames.has("proofs_json")) {
+    db.exec("ALTER TABLE activities ADD COLUMN proofs_json TEXT");
+  }
+  if (activityColumnNames.has("gpx")) {
+    db.exec("UPDATE activities SET gpx_json = COALESCE(gpx_json, gpx) WHERE gpx IS NOT NULL");
+  }
+  if (activityColumnNames.has("proofs")) {
+    db.exec("UPDATE activities SET proofs_json = COALESCE(proofs_json, proofs) WHERE proofs IS NOT NULL");
   }
 
   if (!db.prepare("SELECT 1 FROM settings WHERE key = 'default_dashboard'").get()) {
@@ -1006,8 +1024,10 @@ export function createStore(dbPath) {
         distanceMeters,
         xpEarned,
         co2SavedKg,
-        gpx === undefined ? activity.gpx_json : JSON.stringify(gpx),
-        proofs === undefined ? activity.proofs_json : JSON.stringify(proofs),
+        gpx === undefined ? (activity.gpx_json ?? activity.gpx ?? null) : JSON.stringify(gpx),
+        proofs === undefined
+          ? (activity.proofs_json ?? activity.proofs ?? null)
+          : JSON.stringify(proofs),
         activityId,
         userId,
       );

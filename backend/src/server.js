@@ -749,6 +749,7 @@ app.post("/v1/activity/start", async (request, reply) => {
 app.post("/v1/activity/stop", async (request, reply) => {
   const activityId = request.body?.activityId;
   const stopTime = request.body?.stopTime;
+  const gpx = request.body?.gpx ?? request.body?.gpsLog;
 
   if (!Number.isInteger(activityId) || activityId <= 0) {
     return reply.code(400).send({ error: "Valid activityId is required" });
@@ -760,7 +761,7 @@ app.post("/v1/activity/stop", async (request, reply) => {
   const result = store.stopActivity(request.userId, {
     activityId,
     stopTime,
-    gpx: request.body?.gpx,
+    gpx,
     proofs: request.body?.proofs,
   });
 
