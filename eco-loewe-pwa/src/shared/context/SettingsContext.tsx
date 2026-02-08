@@ -40,9 +40,11 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "settings.estimate": "Estimate CO2 Savings",
     "nav.home": "Home",
     "nav.stats": "Stats",
+    "nav.leaderboard": "Leaderboard",
     "nav.shop": "Shop",
     "nav.rewards": "Rewards",
     "common.logout": "Logout",
+    "chat.greeting": "Hi! I'm EcoLion. Ask me anything about saving CO2! 🦁",
   },
   de: {
     "settings.title": "Einstellungen",
@@ -56,9 +58,11 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "settings.estimate": "CO2-Einsparung schätzen",
     "nav.home": "Start",
     "nav.stats": "Statistik",
+    "nav.leaderboard": "Rangliste",
     "nav.shop": "Shop",
     "nav.rewards": "Prämien",
     "common.logout": "Abmelden",
+    "chat.greeting": "Hallo! Ich bin EcoLion. Frag mich alles über CO2-Sparen! 🦁",
   },
 };
 

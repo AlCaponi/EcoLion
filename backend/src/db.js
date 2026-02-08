@@ -261,7 +261,9 @@ export function createStore(dbPath) {
   );
   if (purgeOnStart && dbPath && dbPath !== ":memory:") {
     try {
+      console.log(`[DB] Purging database at ${dbPath}...`);
       fs.rmSync(dbPath, { force: true });
+      console.log("[DB] Database purged.");
     } catch (error) {
       console.warn("Failed to purge database file:", error);
     }

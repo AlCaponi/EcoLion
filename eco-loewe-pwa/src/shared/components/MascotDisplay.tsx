@@ -149,15 +149,17 @@ const styles: Record<string, CSSProperties> = {
     position: "absolute",
     top: "-60px",
     right: "-20px",
-    backgroundColor: "white",
+    backgroundColor: "var(--surface)",
+    border: "1px solid var(--border)",
     padding: "0.5rem 1rem",
     borderRadius: "20px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     fontSize: "0.9rem",
     fontWeight: "bold",
-    color: "#333",
-    zIndex: 100, // Always on top
+    color: "var(--text)", // Correct theme color
+    zIndex: 1000,
     animation: "float 3s ease-in-out infinite",
+    whiteSpace: "nowrap", // Prevent wrapping
   },
   statsContainer: {
     display: "flex",
@@ -165,13 +167,14 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
   },
   statRow: {
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "var(--surface-2)", // Correct adaptive background
+    border: "1px solid var(--border)",
     padding: "0.4rem 0.8rem",
     borderRadius: "12px",
-    backdropFilter: "blur(4px)",
+    // backdropFilter: "blur(4px)", // Removed for better compatibility
     display: "flex",
     gap: "0.5rem",
-    color: "#fff",
+    color: "var(--text)", // Correct adaptive text
     fontWeight: "500",
   },
   statLabel: {},
