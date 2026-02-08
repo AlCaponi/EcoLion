@@ -1,6 +1,7 @@
 .appShell{
   min-height: 100dvh;
   background: var(--bg);
+  color: var(--text);
   display: grid;
   grid-template-rows: 56px 1fr 62px;
 }
@@ -47,7 +48,7 @@
   padding: 6px 10px;
   border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--border) 80%);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--brand) 8%, white 92%);
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface) 92%);
   color: var(--text);
   font-size: 12px;
   font-weight: 800;
@@ -59,7 +60,7 @@
 .logoutButton{
   appearance: none;
   border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border) 70%);
-  background: color-mix(in srgb, var(--brand) 10%, white 90%);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface) 90%);
   color: var(--brand-dark);
   border-radius: 999px;
   padding: 7px 12px;
@@ -74,7 +75,7 @@
 }
 
 .logoutButton:hover{
-  background: color-mix(in srgb, var(--brand) 15%, white 85%);
+  background: color-mix(in srgb, var(--brand) 15%, var(--surface) 85%);
 }
 
 .logoutButton:active{

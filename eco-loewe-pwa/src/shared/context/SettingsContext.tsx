@@ -50,7 +50,7 @@ const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "settings.language": "Sprache",
     "settings.notifications": "Benachrichtigungen",
     "settings.addresses": "Adressen",
-    "settings.homeAddress": "Zuhause Adresse",
+    "settings.homeAddress": "Wohnadresse",
     "settings.workAddress": "Arbeitsadresse",
     "settings.save": "Speichern",
     "settings.estimate": "CO2-Einsparung schätzen",
@@ -129,3 +129,4 @@ export function useSettings() {
   }
   return context;
 }
+  
