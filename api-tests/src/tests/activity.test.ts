@@ -126,6 +126,64 @@ describe("POST /v1/activity/stop", () => {
     expect(data.co2SavedKg).toBeGreaterThanOrEqual(0);
   });
 
+  it("should persist gpx payload on stop", async () => {
+    const { data: started } = await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "walk", startTime: "2023-10-27T15:00:00Z" },
+    );
+
+    const gpx = {
+      points: [
+        { lat: 47.5, lng: 8.72, timestamp: "2023-10-27T15:02:00Z", accuracy: 9.2 },
+        { lat: 47.5005, lng: 8.721, timestamp: "2023-10-27T15:04:00Z", accuracy: 8.4 },
+      ],
+    };
+
+    const { data: stopped } = await client.post<StopActivityResponseDTO>(
+      "/v1/activity/stop",
+      {
+        activityId: started.activityId,
+        stopTime: "2023-10-27T15:10:00Z",
+        gpx,
+      },
+    );
+    expect(stopped.gpx).toEqual(gpx);
+
+    const { data: fetched } = await client.get<GetActivityResponseDTO>(
+      `/v1/activity/${started.activityId}`,
+    );
+    expect(fetched.gpx).toEqual(gpx);
+  });
+
+  it("should persist gpsLog alias as gpx", async () => {
+    const { data: started } = await client.post<StartActivityResponseDTO>(
+      "/v1/activity/start",
+      { activityType: "bike", startTime: "2023-10-27T16:00:00Z" },
+    );
+
+    const gpsLog = {
+      points: [
+        { lat: 47.51, lng: 8.73, timestamp: "2023-10-27T16:02:00Z" },
+        { lat: 47.512, lng: 8.735, timestamp: "2023-10-27T16:05:00Z" },
+      ],
+    };
+
+    const { data: stopped } = await client.post<StopActivityResponseDTO>(
+      "/v1/activity/stop",
+      {
+        activityId: started.activityId,
+        stopTime: "2023-10-27T16:12:00Z",
+        gpsLog,
+      },
+    );
+    expect(stopped.gpx).toEqual(gpsLog);
+
+    const { data: fetched } = await client.get<GetActivityResponseDTO>(
+      `/v1/activity/${started.activityId}`,
+    );
+    expect(fetched.gpx).toEqual(gpsLog);
+  });
+
   it("should return 400 when activityId is missing", async () => {
     const { status } = await client.post("/v1/activity/stop", {
       stopTime: "2023-10-27T10:30:00Z",

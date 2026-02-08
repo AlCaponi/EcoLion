@@ -22,6 +22,7 @@ function errorMessage(error: unknown): string {
 
 export default function AuthPage({ onAuthenticated }: AuthPageProps) {
   const [displayName, setDisplayName] = useState("");
+  const [quartier, setQuartier] = useState("Altstadt");
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -80,30 +81,10 @@ export default function AuthPage({ onAuthenticated }: AuthPageProps) {
     <main className="authPage">
       <section className="authCard">
         <p className="authEyebrow">Eco-Loewe</p>
-        <h1>Sign in with a Passkey</h1>
+        <h1>Anmelden</h1>
         <p className="authDescription">
-          Register once with your name, then unlock the app with your passkey only.
+          Melde dich mit deinem bestehenden Passkey an oder registriere dich neu.
         </p>
-
-        <form className="authForm" onSubmit={handleRegister}>
-          <label htmlFor="displayName">Name</label>
-          <input
-            id="displayName"
-            type="text"
-            placeholder="Your name"
-            value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            autoComplete="nickname"
-            disabled={!supportsPasskeys || isRegistering || isLoggingIn}
-          />
-          <button
-            type="submit"
-            className="btn btnPrimary"
-            disabled={!supportsPasskeys || isRegistering || isLoggingIn}
-          >
-            {isRegistering ? "Creating passkey..." : "Register + Create Passkey"}
-          </button>
-        </form>
 
         <button
           type="button"
@@ -111,11 +92,47 @@ export default function AuthPage({ onAuthenticated }: AuthPageProps) {
           onClick={handleLogin}
           disabled={!supportsPasskeys || isLoggingIn || isRegistering}
         >
-          {isLoggingIn ? "Waiting for passkey..." : "Login with Passkey"}
+          {isLoggingIn ? "Warte auf Passkey..." : "Login"}
         </button>
 
+        <h2 className="authSectionTitle">Registrieren</h2>
+        <form className="authForm" onSubmit={handleRegister}>
+          <label htmlFor="displayName">Name</label>
+          <input
+            id="displayName"
+            type="text"
+            placeholder="Dein Name"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+            autoComplete="nickname"
+            disabled={!supportsPasskeys || isRegistering || isLoggingIn}
+          />
+          <label htmlFor="quartier">Quartier</label>
+          <select
+            id="quartier"
+            value={quartier}
+            onChange={(event) => setQuartier(event.target.value)}
+            disabled={!supportsPasskeys || isRegistering || isLoggingIn}
+          >
+            <option value="Altstadt">Altstadt</option>
+            <option value="Oberwinterthur">Oberwinterthur</option>
+            <option value="Seen">Seen</option>
+            <option value="Töss">Töss</option>
+            <option value="Veltheim">Veltheim</option>
+            <option value="Wülflingen">Wülflingen</option>
+            <option value="Mattenbach">Mattenbach</option>
+          </select>
+          <button
+            type="submit"
+            className="btn btnPrimary"
+            disabled={!supportsPasskeys || isRegistering || isLoggingIn}
+          >
+            {isRegistering ? "Registrierung läuft..." : "Registrieren"}
+          </button>
+        </form>
+
         {!supportsPasskeys && (
-          <p className="authError">This browser does not support passkeys.</p>
+          <p className="authError">Dieser Browser unterstützt keine Passkeys.</p>
         )}
         {message && <p className="authError">{message}</p>}
       </section>

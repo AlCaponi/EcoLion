@@ -171,6 +171,7 @@ export const StopActivityRequestSchema = z.object({
   activityId: z.number().int().positive(),
   stopTime: z.string().datetime(),
   gpx: z.unknown().optional(),
+  gpsLog: z.unknown().optional(),
   proofs: z.array(z.object({}).passthrough()).optional(),
 });
 

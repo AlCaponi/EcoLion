@@ -300,6 +300,7 @@ export interface StopActivityRequestDTO {
   activityId: number;
   stopTime: string; // ISO timestamp
   gpx?: GPXData; // optional GPS route tracking data
+  gpsLog?: GPXData; // legacy alias accepted by backend
   proofs?: object[]; // optional activity proofs like QR scans, pictures etc.
 }
 
