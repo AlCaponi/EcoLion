@@ -11,8 +11,8 @@ services:
       - PURGE_DB_ON_START=${PURGE_DB_ON_START:-0}
       - WEBAUTHN_RP_ID=${WEBAUTHN_RP_ID:-ecolion.d00.ch}
       - WEBAUTHN_RP_NAME=${WEBAUTHN_RP_NAME:-Eco-Loewe}
-      - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-https://ecolion.d00.ch}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://ecolion.d00.ch,https://ecolionapi.d00.ch}
+      - WEBAUTHN_ALLOWED_ORIGINS=${WEBAUTHN_ALLOWED_ORIGINS:-http://localhost:5173}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8080}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./backend/data:/app/data
